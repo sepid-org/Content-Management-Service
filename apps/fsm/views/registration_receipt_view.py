@@ -13,6 +13,7 @@ from apps.fsm.models import RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationStatusSerializer
 from apps.fsm.serializers.certificate_serializer import create_certificate
+from proxies.sms_system.main import get_sms_service_proxy
 
 
 class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyModelMixin):
@@ -28,7 +29,8 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
         if self.action in ['destroy', 'get_certificate']:
             permission_classes = [IsRegistrationReceiptOwner]
         elif self.action == 'retrieve':
-            permission_classes = [IsRegistrationReceiptOwner | IsReceiptsFormModifier]
+            permission_classes = [
+                IsRegistrationReceiptOwner | IsReceiptsFormModifier]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -36,7 +38,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except(KeyError, AttributeError):
+        except (KeyError, AttributeError):
             return super().get_serializer_class()
 
     def get_queryset(self):
@@ -47,7 +49,8 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({'domain': self.request.build_absolute_uri('/api/'[:-5])})
+        context.update(
+            {'domain': self.request.build_absolute_uri('/api/'[:-5])})
         return context
 
     @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
@@ -59,9 +62,11 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
             raise PermissionDenied(serialize_error('4061'))
         # if not self.request.user.school_studentship.is_document_verified:
         #     raise PermissionDenied(serialize_error('4062'))
-        status_serializer = RegistrationStatusSerializer(data=self.request.data)
+        status_serializer = RegistrationStatusSerializer(
+            data=self.request.data)
         if status_serializer.is_valid(raise_exception=True):
-            registration_status = status_serializer.data.get('status', RegistrationReceipt.RegistrationStatus.Waiting)
+            registration_status = status_serializer.data.get(
+                'status', RegistrationReceipt.RegistrationStatus.Waiting)
 
             if registration_status == RegistrationReceipt.RegistrationStatus.Accepted:
                 merchandise = receipt.answer_sheet_of.event_or_fsm.merchandise
@@ -75,23 +80,20 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
             receipt.status = registration_status
             receipt.save()
 
-            # if older_status != receipt.status:
-            #     # TODO - I did the dirty way to force us change it to notification sooner
-            #     def send_update_notification_sms(user, token):
-            #         # text to put in kavenegar: 'کاربر گرامی، تغییری در وضعیت ثبت‌نام شما در '{token}' ایجاد شده است. به کاموا مراجعه کنید: kamva.academy'
-            #         from kamva_backend.settings.base import KAVENEGAR_API, SMS_CODE_DELAY
-            #         api = KAVENEGAR_API
-            #         params = {
-            #             'receptor': user.phone_number,
-            #             'template': 'receipt_update',
-            #             'token': token,
-            #             'type': 'sms'
-            #         }
-            #         api.verify_lookup(params)
-            #     send_update_notification_sms(receipt.user, receipt.answer_sheet_of.event_or_fsm.name)
+            # todo: fix academy name
+            if older_status != receipt.status:
+                sms_service_proxy = get_sms_service_proxy(
+                    type='kavenegar', token='todo')
+                sms_service_proxy.send_otp(
+                    receptor_phone_number=receipt.user.phone_number,
+                    type=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
+                    token='نام آکادمی',
+                    token2=receipt.answer_sheet_of.event_or_fsm.name
+                )
 
             return Response(
-                RegistrationReceiptSerializer(context=self.get_serializer_context()).to_representation(receipt),
+                RegistrationReceiptSerializer(
+                    context=self.get_serializer_context()).to_representation(receipt),
                 status=status.HTTP_200_OK)
 
     @swagger_auto_schema(tags=my_tags + ['certificates'])
@@ -105,7 +107,8 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
         certificate_templates = receipt.answer_sheet_of.certificate_templates.all()
         # filter templates accordingly to user performance
         if len(certificate_templates) > 0:
-            receipt.certificate = create_certificate(certificate_templates.first(), request.user.full_name)
+            receipt.certificate = create_certificate(
+                certificate_templates.first(), request.user.full_name)
             receipt.save()
         else:
             raise NotFound(serialize_error('4095'))
