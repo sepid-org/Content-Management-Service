@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-from kavenegar import *
 
 
 def get_environment_var(var_name, default, prefixed=True):
@@ -21,7 +20,8 @@ def get_environment_var(var_name, default, prefixed=True):
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -217,13 +217,7 @@ SWAGGER_SETTINGS = {
     'DOC_EXPANSION': 'none',
 }
 
-KAVENEGAR_TOKEN = get_environment_var(
-    'KAVENEGAR_TOKEN', '6A4F554D384477574A7162444F614B4A6C626A64495169306A43417566473655624644394833566C352F593D')
-
-KAVENEGAR_API = KavenegarAPI(KAVENEGAR_TOKEN)
-
-SMS_CODE_DELAY = 5
-SMS_CODE_LENGTH = 5
+KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)
 
 VOUCHER_CODE_LENGTH = 5
 

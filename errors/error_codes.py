@@ -1,8 +1,7 @@
 import logging
-
 from rest_framework.exceptions import ValidationError
 
-from kamva_backend.settings.base import SMS_CODE_LENGTH
+from proxies.sms_system.main import SMS_CODE_LENGTH
 
 logger = logging.getLogger(__name__)
 

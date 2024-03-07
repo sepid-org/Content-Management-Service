@@ -8,10 +8,10 @@ from datetime import timedelta, datetime
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
-
 from apps.accounts.validators import percentage_validator
-from kamva_backend.settings.base import KAVENEGAR_API, SMS_CODE_DELAY, SMS_CODE_LENGTH, VOUCHER_CODE_LENGTH, \
-    DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
+from kamva_backend.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
+from proxies.sms_system.kavenegar import KaveNegarSMSServiceProxy
+from proxies.sms_system.main import SMS_CODE_DELAY, SMS_CODE_LENGTH
 
 
 class User(AbstractUser):
@@ -21,7 +21,8 @@ class User(AbstractUser):
 
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    phone_number = models.CharField(max_length=15, blank=True, null=True, unique=True)
+    phone_number = models.CharField(
+        max_length=15, blank=True, null=True, unique=True)
     # national code should not be unique, due it's not validated
     national_code = models.CharField(max_length=10, null=True, blank=True)
     profile_picture = models.ImageField(
@@ -340,6 +341,13 @@ class VerificationCodeManager(models.Manager):
 
 
 class VerificationCode(models.Model):
+    class VerificationType(models.TextChoices):
+        ChangeUserPassword = "change-user-password"
+        RegisterUser = "register-user"
+ 
+    #todo: set verification code while sending verification code
+    verification_type = models.CharField(
+        blank=False, null=True, choices=VerificationType.choices, max_length=30)
     phone_number = models.CharField(blank=True, max_length=13, null=True)
     code = models.CharField(blank=True, max_length=10, null=True)
     expiration_date = models.DateTimeField(blank=False, null=False)
@@ -347,15 +355,13 @@ class VerificationCode(models.Model):
 
     objects = VerificationCodeManager()
 
-    def send_sms(self, code_type='verify'):
-        api = KAVENEGAR_API
-        params = {
-            'receptor': self.phone_number,
-            'template': code_type,
-            'token': str(self.code),
-            'type': 'sms'
-        }
-        api.verify_lookup(params)
+    def notify(self, verification_type):
+        if verification_type == 'changePass':
+            action_type = 'verify-changing-password'
+        elif verification_type == 'verify':
+            action_type = 'verify-registration'
+        sms_service = KaveNegarSMSServiceProxy()
+        sms_service.send_otp(self.phone_number, action_type, str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'

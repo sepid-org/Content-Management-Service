@@ -38,7 +38,7 @@ class SendVerificationCode(GenericAPIView):
             verification_code = VerificationCode.objects.create_verification_code(
                 phone_number=phone_number)
             try:
-                verification_code.send_sms(
+                verification_code.notify(
                     serializer.validated_data.get('code_type', None))
             except:
                 raise ServiceUnavailable(serialize_error('5000'))
