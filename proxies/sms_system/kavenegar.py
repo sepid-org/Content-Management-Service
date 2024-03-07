@@ -15,6 +15,7 @@ class KaveNegarSMSServiceProxy(SMSServiceProxy):
         pass
 
     def send_otp(self, receptor_phone_number, type, token, token2=None, token3=None):
+        # todo: will be remove after configing kavenegar
         template = None
         if type == self.OtpTypes.CreateUserAccount:
             template = 'verify'
