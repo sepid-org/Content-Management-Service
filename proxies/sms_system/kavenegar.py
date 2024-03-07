@@ -1,29 +1,26 @@
 # documentation: https://github.com/kavenegar/kavenegar-python
 
-from django.conf import settings
 from kavenegar import *
 
-from kamva_backend.settings.base import get_environment_var
 from proxies.sms_system.main import SMSServiceProxy
 
 
 class KaveNegarSMSServiceProxy(SMSServiceProxy):
 
-    def __init__(self) -> None:
+    def __init__(self, token) -> None:
         super().__init__()
-        self.kavenegar_api = KavenegarAPI(settings.KAVENEGAR_TOKEN)
+        self.api = KavenegarAPI(token)
 
     def send_sms(self):
         pass
 
-    def send_otp(self, receptor_phone_number, action, token, token2=None, token3=None):
+    def send_otp(self, receptor_phone_number, type, token, token2=None, token3=None):
         template = None
-        if action == 'verify-registration':
+        if type == self.OtpTypes.CreateUserAccount:
             template = 'verify'
-        elif action == 'verify-changing-password':
+        elif type == self.OtpTypes.ChangeUserPassword:
             template = 'changePass'
-        elif action == 'announce-changing-registration-status':
-            template = 'announce-changing-registration-status'
+
         params = {
             'receptor': receptor_phone_number,
             'template': template,
@@ -34,4 +31,4 @@ class KaveNegarSMSServiceProxy(SMSServiceProxy):
             params['token2'] = token2
         if token3:
             params['token3'] = token3
-        self.kavenegar_api.verify_lookup(params)
+        self.api.verify_lookup(params)

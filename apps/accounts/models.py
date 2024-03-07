@@ -10,8 +10,7 @@ from polymorphic.models import PolymorphicModel
 
 from apps.accounts.validators import percentage_validator
 from kamva_backend.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
-from proxies.sms_system.kavenegar import KaveNegarSMSServiceProxy
-from proxies.sms_system.main import SMS_CODE_DELAY, SMS_CODE_LENGTH
+from proxies.sms_system.main import SMS_CODE_DELAY, SMS_CODE_LENGTH, get_sms_service_proxy
 
 
 class User(AbstractUser):
@@ -342,10 +341,11 @@ class VerificationCodeManager(models.Manager):
 
 class VerificationCode(models.Model):
     class VerificationType(models.TextChoices):
-        ChangeUserPassword = "change-user-password"
-        RegisterUser = "register-user"
- 
-    #todo: set verification code while sending verification code
+        CreateUserAccount = 'create-user-account'
+        ChangeUserPassword = 'change-user-password'
+        ChangeUserPhoneNumber = 'change-user-phone-number'
+
+    # todo: set verification code while sending verification code
     verification_type = models.CharField(
         blank=False, null=True, choices=VerificationType.choices, max_length=30)
     phone_number = models.CharField(blank=True, max_length=13, null=True)
@@ -360,8 +360,8 @@ class VerificationCode(models.Model):
             action_type = 'verify-changing-password'
         elif verification_type == 'verify':
             action_type = 'verify-registration'
-        sms_service = KaveNegarSMSServiceProxy()
-        sms_service.send_otp(self.phone_number, action_type, str(self.code))
+        sms_service_proxy = get_sms_service_proxy(type='kavenegar', token='todo')
+        sms_service_proxy.send_otp(self.phone_number, action_type, str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'
