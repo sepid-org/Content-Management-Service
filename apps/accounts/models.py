@@ -357,6 +357,7 @@ class VerificationCode(models.Model):
 
     def notify(self, verification_type):
         sms_service_proxy = get_sms_service_proxy(type='kavenegar', token='todo')
+        # todo: get real academy name from mps
         sms_service_proxy.send_otp(self.phone_number, verification_type, token='کاموا', token2=str(self.code))
 
     def __str__(self):

@@ -87,6 +87,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                 sms_service_proxy.send_otp(
                     receptor_phone_number=receipt.user.phone_number,
                     type=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
+                    # todo: get real academy name from mps
                     token='کاموا',
                     token2=receipt.answer_sheet_of.event_or_fsm.name
                 )
