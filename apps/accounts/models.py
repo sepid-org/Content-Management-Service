@@ -356,15 +356,8 @@ class VerificationCode(models.Model):
     objects = VerificationCodeManager()
 
     def notify(self, verification_type):
-        sms_service_proxy = get_sms_service_proxy(
-            type='kavenegar', token='todo')
-        # todo: will be remove after configing kavenegar
-        if verification_type == 'changePass':
-            action_type = sms_service_proxy.OtpTypes.ChangeUserPassword
-        elif verification_type == 'verify':
-            action_type = sms_service_proxy.OtpTypes.CreateUserAccount
-        sms_service_proxy.send_otp(
-            self.phone_number, action_type, str(self.code))
+        sms_service_proxy = get_sms_service_proxy(type='kavenegar', token='todo')
+        sms_service_proxy.send_otp(self.phone_number, verification_type, token='کاموا', token2=str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'

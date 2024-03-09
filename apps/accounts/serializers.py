@@ -1,6 +1,4 @@
-import logging
 from datetime import datetime
-
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -10,31 +8,15 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from errors.error_codes import serialize_error
 from kamva_backend.settings.base import DISCOUNT_CODE_LENGTH
-from proxies.sms_system.main import SMS_CODE_LENGTH
+from proxies.sms_system.main import SMS_CODE_LENGTH, SMSServiceProxy
 from .models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
     AcademicStudentship, Merchandise, DiscountCode, Purchase
 from .validators import phone_number_validator, grade_validator, price_validator
 
-logger = logging.getLogger(__name__)
-
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(
-        max_length=15, required=True, validators=[phone_number_validator])
-    code_type = serializers.ChoiceField(
-        choices=['changePass', 'verify'], required=False)
-
-    def validate(self, attrs):
-        code_type = attrs.get('code_type', None)
-        if User.objects.filter(phone_number__exact=attrs.get('phone_number')).count() <= 0:
-            if code_type in ['change_pass', None]:
-                raise NotFound(serialize_error('4008'))
-        else:
-            if code_type == 'verify':
-                raise ParseError(serialize_error(
-                    '4004', params={'param1': attrs.get('phone_number')}))
-
-        return attrs
+    phone_number = serializers.CharField(max_length=15, required=True, validators=[phone_number_validator])
+    code_type = serializers.CharField(required=True)
 
     class Meta:
         model = VerificationCode
