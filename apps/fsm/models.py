@@ -299,6 +299,7 @@ class FSM(models.Model):
 
 
 class Player(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     user = models.ForeignKey(
         User, related_name='players', on_delete=models.CASCADE)
     fsm = models.ForeignKey(FSM, related_name='players',
@@ -474,6 +475,7 @@ class RegistrationReceipt(AnswerSheet):
         NoSolutionAvailable = "NoSolutionAvailable"
         Other = "Other"
 
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     # should be in every answer sheet child
     answer_sheet_of = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
                                         on_delete=models.SET_NULL)
