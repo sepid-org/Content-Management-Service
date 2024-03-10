@@ -17,10 +17,11 @@ from .validators import phone_number_validator, grade_validator, price_validator
 class PhoneNumberSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(max_length=15, required=True, validators=[phone_number_validator])
     code_type = serializers.CharField(required=True)
+    party_display_name = serializers.CharField(required=True)
 
     class Meta:
         model = VerificationCode
-        fields = ['phone_number', 'code_type']
+        fields = ['phone_number', 'code_type', 'party_display_name']
 
 
 class VerificationCodeSerializer(serializers.ModelSerializer):
