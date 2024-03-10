@@ -33,7 +33,6 @@ urlpatterns = [
     path('api/auth/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('api/fsm/', include('apps.fsm.urls')),
     path('api/roadmap/', include('apps.roadmap.urls')),
-    path('api/websiteappearance/', include('apps.websiteappearance.urls')),
     path('api/contact-us/', include('apps.contact.urls')),
     path('api/report/', include('apps.report.urls')),
     path('api/scoring/', include('apps.scoring.urls')),
