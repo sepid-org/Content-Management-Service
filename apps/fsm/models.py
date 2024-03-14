@@ -657,8 +657,7 @@ class Widget(PolymorphicModel):
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')
-    widget_type = models.CharField(
-        max_length=30, choices=WidgetTypes.choices, null=False, blank=False)
+    widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
     duplication_of = models.ForeignKey('Widget', default=None, null=True, blank=True,
