@@ -24,11 +24,10 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
         fields = ['phone_number', 'code_type', 'party_display_name']
 
 
-class VerificationCodeSerializer(serializers.ModelSerializer):
+class PhoneNumberVerificationCodeSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(
         max_length=15, required=True, validators=[phone_number_validator])
     code = serializers.CharField(max_length=SMS_CODE_LENGTH, required=True)
-    password = serializers.CharField(required=True)
 
     def validate_code(self, code):
         if len(code) < SMS_CODE_LENGTH:
@@ -51,7 +50,7 @@ class VerificationCodeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VerificationCode
-        fields = ['phone_number', 'code', 'password']
+        fields = ['phone_number', 'code']
 
 
 class AccountSerializer(serializers.ModelSerializer):

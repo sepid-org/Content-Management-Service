@@ -1,3 +1,4 @@
+from rest_framework.decorators import api_view
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.models import VerificationCode, User
 from apps.accounts.permissions import IsHimself
-from apps.accounts.serializers import PhoneNumberSerializer, UserSerializer, VerificationCodeSerializer, AccountSerializer, \
+from apps.accounts.serializers import PhoneNumberSerializer, UserSerializer, PhoneNumberVerificationCodeSerializer, AccountSerializer, \
     MyTokenObtainPairSerializer
 from apps.accounts.utils import find_user
 from errors.error_codes import serialize_error
@@ -51,7 +52,7 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     serializer_action_classes = {
-        'create': VerificationCodeSerializer
+        'create': PhoneNumberVerificationCodeSerializer
     }
     my_tags = ['accounts']
 
@@ -92,7 +93,7 @@ class UserViewSet(ModelViewSet):
     @transaction.atomic
     def create(self, request):
         data = request.data
-        serializer = VerificationCodeSerializer(data=data)
+        serializer = PhoneNumberVerificationCodeSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
 
             phone_number = serializer.validated_data.get('phone_number', None)
@@ -108,6 +109,17 @@ class UserViewSet(ModelViewSet):
                 if token_serializer.is_valid(raise_exception=True):
                     return Response({'account': serializer.data, **token_serializer.validated_data},
                                     status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def change_phone_number(request):
+    serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    new_phone_number = serializer.validated_data.get('phone_number', None)
+    user = request.user
+    user.phone_number = new_phone_number
+    user.save()
+    return Response(AccountSerializer(user).data, status=status.HTTP_200_OK)
 
 
 class Login(TokenObtainPairView):
@@ -132,7 +144,7 @@ class Login(TokenObtainPairView):
 
 class ChangePassword(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
-    serializer_class = VerificationCodeSerializer
+    serializer_class = PhoneNumberVerificationCodeSerializer
 
     @swagger_auto_schema(tags=['accounts'],
                          responses={200: AccountSerializer,
@@ -141,7 +153,7 @@ class ChangePassword(GenericAPIView):
     @transaction.atomic
     def post(self, request):
         data = request.data
-        serializer = VerificationCodeSerializer(data=data)
+        serializer = PhoneNumberVerificationCodeSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             phone_number = serializer.validated_data.get('phone_number', None)
             users = User.objects.filter(phone_number__exact=phone_number)
