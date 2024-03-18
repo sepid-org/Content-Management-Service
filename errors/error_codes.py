@@ -130,6 +130,7 @@ errors_dict = {'4000': 'phone number must be digit',
 
                '6000': 'user has already answered this question correctly',
                '6001': 'user does not have enough scores',
+               '6002': 'one user with this phone number exists',
                }
 
 

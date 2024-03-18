@@ -116,6 +116,8 @@ def change_phone_number(request):
     serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     new_phone_number = serializer.validated_data.get('phone_number', None)
+    if find_user({'phone_number': new_phone_number}):
+        raise ParseError(serialize_error('6002'))
     user = request.user
     user.phone_number = new_phone_number
     user.save()
