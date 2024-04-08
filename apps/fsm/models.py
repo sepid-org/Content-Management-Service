@@ -593,6 +593,7 @@ class RegistrationForm(Paper):
         if gender_check_result != 'ok':
             return gender_check_result
 
+        # remove different types of audiences. the program manager should build the registration path him/her self.
         if self.audience_type == self.AudienceType.Academic:
             studentship = user.academic_studentship
             if studentship:
@@ -603,6 +604,8 @@ class RegistrationForm(Paper):
         elif self.audience_type == self.AudienceType.Student:
             studentship = user.school_studentship
             if studentship:
+                # todo: fix tof
+                return self.RegisterPermissionStatus.Permitted
                 if studentship.grade:
                     if self.min_grade <= studentship.grade <= self.max_grade:
                         if studentship.school is not None or studentship.document is not None:
