@@ -32,7 +32,6 @@ jobs:
 
     - name: Prepare SQLite database
       run: |
-	python manage.py makemigrations
         python manage.py migrate
 
     - name: Run tests
