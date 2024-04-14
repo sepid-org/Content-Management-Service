@@ -21,7 +21,7 @@ schema_view = get_schema_view(
 
 if not settings.DEBUG:
     sentry_sdk.init(
-        get_environment_var('SENTRY_DNS'),
+        get_environment_var('SENTRY_DNS', None),
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
