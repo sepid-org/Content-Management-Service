@@ -1,7 +1,7 @@
 from rest_polymorphic.serializers import PolymorphicSerializer
 from apps.fsm.serializers.widget_serializers import DetailBoxWidgetSerializer, TextWidgetSerializer, ImageSerializer, VideoSerializer, AudioSerializer, AparatSerializer, \
-    GameSerializer, SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
-from apps.fsm.models import DetailBoxWidget, Player, Game, Video, Image, TextWidget, Problem, SmallAnswerProblem, SmallAnswer, BigAnswer, \
+    IframeSerializer, SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
+from apps.fsm.models import DetailBoxWidget, Player, Iframe, Video, Image, TextWidget, Problem, SmallAnswerProblem, SmallAnswer, BigAnswer, \
     MultiChoiceProblem, Choice, MultiChoiceAnswer, UploadFileProblem, BigAnswerProblem, UploadFileAnswer, State, Hint, \
     Paper, Widget, Team, Aparat, Audio
 
@@ -14,7 +14,7 @@ class WidgetPolymorphicSerializer(PolymorphicSerializer):
         Video: VideoSerializer,
         Audio: AudioSerializer,
         Aparat: AparatSerializer,
-        Game: GameSerializer,
+        Iframe: IframeSerializer,
         DetailBoxWidget: DetailBoxWidgetSerializer,
         # Problem,
         SmallAnswerProblem: SmallAnswerProblemSerializer,

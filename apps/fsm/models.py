@@ -643,7 +643,7 @@ class RegistrationForm(Paper):
 
 class Widget(PolymorphicModel):
     class WidgetTypes(models.TextChoices):
-        Game = 'Game'
+        Iframe = 'Iframe'
         Video = 'Video'
         Image = 'Image'
         Aparat = 'Aparat'
@@ -744,7 +744,7 @@ class DetailBoxWidget(Widget):
         return f'<{self.id}-{self.widget_type}>:{self.name}'
 
 
-class Game(Widget):
+class Iframe(Widget):
     link = models.URLField()
 
     def clone(self, paper):
