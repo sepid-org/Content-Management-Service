@@ -352,7 +352,7 @@ class State(Paper):
         return cloned_state
 
     def __str__(self):
-        return f'{self.name} in {str(self.fsm)}'
+        return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
 class EdgeManager(models.Manager):

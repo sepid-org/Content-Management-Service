@@ -440,9 +440,9 @@ class ArticleCustomAdmin(admin.ModelAdmin):
 
 @admin.register(Game)
 class GameCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'paper', 'creator']
+    list_filter = []
+    search_fields = ['link']
 
 
 def download_files_from_links(self, request, queryset):
