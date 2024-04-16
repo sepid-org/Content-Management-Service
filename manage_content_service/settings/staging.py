@@ -1,5 +1,5 @@
 from datetime import timedelta
-from kamva_backend.settings.base import *
+from manage_content_service.settings.base import *
 
 DEBUG = get_environment_var('DEBUG', 'False') == 'True'
 
@@ -67,7 +67,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'propagate': True,
         },
-        'kamva_backend': {
+        'manage_content_service': {
             'handlers': ['file', 'console'],
             'level': LOG_LEVEL,
             'propagate': True,

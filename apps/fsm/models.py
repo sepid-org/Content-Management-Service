@@ -352,7 +352,7 @@ class State(Paper):
         return cloned_state
 
     def __str__(self):
-        return f'{self.name} in {str(self.fsm)}'
+        return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
 class EdgeManager(models.Manager):
@@ -593,6 +593,7 @@ class RegistrationForm(Paper):
         if gender_check_result != 'ok':
             return gender_check_result
 
+        # remove different types of audiences. the program manager should build the registration path him/her self.
         if self.audience_type == self.AudienceType.Academic:
             studentship = user.academic_studentship
             if studentship:
@@ -603,6 +604,8 @@ class RegistrationForm(Paper):
         elif self.audience_type == self.AudienceType.Student:
             studentship = user.school_studentship
             if studentship:
+                # todo: fix tof
+                return self.RegisterPermissionStatus.Permitted
                 if studentship.grade:
                     if self.min_grade <= studentship.grade <= self.max_grade:
                         if studentship.school is not None or studentship.document is not None:
@@ -640,7 +643,7 @@ class RegistrationForm(Paper):
 
 class Widget(PolymorphicModel):
     class WidgetTypes(models.TextChoices):
-        Game = 'Game'
+        Iframe = 'Iframe'
         Video = 'Video'
         Image = 'Image'
         Aparat = 'Aparat'
@@ -741,7 +744,7 @@ class DetailBoxWidget(Widget):
         return f'<{self.id}-{self.widget_type}>:{self.name}'
 
 
-class Game(Widget):
+class Iframe(Widget):
     link = models.URLField()
 
     def clone(self, paper):
