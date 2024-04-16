@@ -7,7 +7,7 @@ from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from errors.error_codes import serialize_error
-from kamva_backend.settings.base import DISCOUNT_CODE_LENGTH
+from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
 from proxies.sms_system.main import SMS_CODE_LENGTH, SMSServiceProxy
 from .models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
     AcademicStudentship, Merchandise, DiscountCode, Purchase

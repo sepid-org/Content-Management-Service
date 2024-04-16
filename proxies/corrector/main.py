@@ -3,7 +3,7 @@
 import json
 import requests
 
-from kamva_backend.settings.base import get_environment_var
+from manage_content_service.settings.base import get_environment_var
 
 url = get_environment_var(
     'CORRECTOR_API', 'http://localhost:9000/api/corrector/correct/')
