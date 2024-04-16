@@ -440,7 +440,7 @@ class ArticleCustomAdmin(admin.ModelAdmin):
 
 @admin.register(Iframe)
 class IframeCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'paper', 'creator']
+    list_display = ['id', 'paper', 'creator', 'link']
     list_filter = []
     search_fields = ['link']
 
