@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from import_export.admin import ExportActionMixin
 
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
-    Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Game, SmallAnswerProblem, \
+    Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Event, \
     UploadFileAnswer, UploadFileProblem, PlayerHistory, Article, Tag, Aparat
 
@@ -438,11 +438,11 @@ class ArticleCustomAdmin(admin.ModelAdmin):
         return ','.join(m.name for m in obj.tags.all())
 
 
-@admin.register(Game)
-class GameCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+@admin.register(Iframe)
+class IframeCustomAdmin(admin.ModelAdmin):
+    list_display = ['id', 'paper', 'creator', 'link']
+    list_filter = []
+    search_fields = ['link']
 
 
 def download_files_from_links(self, request, queryset):

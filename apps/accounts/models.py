@@ -9,7 +9,7 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
 from apps.accounts.validators import percentage_validator
-from kamva_backend.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
+from manage_content_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
 from proxies.sms_system.main import SMS_CODE_DELAY, SMS_CODE_LENGTH, get_sms_service_proxy
 
 

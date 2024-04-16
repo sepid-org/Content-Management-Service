@@ -1,7 +1,7 @@
 import sys
 from datetime import timedelta
 
-from kamva_backend.settings.base import *
+from manage_content_service.settings.base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '*z!3aidedw32xh&1ew(^&5dgd17(ynnmk=s*mo=v2l_(4t_ff('
@@ -50,7 +50,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'kamva_backend': {
+        'manage_content_service': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,

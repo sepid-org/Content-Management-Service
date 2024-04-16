@@ -8,7 +8,7 @@ from errors.error_codes import serialize_error
 
 from apps.scoring.serializers.cost_serializer import CostSerializer
 from apps.scoring.serializers.reward_serializer import RewardSerializer
-from apps.fsm.models import DetailBoxWidget, Player, Game, Video, Image, TextWidget, Problem, SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, State, Hint, \
+from apps.fsm.models import DetailBoxWidget, Player, Iframe, Video, Image, TextWidget, Problem, SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, State, Hint, \
     Widget, Team, Aparat, Audio
 from apps.fsm.serializers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, \
     UploadFileAnswerSerializer
@@ -87,12 +87,12 @@ class WidgetSerializer(serializers.ModelSerializer):
 
 ########### CONTENT ###########
 
-class GameSerializer(WidgetSerializer):
+class IframeSerializer(WidgetSerializer):
     def create(self, validated_data):
-        return super(GameSerializer, self).create({'widget_type': Widget.WidgetTypes.Game, **validated_data})
+        return super(IframeSerializer, self).create({'widget_type': Widget.WidgetTypes.Iframe, **validated_data})
 
     class Meta:
-        model = Game
+        model = Iframe
         fields = ['id', 'name', 'paper', 'widget_type',
                   'creator', 'duplication_of', 'link', 'hints', 'cost', 'reward']
         read_only_fields = ['id', 'creator', 'duplication_of']
@@ -345,7 +345,7 @@ class UploadFileProblemSerializer(WidgetSerializer):
 
 
 class MockWidgetSerializer(serializers.Serializer):
-    GameSerializer = GameSerializer(required=False)
+    IframeSerializer = IframeSerializer(required=False)
     VideoSerializer = VideoSerializer(required=False)
     AparatSerializer = AparatSerializer(required=False)
     ImageSerializer = ImageSerializer(required=False)

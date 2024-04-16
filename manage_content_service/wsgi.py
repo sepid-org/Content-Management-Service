@@ -1,5 +1,5 @@
 """
-WSGI config for kamva_backend project.
+WSGI config for manage_content_service project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kamva_backend.settings.development')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'manage_content_service.settings.development')
 
 application = get_wsgi_application()
