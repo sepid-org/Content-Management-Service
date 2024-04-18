@@ -10,9 +10,9 @@ import sentry_sdk
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Kamva Backend APIs",
+        title="Manage Content Service APIs",
         default_version='v3',
-        description="APIs list of Kamva Backend service",
+        description="APIs list of Manage Content Service",
     ),
     url=settings.SWAGGER_URL,
     public=True,
@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/auth/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('api/fsm/', include('apps.fsm.urls')),
     path('api/roadmap/', include('apps.roadmap.urls')),
+    path('api/file-storage/', include('apps.file_storage.urls')),
     path('api/contact-us/', include('apps.contact.urls')),
     path('api/report/', include('apps.report.urls')),
     path('api/scoring/', include('apps.scoring.urls')),

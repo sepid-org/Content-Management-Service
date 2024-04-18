@@ -7,6 +7,7 @@ from abc import abstractmethod
 from apps.accounts.models import Purchase, User
 
 from apps.scoring.models import Cost, Reward
+from manage_content_service.settings.base import get_environment_var
 
 
 ################ BASE #################
@@ -237,8 +238,9 @@ class FSM(models.Model):
         'accounts.User', related_name='fsms', blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.URLField(null=True, blank=True)
+    cover_page = models.URLField()
     is_active = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='my_fsm')
     fsm_learning_type = models.CharField(max_length=40, default=FSMLearningType.Unsupervised,
