@@ -237,9 +237,7 @@ class FSM(models.Model):
         'accounts.User', related_name='fsms', blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.ImageField(
-        upload_to='workshop/', null=True, blank=True)
-    cover_page2 = models.URLField(null=True, blank=True)
+    cover_page = models.URLField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='my_fsm')
