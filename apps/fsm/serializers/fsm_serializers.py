@@ -99,7 +99,7 @@ class FSMMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FSM
-        fields = ['id', 'name', 'description', 'cover_page', 'is_active',
+        fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
                   'fsm_learning_type', 'fsm_p_type', 'order_in_program', 'lock']
 
     def to_representation(self, instance):
@@ -113,7 +113,6 @@ class FSMMinimalSerializer(serializers.ModelSerializer):
 
 
 class FSMSerializer(serializers.ModelSerializer):
-    lock = serializers.CharField(required=False, write_only=True)
     merchandise = MerchandiseSerializer(required=False)
     mentors = MentorSerializer(many=True, read_only=True)
     first_state = StateSerializer(read_only=True)
