@@ -242,6 +242,19 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
+    # todo: remove duplication
+    # todo: EHSAN
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 def _get_fsm_edges(fsm: FSM) -> list[Edge]:
     return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm))
