@@ -127,7 +127,7 @@ class Event(models.Model):
         Team = "Team"
         Individual = "Individual"
 
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='event', on_delete=models.SET_NULL,
                                        null=True, blank=True)
@@ -222,7 +222,7 @@ class FSM(models.Model):
         Individual = 'Individual'
         Hybrid = 'Hybrid'
 
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
 
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                               blank=True)
@@ -434,7 +434,7 @@ class Tag(models.Model):
 
 
 class Article(Paper):
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     cover_page = models.ImageField(

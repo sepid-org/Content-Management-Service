@@ -11,7 +11,7 @@ class EventViewSet(ModelViewSet):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
     my_tags = ['event']
-    filterset_fields = ['party', 'is_private']
+    filterset_fields = ['website', 'is_private']
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

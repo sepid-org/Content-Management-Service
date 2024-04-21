@@ -15,7 +15,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     serializer_class = ArticleSerializer
     queryset = Article.objects.all()
     my_tags = ['articles']
-    filterset_fields = ['party', 'is_private']
+    filterset_fields = ['website', 'is_private']
 
     def get_serializer_class(self):
         try:
