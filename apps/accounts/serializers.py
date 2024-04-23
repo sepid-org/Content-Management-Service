@@ -119,11 +119,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    phone_number = serializers.CharField(
-        max_length=15, required=False, validators=[phone_number_validator])
     password = serializers.CharField(write_only=True, required=True)
-    username = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
+    username = serializers.CharField(required=True)
 
     @classmethod
     def get_token(cls, user):
