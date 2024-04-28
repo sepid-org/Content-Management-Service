@@ -141,6 +141,7 @@ class Event(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     cover_page = models.ImageField(upload_to='events/', null=True, blank=True)
+    cover_page2 = models.URLField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)
     start_date = models.DateTimeField(null=True, blank=True)
