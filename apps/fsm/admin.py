@@ -16,7 +16,7 @@ from apps.fsm.utils import get_django_file
 
 @admin.register(ProgramContactInfo)
 class ProgramContactInfoCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['id']
     list_filter = []
 
 

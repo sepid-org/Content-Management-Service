@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.fsm.models import Event
-from apps.fsm.serializers.fsm_serializers import ProgramSerializer
 from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
+from apps.fsm.serializers.program_serializers import ProgramSerializer
 
 
 class EventViewSet(ModelViewSet):

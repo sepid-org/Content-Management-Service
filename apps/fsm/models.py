@@ -147,7 +147,7 @@ class Event(models.Model):
     end_date = models.DateTimeField(null=True, blank=True)
     event_type = models.CharField(
         max_length=40, default=EventType.Individual, choices=EventType.choices)
-    team_size = models.IntegerField(default=3)
+    team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
     is_private = models.BooleanField(default=False)
@@ -155,7 +155,7 @@ class Event(models.Model):
     site_help_paper_id = models.IntegerField(blank=True, null=True)
     FAQs_paper_id = models.IntegerField(blank=True, null=True)
     program_contact_info = models.OneToOneField(
-        'ProgramContactInfo', on_delete=models.SET_NULL, related_name='event', blank=True, null=True)
+        'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
 
  
@@ -185,8 +185,6 @@ class Event(models.Model):
 
 
 class ProgramContactInfo(models.Model):
-    name = models.CharField(max_length=100)
-
     telegram_link = models.CharField(
         max_length=100, null=True, blank=True)
     shad_link = models.CharField(max_length=100, null=True, blank=True)
@@ -194,10 +192,6 @@ class ProgramContactInfo(models.Model):
     bale_link = models.CharField(max_length=100, null=True, blank=True)
     instagram_link = models.CharField(max_length=100, null=True, blank=True)
     phone_number = models.CharField(max_length=100, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return f'اطلاعات تماس: {self.name}'
-
 
 ################ FSM #################
 
@@ -565,7 +559,7 @@ class RegistrationForm(Paper):
     audience_type = models.CharField(
         max_length=50, default='Student', choices=AudienceType.choices)
 
-    has_certificate = models.BooleanField(default=True)
+    has_certificate = models.BooleanField(default=False)
     certificates_ready = models.BooleanField(default=False)
 
     @property

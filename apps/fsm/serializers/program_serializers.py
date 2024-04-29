@@ -5,7 +5,7 @@ from rest_framework import serializers
 from apps.accounts.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Event, RegistrationReceipt
+from apps.fsm.models import Event, RegistrationForm, RegistrationReceipt
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -21,34 +21,38 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         merchandise = validated_data.pop('merchandise', None)
+        website = validated_data.pop('website')
+        registration_form_instance = RegistrationForm.objects.create(
+            **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
 
         creator = self.context.get('user', None)
         instance = super(ProgramSerializer, self).create(
-            {'creator': creator, **validated_data})
+            {'creator': creator, 'website': website, **validated_data})
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name', 'unnamed_event')
             serializer = MerchandiseSerializer(data=merchandise)
             if serializer.is_valid(raise_exception=True):
                 merchandise_instance = serializer.save()
                 instance.merchandise = merchandise_instance
-                instance.save()
+        instance.registration_form = registration_form_instance
+        instance.save()
         return instance
 
     def update(self, instance, validated_data):
-        program_contact_info = validated_data['program_contact_info']
-        del validated_data['program_contact_info']
+        program_contact_info = validated_data.pop('program_contact_info', None)
         program_contact_info_instance = instance.program_contact_info
-        if program_contact_info_instance:
-            program_contact_info_serializer = ProgramContactInfoSerializer(
-                program_contact_info_instance, data=program_contact_info, partial=True)
-        else:
-            program_contact_info_serializer = ProgramContactInfoSerializer(
-                data=program_contact_info)
-        program_contact_info_serializer.is_valid()
-        program_contact_info_instance = program_contact_info_serializer.save()
         instance = super().update(instance, validated_data)
-        instance.program_contact_info = program_contact_info_instance
-        instance.save()
+        if program_contact_info:
+            if program_contact_info_instance:
+                program_contact_info_serializer = ProgramContactInfoSerializer(
+                    program_contact_info_instance, data=program_contact_info, partial=True)
+            else:
+                program_contact_info_serializer = ProgramContactInfoSerializer(
+                    data=program_contact_info)
+            program_contact_info_serializer.is_valid(raise_exception=True)
+            program_contact_info_instance = program_contact_info_serializer.save()
+            instance.program_contact_info = program_contact_info_instance
+            instance.save()
         return instance
 
     def validate(self, attrs):
