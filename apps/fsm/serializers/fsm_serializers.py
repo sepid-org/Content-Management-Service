@@ -1,17 +1,16 @@
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.exceptions import ParseError, PermissionDenied
-from rest_framework.viewsets import ModelViewSet
 from rest_framework import serializers
 from apps.fsm.models import Player
 
-from apps.accounts.serializers import MerchandiseSerializer, AccountSerializer, MentorSerializer
+from apps.accounts.serializers import MerchandiseSerializer, MentorSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Event, RegistrationReceipt, FSM, Edge, Team, RegistrationForm
+from apps.fsm.models import Event, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer
 
 
-class EventSerializer(serializers.ModelSerializer):
+class ProgramSerializer(serializers.ModelSerializer):
     merchandise = MerchandiseSerializer(required=False)
     program_contact_info = ProgramContactInfoSerializer(required=False)
     is_manager = serializers.SerializerMethodField()
@@ -26,7 +25,7 @@ class EventSerializer(serializers.ModelSerializer):
         merchandise = validated_data.pop('merchandise', None)
 
         creator = self.context.get('user', None)
-        instance = super(EventSerializer, self).create(
+        instance = super(ProgramSerializer, self).create(
             {'creator': creator, **validated_data})
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name', 'unnamed_event')
@@ -68,7 +67,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super(
-            EventSerializer, self).to_representation(instance)
+            ProgramSerializer, self).to_representation(instance)
         user = self.context.get('request', None).user
         receipt = RegistrationReceipt.objects.filter(user=user, answer_sheet_of=instance.registration_form).last(
         ) if not isinstance(user, AnonymousUser) else None
@@ -107,7 +106,8 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
-        read_only_fields = ['id', 'creator', 'is_approved', 'registration_form']
+        read_only_fields = ['id', 'creator',
+                            'is_approved', 'registration_form']
 
 
 class FSMMinimalSerializer(serializers.ModelSerializer):

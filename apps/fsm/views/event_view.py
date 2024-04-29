@@ -3,12 +3,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.fsm.models import Event
-from apps.fsm.serializers.fsm_serializers import EventSerializer
+from apps.fsm.serializers.fsm_serializers import ProgramSerializer
 from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
 
 
 class EventViewSet(ModelViewSet):
-    serializer_class = EventSerializer
+    serializer_class = ProgramSerializer
     queryset = Event.objects.all()
     my_tags = ['event']
     filterset_fields = ['website', 'is_private']
