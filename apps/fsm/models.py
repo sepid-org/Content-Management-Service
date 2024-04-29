@@ -156,7 +156,9 @@ class Event(models.Model):
     FAQs_paper_id = models.IntegerField(blank=True, null=True)
     program_contact_info = models.OneToOneField(
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='event', blank=True, null=True)
+    is_visible = models.BooleanField(default=True)
 
+ 
     def __str__(self):
         return self.name
 
