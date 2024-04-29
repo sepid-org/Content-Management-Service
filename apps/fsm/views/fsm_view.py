@@ -2,7 +2,9 @@
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -243,6 +245,18 @@ class FSMViewSet(viewsets.ModelViewSet):
 
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
+
+    @method_decorator(cache_page(60 * 1 ,  key_prefix="fsm"))
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 def _get_fsm_edges(fsm: FSM) -> list[Edge]:
