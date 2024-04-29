@@ -107,8 +107,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
-        read_only_fields = ['id', 'creator', 'is_approved', 'user_registration_status',
-                            'is_paid', 'registration_form', 'is_manager', 'program_contact_info']
+        read_only_fields = ['id', 'creator', 'is_approved', 'registration_form']
 
 
 class FSMMinimalSerializer(serializers.ModelSerializer):
