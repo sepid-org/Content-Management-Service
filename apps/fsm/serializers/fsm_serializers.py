@@ -28,7 +28,6 @@ class EventSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         instance = super(EventSerializer, self).create(
             {'creator': creator, **validated_data})
-
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name', 'unnamed_event')
             serializer = MerchandiseSerializer(data=merchandise)
@@ -36,6 +35,23 @@ class EventSerializer(serializers.ModelSerializer):
                 merchandise_instance = serializer.save()
                 instance.merchandise = merchandise_instance
                 instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        program_contact_info = validated_data['program_contact_info']
+        del validated_data['program_contact_info']
+        program_contact_info_instance = instance.program_contact_info
+        if program_contact_info_instance:
+            program_contact_info_serializer = ProgramContactInfoSerializer(
+                program_contact_info_instance, data=program_contact_info, partial=True)
+        else:
+            program_contact_info_serializer = ProgramContactInfoSerializer(
+                data=program_contact_info)
+        program_contact_info_serializer.is_valid()
+        program_contact_info_instance = program_contact_info_serializer.save()
+        instance = super().update(instance, validated_data)
+        instance.program_contact_info = program_contact_info_instance
+        instance.save()
         return instance
 
     def validate(self, attrs):
