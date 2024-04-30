@@ -1,4 +1,3 @@
-
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -32,8 +31,7 @@ class FSMViewSet(viewsets.ModelViewSet):
     queryset = FSM.objects.all()
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filterset_fields = ['party', 'event']
-
+    filterset_fields = ['website', 'event']
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
