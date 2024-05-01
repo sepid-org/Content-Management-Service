@@ -22,7 +22,6 @@ def apply_cost(cost, user, cause_title, cause_description):
 
     # check if has not enough score:
     user_current_scores = get_user_current_scores(user, -1)
-    print("ccccccc", user_current_scores, cost_scores)
     if not does_contain(user_current_scores, cost_scores):
         raise ParseError(serialize_error('6001'))
     

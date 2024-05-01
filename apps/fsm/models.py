@@ -7,6 +7,7 @@ from abc import abstractmethod
 from apps.accounts.models import Purchase, User
 
 from apps.scoring.models import Cost, Reward
+from manage_content_service.settings.base import get_environment_var
 
 
 ################ BASE #################
@@ -126,7 +127,7 @@ class Event(models.Model):
         Team = "Team"
         Individual = "Individual"
 
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='event', on_delete=models.SET_NULL,
                                        null=True, blank=True)
@@ -139,14 +140,14 @@ class Event(models.Model):
 
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.ImageField(upload_to='events/', null=True, blank=True)
+    cover_page = models.URLField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     event_type = models.CharField(
         max_length=40, default=EventType.Individual, choices=EventType.choices)
-    team_size = models.IntegerField(default=3)
+    team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
     is_private = models.BooleanField(default=False)
@@ -154,8 +155,10 @@ class Event(models.Model):
     site_help_paper_id = models.IntegerField(blank=True, null=True)
     FAQs_paper_id = models.IntegerField(blank=True, null=True)
     program_contact_info = models.OneToOneField(
-        'ProgramContactInfo', on_delete=models.SET_NULL, related_name='event', blank=True, null=True)
+        'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
+    is_visible = models.BooleanField(default=True)
 
+ 
     def __str__(self):
         return self.name
 
@@ -182,8 +185,6 @@ class Event(models.Model):
 
 
 class ProgramContactInfo(models.Model):
-    name = models.CharField(max_length=100)
-
     telegram_link = models.CharField(
         max_length=100, null=True, blank=True)
     shad_link = models.CharField(max_length=100, null=True, blank=True)
@@ -191,10 +192,6 @@ class ProgramContactInfo(models.Model):
     bale_link = models.CharField(max_length=100, null=True, blank=True)
     instagram_link = models.CharField(max_length=100, null=True, blank=True)
     phone_number = models.CharField(max_length=100, null=True, blank=True)
-
-    def __str__(self) -> str:
-        return f'اطلاعات تماس: {self.name}'
-
 
 ################ FSM #################
 
@@ -221,7 +218,7 @@ class FSM(models.Model):
         Individual = 'Individual'
         Hybrid = 'Hybrid'
 
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
 
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                               blank=True)
@@ -237,9 +234,9 @@ class FSM(models.Model):
         'accounts.User', related_name='fsms', blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.ImageField(
-        upload_to='workshop/', null=True, blank=True)
+    cover_page = models.URLField()
     is_active = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='my_fsm')
     fsm_learning_type = models.CharField(max_length=40, default=FSMLearningType.Unsupervised,
@@ -433,7 +430,7 @@ class Tag(models.Model):
 
 
 class Article(Paper):
-    party = models.UUIDField(null=True, blank=True)
+    website = models.CharField(blank=True, null=True, max_length=50)
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     cover_page = models.ImageField(
@@ -562,7 +559,7 @@ class RegistrationForm(Paper):
     audience_type = models.CharField(
         max_length=50, default='Student', choices=AudienceType.choices)
 
-    has_certificate = models.BooleanField(default=True)
+    has_certificate = models.BooleanField(default=False)
     certificates_ready = models.BooleanField(default=False)
 
     @property

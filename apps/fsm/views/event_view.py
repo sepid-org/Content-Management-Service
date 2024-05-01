@@ -3,16 +3,17 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from django.views.decorators.cache import cache_page
 from apps.fsm.models import Event
-from apps.fsm.serializers.fsm_serializers import EventSerializer
 from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
 from django.utils.decorators import method_decorator
 
+from apps.fsm.serializers.program_serializers import ProgramSerializer
+
 
 class EventViewSet(ModelViewSet):
-    serializer_class = EventSerializer
+    serializer_class = ProgramSerializer
     queryset = Event.objects.all()
     my_tags = ['event']
-    filterset_fields = ['party', 'is_private']
+    filterset_fields = ['website', 'is_private']
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -30,7 +31,7 @@ class EventViewSet(ModelViewSet):
             permission_classes = [IsEventModifier]
         return [permission() for permission in permission_classes]
 
-    @method_decorator(cache_page(60 * 1 ,  key_prefix="event"))
+    @method_decorator(cache_page(60 * 1,  key_prefix="event"))
     def list(self, request, *args, **kwargs):
         print("hjk")
         queryset = self.filter_queryset(self.get_queryset())
