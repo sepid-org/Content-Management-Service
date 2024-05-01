@@ -1,9 +1,11 @@
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
+from django.views.decorators.cache import cache_page
 from apps.fsm.models import Event
 from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
+from django.utils.decorators import method_decorator
+
 from apps.fsm.serializers.program_serializers import ProgramSerializer
 
 
@@ -29,9 +31,9 @@ class EventViewSet(ModelViewSet):
             permission_classes = [IsEventModifier]
         return [permission() for permission in permission_classes]
 
-    # todo: remove duplication
-    # todo: EHSAN
+    @method_decorator(cache_page(60 * 1,  key_prefix="event"))
     def list(self, request, *args, **kwargs):
+        print("hjk")
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)

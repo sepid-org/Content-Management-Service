@@ -7,6 +7,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from manage_content_service.settings.base import get_environment_var
 import sentry_sdk
+from apps.fsm.views.article_view import say_hello
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -37,6 +38,7 @@ urlpatterns = [
     path('api/contact-us/', include('apps.contact.urls')),
     path('api/report/', include('apps.report.urls')),
     path('api/scoring/', include('apps.scoring.urls')),
+    path('test/hi/', say_hello),
     # https://pypi.org/project/django-link-shortener/
     path('s/', include('shortener.urls')),
 ]
