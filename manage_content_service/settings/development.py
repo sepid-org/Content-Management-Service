@@ -89,4 +89,13 @@ PAYMENT = {
 }
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
+
+CACHES = {
+   'default': {
+       'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+       'LOCATION': 'redis://0.0.0.0:6379'
+   }
+}
+
+
 CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]
