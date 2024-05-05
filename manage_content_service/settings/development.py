@@ -91,10 +91,9 @@ SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
 
 CACHES = {
-   'default': {
-       'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-       'LOCATION': 'redis://0.0.0.0:6379'
-   }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
 }
 
 
