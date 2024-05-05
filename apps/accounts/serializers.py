@@ -8,7 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
-from proxies.sms_system.main import SMS_CODE_LENGTH, SMSServiceProxy
+from proxies.sms_system.main import SMS_CODE_LENGTH
 from .models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
     AcademicStudentship, Merchandise, DiscountCode, Purchase
 from .validators import phone_number_validator, grade_validator, price_validator
