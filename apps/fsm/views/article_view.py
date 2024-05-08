@@ -2,16 +2,17 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from django.views.decorators.cache import cache_page
-from rest_framework.decorators import action , api_view
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 
 from apps.fsm.models import Article
 from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.paper_serializers import ArticleSerializer, ChangeWidgetOrderSerializer
+from apps.fsm.utils import SafeTokenAuthentication
 
-from django.http import JsonResponse
 
 @cache_page(60 * 1,  key_prefix="site1")
 def say_hello(request):
@@ -23,12 +24,16 @@ def say_hello(request):
     return JsonResponse({"message": data})
 
 
-
 class ArticleViewSet(viewsets.ModelViewSet):
     serializer_class = ArticleSerializer
     queryset = Article.objects.all()
     my_tags = ['articles']
     filterset_fields = ['website', 'is_private']
+
+    def get_authenticators(self):
+        if self.request.method == 'GET':
+            self.authentication_classes = [SafeTokenAuthentication]
+        return super().get_authenticators()
 
     def get_serializer_class(self):
         try:
@@ -59,3 +64,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             self.get_object().set_widget_order(serializer.validated_data.get('order'))
         return Response(data=ArticleSerializer(self.get_object()).data, status=status.HTTP_200_OK)
+
+    @method_decorator(cache_page(60 * 1,  key_prefix="article"))
+    def list(self, request, *args, **kwargs):
+        return super().list(self, request, *args, **kwargs)

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views.answer_view import UploadAnswerViewSet, AnswerViewSet
 from .views.article_view import ArticleViewSet, say_hello
-from .views.event_view import EventViewSet
+from .views.program_view import ProgramViewSet
 from .views.fsm_view import *
 from .views.edge_view import *
 from .views.registration_receipt_view import RegistrationReceiptViewSet
@@ -20,7 +20,7 @@ urlpatterns = [
     path("test/" , say_hello)
 ]
 
-router.register(r'event', EventViewSet, basename='events')
+router.register(r'event', ProgramViewSet, basename='events')
 router.register(r'fsm', FSMViewSet, basename='fsms')
 router.register(r'article', ArticleViewSet, basename='articles')
 

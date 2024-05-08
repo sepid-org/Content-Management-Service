@@ -1,7 +1,14 @@
-from io import BytesIO
 import requests
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
-import os
+from django.db.models import Q
+
+from apps.fsm.models import FSM, Edge
+
+
+def _get_fsm_edges(fsm: FSM) -> list[Edge]:
+    return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm))
 
 
 def get_django_file(url: str):
@@ -20,3 +27,11 @@ def get_django_file(url: str):
         file_io, None, file_name, file_type,  file_size, None)
 
     return django_file
+
+
+class SafeTokenAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request=request)
+        except:
+            return None

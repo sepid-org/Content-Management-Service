@@ -1,6 +1,4 @@
-
-from apps.fsm.views.fsm_view import _get_fsm_edges
-
+from apps.fsm.utils import _get_fsm_edges
 from apps.roadmap.models import Link
 from apps.fsm.models import FSM, Player, PlayerHistory, State
 

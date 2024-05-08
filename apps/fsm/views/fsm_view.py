@@ -1,8 +1,6 @@
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
-from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -14,8 +12,9 @@ from rest_framework import viewsets
 
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
+from apps.fsm.utils import _get_fsm_edges
 from errors.error_codes import serialize_error
-from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerHistory, Player, Edge, RegistrationReceipt, Problem
+from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import MentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer
@@ -37,7 +36,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
                            'get_player_from_team', 'activate', 'players']:
             permission_classes = [MentorPermission]
-        elif self.action in ['enter', 'get_self', 'review']:
+        elif self.action in ['enter', 'review']:
             permission_classes = [HasActiveRegistration]
         else:
             permission_classes = self.permission_classes
@@ -106,19 +105,6 @@ class FSMViewSet(viewsets.ModelViewSet):
 
         return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                         status=status.HTTP_200_OK)
-
-    # @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
-    # @transaction.atomic
-    # @action(detail=True, methods=['get'])
-    # def get_self(self, request, pk=None):
-    #     fsm = self.get_object()
-    #     user = self.request.user
-    #     player = get_player(user, fsm)
-    #     if player:
-    #         return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-    #                         status=status.HTTP_200_OK)
-    #     else:
-    #         raise NotFound(serialize_error('4081'))
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
     @transaction.atomic
@@ -244,18 +230,6 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
-    @method_decorator(cache_page(60 * 1 ,  key_prefix="fsm"))
+    @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-def _get_fsm_edges(fsm: FSM) -> list[Edge]:
-    return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm))
+        return super().list(self, request, *args, **kwargs)
