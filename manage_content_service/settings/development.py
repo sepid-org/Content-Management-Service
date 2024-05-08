@@ -89,4 +89,12 @@ PAYMENT = {
 }
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
+
 CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]

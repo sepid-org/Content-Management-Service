@@ -1,17 +1,19 @@
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
+from django.views.decorators.cache import cache_page
 from apps.fsm.models import Event
-from apps.fsm.serializers.fsm_serializers import EventSerializer
 from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
+from django.utils.decorators import method_decorator
+
+from apps.fsm.serializers.program_serializers import ProgramSerializer
 
 
 class EventViewSet(ModelViewSet):
-    serializer_class = EventSerializer
+    serializer_class = ProgramSerializer
     queryset = Event.objects.all()
     my_tags = ['event']
-    filterset_fields = ['party', 'is_private']
+    filterset_fields = ['website', 'is_private']
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -28,3 +30,16 @@ class EventViewSet(ModelViewSet):
         else:
             permission_classes = [IsEventModifier]
         return [permission() for permission in permission_classes]
+
+    @method_decorator(cache_page(60 * 1,  key_prefix="event"))
+    def list(self, request, *args, **kwargs):
+        print("hjk")
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

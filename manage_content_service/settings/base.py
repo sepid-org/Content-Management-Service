@@ -48,7 +48,6 @@ CUSTOM_APPS = [
     'django_filters',
     'minio_storage',
     'shortener',
-    # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'manage_content_service.apps.MyAdminConfig',
     'apps.accounts.apps.AccountConfig',
     'apps.fsm.apps.FsmConfig',
@@ -56,6 +55,8 @@ CUSTOM_APPS = [
     'apps.roadmap.apps.RoadmapConfig',
     'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
+    # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
+    'apps.file_storage.apps.FileStorageConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
@@ -128,6 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -183,7 +185,7 @@ ASGI_APPLICATION = 'manage_content_service.routing.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
