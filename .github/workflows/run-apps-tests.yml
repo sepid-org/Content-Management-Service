@@ -1,9 +1,9 @@
-name: Django Tests
+name: Run Apps Tests
 
 on:
   push:
     branches:
-      - test-ci
+      - main
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -36,5 +36,5 @@ jobs:
 
     - name: Run tests
       run: |
-        python manage.py test apps.report
+        python manage.py test
 
