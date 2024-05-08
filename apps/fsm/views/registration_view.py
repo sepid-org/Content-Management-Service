@@ -16,8 +16,7 @@ from apps.accounts.models import User
 from apps.accounts.serializers import UserSerializer
 from apps.accounts.utils import update_or_create_team, update_or_create_user_account, update_or_create_registration_receipt, create_team
 from errors.error_codes import serialize_error
-from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationInfoSerializer, \
-    RegistrationPerCitySerializer
+from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationPerCitySerializer
 from apps.fsm.serializers.paper_serializers import RegistrationFormSerializer, ChangeWidgetOrderSerializer
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
 from apps.fsm.models import RegistrationForm, transaction, RegistrationReceipt, Invitation, Team
@@ -63,14 +62,14 @@ class RegistrationViewSet(ModelViewSet):
             data=CertificateTemplateSerializer(registration_form.certificate_templates.all(), many=True,
                                                context=self.get_serializer_context()).data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: RegistrationInfoSerializer})
+    @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
     @action(detail=True, methods=['get'])
     def receipts(self, request, pk=None):
         queryset = self.get_object().registration_receipts.all()
         paginator = RegistrationReceiptSetPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
         if page_queryset is not None:
-            serializer = RegistrationInfoSerializer(page_queryset, many=True)
+            serializer = RegistrationReceiptSerializer(page_queryset, many=True)
             return paginator.get_paginated_response(serializer.data)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,7 +80,7 @@ class RegistrationViewSet(ModelViewSet):
             city=F('user__city')).values('city').annotate(registration_count=Count('id'))
         return Response(RegistrationPerCitySerializer(results, many=True).data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: RegistrationInfoSerializer})
+    @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
     @action(detail=True, methods=['get'])
     def possible_teammates(self, request, pk=None):
         user = self.request.user
@@ -100,7 +99,7 @@ class RegistrationViewSet(ModelViewSet):
         else:
             receipts = registration_form.registration_receipts.exclude(pk__in=self_receipts).filter(
                 Q(team__isnull=True) | Q(team__exact=''), is_participating=True, user__gender=user.gender)
-        return Response(RegistrationInfoSerializer(receipts, many=True).data, status=status.HTTP_200_OK)
+        return Response(RegistrationReceiptSerializer(receipts, many=True).data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @swagger_auto_schema(responses={200: InvitationSerializer}, tags=['teams'])
@@ -193,7 +192,7 @@ class RegistrationFormAdminViewSet(GenericViewSet):
             for index, participant in participants_list_file.iterrows():
                 # remove None fields
                 participant = {key: value for key,
-                            value in participant.items() if value}
+                               value in participant.items() if value}
 
                 try:
                     registration_form = self.get_object()

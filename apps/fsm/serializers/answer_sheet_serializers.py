@@ -1,21 +1,15 @@
-from datetime import datetime
 
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
-from rest_polymorphic.serializers import PolymorphicSerializer
 
 from apps.accounts.serializers import StudentshipSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import AnswerSheet, RegistrationReceipt, Problem
+from apps.fsm.models import RegistrationReceipt, Problem
 from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer
 from apps.accounts.serializers import UserSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):
-    # class Meta:
-    #     model = AnswerSheet
-    #     fields = ['id']
-    #     read_only_fields = ['id']
 
     def create(self, validated_data):
         answers = validated_data.pop(
@@ -48,11 +42,19 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
     answers = AnswerPolymorphicSerializer(many=True, required=False)
     user = UserSerializer(required=False)
+    school_studentship = serializers.SerializerMethodField()
+    academic_studentship = serializers.SerializerMethodField()
+
+    def get_school_studentship(self, obj):
+        return StudentshipSerializer(obj.user.school_studentship).data
+
+    def get_academic_studentship(self, obj):
+        return StudentshipSerializer(obj.user.academic_studentship).data
 
     class Meta:
         model = RegistrationReceipt
         fields = ['id', 'user', 'answer_sheet_type', 'answer_sheet_of', 'answers', 'status', 'is_participating', 'team',
-                  'certificate']
+                  'certificate', 'school_studentship', 'academic_studentship']
         read_only_fields = ['id', 'user', 'status', 'answer_sheet_of',
                             'is_participating', 'team', 'certificate']
 
@@ -78,42 +80,6 @@ class MyRegistrationReceiptSerializer(AnswerSheetSerializer):
         fields = ['id', 'user', 'answer_sheet_type',
                   'answer_sheet_of', 'status', 'is_participating']
         read_only_fields = ['id']
-
-
-class RegistrationInfoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistrationReceipt
-        fields = ['id', 'user', 'answer_sheet_type', 'answer_sheet_of', 'status', 'is_participating', 'team',
-                  'certificate']
-        read_only_fields = ['id', 'user', 'answer_sheet_type', 'answer_sheet_of', 'status', 'is_participating', 'team',
-                            'certificate']
-
-    def to_representation(self, instance):
-        representation = super(RegistrationInfoSerializer,
-                               self).to_representation(instance)
-        user = instance.user
-        representation['first_name'] = user.first_name
-        representation['last_name'] = user.last_name
-        representation['username'] = user.username
-        representation['profile_picture'] = user.profile_picture.url if user.profile_picture else None
-        if representation['profile_picture'] is not None and representation['profile_picture'].startswith('/api/'):
-            domain = self.context.get('domain', None)
-            if domain:
-                representation['profile_picture'] = domain + \
-                    representation['profile_picture']
-        representation['school_studentship'] = StudentshipSerializer().to_representation(
-            user.school_studentship) if getattr(user, 'school_studentship') else None
-        representation['academic_studentship'] = StudentshipSerializer().to_representation(
-            user.academic_studentship) if getattr(user, 'academic_studentship') else None
-        return representation
-
-
-class AnswerSheetPolymorphicSerializer(PolymorphicSerializer):
-    resource_type_field_name = 'answer_sheet_type'
-    model_serializer_mapping = {
-        # AnswerSheet: AnswerSheetSerializer,
-        RegistrationReceipt: RegistrationReceiptSerializer,
-    }
 
 
 class RegistrationPerCitySerializer(serializers.Serializer):

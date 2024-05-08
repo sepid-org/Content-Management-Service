@@ -1,13 +1,9 @@
-from django.db import transaction
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
 
-from apps.accounts.models import User
 from errors.error_codes import serialize_error
 from apps.fsm.models import Team, Invitation, RegistrationReceipt
-from apps.fsm.serializers.answer_sheet_serializers import RegistrationInfoSerializer
+from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer
 
 
 class InvitationSerializer(serializers.ModelSerializer):
@@ -70,7 +66,7 @@ class InvitationSerializer(serializers.ModelSerializer):
 
 
 class TeamSerializer(serializers.ModelSerializer):
-    members = RegistrationInfoSerializer(many=True, read_only=True)
+    members = RegistrationReceiptSerializer(many=True, read_only=True)
 
     # todo: talk with Erfan about commenting this
     # def validate(self, attrs):
