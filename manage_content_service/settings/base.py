@@ -151,14 +151,12 @@ STATIC_URL = '/api/static/'
 MEDIA_URL = '/api/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-EMAIL_HOST = 'smtp.zoho.com'
-EMAIL_HOST_USER = 'info@rastaiha.ir'
-EMAIL_HOST_PASSWORD = 'ET6vmrh.$gHZFjL'
-EMAIL_PORT = 587
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-DEFAULT_FROM_EMAIL = "Rastaiha <" + EMAIL_HOST_USER + ">"
-
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'sepid.platform@gmail.com'
+EMAIL_HOST_PASSWORD = 'tmyz glmk cjsj urnw'
 # Activate Django-Heroku.
 
 OK_STATUS = 'ok'
