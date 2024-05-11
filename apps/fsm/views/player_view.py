@@ -16,7 +16,7 @@ from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.models import FSM
 from apps.fsm.serializers.fsm_serializers import KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.views.functions import move_on_edge, get_player_latest_taken_edge
+from apps.fsm.utils import move_on_edge, get_player_latest_taken_edge
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):

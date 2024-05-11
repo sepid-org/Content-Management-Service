@@ -15,7 +15,7 @@ from apps.fsm.models import Edge, FSM
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.views.functions import get_receipt, get_player, move_on_edge, get_a_player_from_team
+from apps.fsm.utils import get_receipt, get_player, move_on_edge, get_a_player_from_team
 
 logger = logging.getLogger(__name__)
 

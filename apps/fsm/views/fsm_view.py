@@ -12,7 +12,6 @@ from rest_framework import viewsets
 
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
-from apps.fsm.utils import _get_fsm_edges
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import MentorPermission, HasActiveRegistration
@@ -22,7 +21,7 @@ from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSi
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
-from apps.fsm.views.functions import get_player, get_receipt, get_a_player_from_team
+from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges
 
 
 class FSMViewSet(viewsets.ModelViewSet):
