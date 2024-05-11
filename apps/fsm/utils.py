@@ -1,3 +1,9 @@
+from errors.error_codes import serialize_error
+from apps.fsm.serializers.widget_serializers import WidgetSerializer
+from apps.fsm.serializers.answer_serializers import AnswerSerializer
+from apps.fsm.models import *
+from rest_framework.exceptions import ParseError
+import logging
 import requests
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from io import BytesIO
@@ -45,15 +51,6 @@ class SafeTokenAuthentication(JWTAuthentication):
             return None
 
 
-import logging
-from rest_framework.exceptions import ParseError
-
-from apps.fsm.models import *
-from apps.fsm.serializers.answer_serializers import AnswerSerializer
-from apps.fsm.serializers.widget_serializers import WidgetSerializer
-from errors.error_codes import serialize_error
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -69,21 +66,21 @@ def get_player(user, fsm, receipt):
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
 
 
-def move_on_edge(p, edge, departure_time, is_forward):
-    p.current_state = edge.head if is_forward else edge.tail
-    p.last_visit = departure_time
-    p.save()
+def move_on_edge(player:Player, edge:Edge, departure_time, is_forward):
+    player.current_state = edge.head if is_forward else edge.tail
+    player.last_visit = departure_time
+    player.save()
     try:
         last_state_history = PlayerHistory.objects.get(
-            player=p, state=edge.tail if is_forward else edge.head, end_time=None)
+            player=player, state=edge.tail if is_forward else edge.head, end_time=None)
     except:
         last_state_history = None
     if last_state_history:
         last_state_history.end_time = departure_time
         last_state_history.save()
-    PlayerHistory.objects.create(player=p, state=edge.head if is_forward else edge.tail, entered_by_edge=edge,
+    PlayerHistory.objects.create(player=player, state=edge.head if is_forward else edge.tail, entered_by_edge=edge,
                                  start_time=departure_time, reverse_enter=not is_forward)
-    return p
+    return player
 
 
 def get_a_player_from_team(team, fsm):
@@ -109,4 +106,3 @@ def get_player_latest_taken_edge(player: Player):
         # if the latest hostory is deleted, choose an inward_edges randomly
         last_taken_edge = player.current_state.inward_edges.all().first()
     return last_taken_edge
-

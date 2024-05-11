@@ -60,12 +60,12 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             if player.current_state == edge.head:
                 departure_time = timezone.now()
                 for member in team.members.all():
-                    p = member.players.filter(fsm=fsm).first()
-                    if p:
-                        p = move_on_edge(
-                            p, edge, departure_time, is_forward=False)
-                        if player.id == p.id:
-                            player = p
+                    player = member.players.filter(fsm=fsm).first()
+                    if player:
+                        player = move_on_edge(
+                            player, edge, departure_time, is_forward=False)
+                        if player.id == player.id:
+                            player = player
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
             elif player.current_state == edge.tail:
@@ -106,12 +106,12 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
                 departure_time = timezone.now()
                 for member in team.members.all():
-                    p = member.players.filter(fsm=fsm).first()
-                    if p:
-                        p = move_on_edge(
-                            p, edge, departure_time, is_forward=False)
-                        if player.id == p.id:
-                            player = p
+                    player = member.players.filter(fsm=fsm).first()
+                    if player:
+                        player = move_on_edge(
+                            player, edge, departure_time, is_forward=False)
+                        if player.id == player.id:
+                            player = player
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
 
