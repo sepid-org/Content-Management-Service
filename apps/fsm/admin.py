@@ -46,9 +46,9 @@ class UploadFileAnswerAdmin(admin.ModelAdmin):
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
     model = PlayerHistory
     list_display = ['player', 'state', 'start_time', 'end_time',
-                    'entered_by_edge', 'reverse_enter', 'delta_time']
+                    'passed_edge', 'is_edge_passed_in_reverse', 'delta_time']
     list_filter = ['start_time', 'end_time',
-                   'state__fsm', 'state', 'entered_by_edge']
+                   'state__fsm', 'state', 'passed_edge']
 
     def delta_time(self, obj):
         if (obj.end_time and obj.start_time):

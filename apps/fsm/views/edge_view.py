@@ -74,7 +74,7 @@ class EdgeViewSet(ModelViewSet):
 
                 departure_time = timezone.now()
                 for member in team.members.all():
-                    player = member.players.filter(fsm=fsm).first()
+                    player = member.get_player_of(fsm=fsm)
                     if player:
                         player = move_on_edge(
                             player, edge, departure_time, is_forward=True)
@@ -109,16 +109,16 @@ class EdgeViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def mentor_move_forward(self, request, pk):
-        serializer = TeamGetSerializer(
-            data=self.request.data, context=self.get_serializer_context())
-        serializer.is_valid(raise_exception=True)
-        team: Team = serializer.validated_data['team']
         edge = self.get_object()
         fsm = edge.tail.fsm
 
+        serializer = TeamGetSerializer(
+            data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        team: Team = serializer.validated_data['team']
         if team:
             for member in team.members.all():
-                player = member.players.filter(fsm=fsm).first()
+                player = member.get_player_of(fsm=fsm)
                 if player:
                     player = move_on_edge(
                         player, edge,  departure_time=timezone.now(), is_forward=True)

@@ -78,8 +78,8 @@ def move_on_edge(player:Player, edge:Edge, departure_time, is_forward):
     if last_state_history:
         last_state_history.end_time = departure_time
         last_state_history.save()
-    PlayerHistory.objects.create(player=player, state=edge.head if is_forward else edge.tail, entered_by_edge=edge,
-                                 start_time=departure_time, reverse_enter=not is_forward)
+    PlayerHistory.objects.create(player=player, state=edge.head if is_forward else edge.tail, passed_edge=edge,
+                                 start_time=departure_time, is_edge_passed_in_reverse=not is_forward)
     return player
 
 
@@ -98,10 +98,10 @@ def get_a_player_from_team(team, fsm):
 
 def get_player_latest_taken_edge(player: Player):
     latest_history = player.histories.filter(
-        reverse_enter=False, state=player.current_state).last()
+        is_edge_passed_in_reverse=False, state=player.current_state).last()
 
-    if latest_history and latest_history.entered_by_edge:
-        last_taken_edge = latest_history.entered_by_edge
+    if latest_history and latest_history.passed_edge:
+        last_taken_edge = latest_history.passed_edge
     else:
         # if the latest hostory is deleted, choose an inward_edges randomly
         last_taken_edge = player.current_state.inward_edges.all().first()

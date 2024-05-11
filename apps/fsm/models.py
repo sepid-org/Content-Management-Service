@@ -158,7 +158,6 @@ class Event(models.Model):
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
 
- 
     def __str__(self):
         return self.name
 
@@ -407,12 +406,12 @@ class PlayerHistory(models.Model):
     player = models.ForeignKey(
         'fsm.Player', on_delete=models.CASCADE, related_name='histories')
     state = models.ForeignKey(
-        State, on_delete=models.CASCADE, related_name='player_histories')
+        State, on_delete=models.SET_NULL, related_name='players_histories', null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
-    entered_by_edge = models.ForeignKey(Edge, related_name='histories', default=None, null=True, blank=True,
-                                        on_delete=models.SET_NULL)
-    reverse_enter = models.BooleanField(default=False)
+    passed_edge = models.ForeignKey(Edge, related_name='players_histories', null=True, blank=True,
+                                    on_delete=models.SET_NULL)
+    is_edge_passed_in_reverse = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self):
         return f'{self.player.id}-{self.state.name}'
@@ -481,10 +480,14 @@ class RegistrationReceipt(AnswerSheet):
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
-    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
-                             related_name='members', null=True, blank=True)
     certificate = models.FileField(
         upload_to='certificates/', null=True, blank=True, default=None)
+
+    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
+                             related_name='members', null=True, blank=True)
+
+    def get_player_of(self, fsm: FSM):
+        return self.players.filter(fsm=fsm).first()
 
     @property
     def purchases(self):

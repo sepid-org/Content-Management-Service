@@ -22,7 +22,7 @@ def _get_player_taken_path(player_id: int):
     for i in range(100):
         previous_state = _get_previous_taken_state(
             player_current_state, histories)
-        # if the entered_by_edge is deleted, it isn't possible to reach to previous state
+        # if the passed_edge is deleted, it isn't possible to reach to previous state
         if not previous_state:
             break
         taken_path.append(Link.get_link_from_states(
@@ -35,11 +35,11 @@ def _get_player_taken_path(player_id: int):
 
 def _get_previous_taken_state(player_current_state: State, histories: list[PlayerHistory]):
     for history in histories:
-        if history.reverse_enter:
+        if history.is_edge_passed_in_reverse:
             continue
-        # if the entered_by_edge is deleted:
-        if not history.entered_by_edge:
+        # if the passed_edge is deleted:
+        if not history.passed_edge:
             continue
-        if history.entered_by_edge.head == player_current_state:
-            return history.entered_by_edge.tail
+        if history.passed_edge.head == player_current_state:
+            return history.passed_edge.tail
     return None

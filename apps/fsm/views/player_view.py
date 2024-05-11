@@ -60,7 +60,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             if player.current_state == edge.head:
                 departure_time = timezone.now()
                 for member in team.members.all():
-                    player = member.players.filter(fsm=fsm).first()
+                    player = member.get_player_of(fsm=fsm)
                     if player:
                         player = move_on_edge(
                             player, edge, departure_time, is_forward=False)
@@ -106,7 +106,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
                 departure_time = timezone.now()
                 for member in team.members.all():
-                    player = member.players.filter(fsm=fsm).first()
+                    player = member.get_player_of(fsm=fsm)
                     if player:
                         player = move_on_edge(
                             player, edge, departure_time, is_forward=False)
