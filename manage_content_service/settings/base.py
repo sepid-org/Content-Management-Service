@@ -43,6 +43,8 @@ CUSTOM_APPS = [
     'rest_framework.authtoken',
     'import_export',
     'drf_yasg',
+    'celery',
+    'messenger',
     'polymorphic',
     'django_extensions',
     'django_filters',
@@ -72,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 # multi-lingual settings below
 # LANGUAGES = [
 #     ('en', _('English')),
@@ -90,8 +93,12 @@ MIDDLEWARE = [
 # multilingual settings above
 
 CORS_ORIGIN_ALLOW_ALL = True
-
+CELERY_TIMEZONE = "Australia/Tasmania"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
 ROOT_URLCONF = 'manage_content_service.urls'
+CELERY_BROKER_URL   = 'amqp://rabbitmq:lSlaxl020tkIN6lW1sQiRymJ5PN6tpFS@23688f0d-18eb-4a74-9524-148122178ddd.hsvc.ir:31866//'
+
 
 TEMPLATES = [
     {
@@ -108,6 +115,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'manage_content_service.wsgi.application'
 
