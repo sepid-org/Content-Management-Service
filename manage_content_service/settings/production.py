@@ -29,7 +29,6 @@ DATABASES = {
         'PORT': DB_PORT,
     }
 }
-# CELERY_BROKER_URL   = 'amqp://rabbitmq:lSlaxl020tkIN6lW1sQiRymJ5PN6tpFS@23688f0d-18eb-4a74-9524-148122178ddd.hsvc.ir:31866//'
 
 CACHES = {
     'default': {
