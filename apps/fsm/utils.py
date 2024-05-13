@@ -1,7 +1,4 @@
 from errors.error_codes import serialize_error
-from apps.fsm.serializers.widget_serializers import WidgetSerializer
-from apps.fsm.serializers.answer_serializers import AnswerSerializer
-from apps.fsm.models import *
 from rest_framework.exceptions import ParseError
 import logging
 import requests
@@ -10,7 +7,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 
-from apps.fsm.models import FSM, Edge
+from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, RegistrationReceipt
 
 
 def go_next_step(player):
@@ -54,7 +51,7 @@ class SafeTokenAuthentication(JWTAuthentication):
 logger = logging.getLogger(__name__)
 
 
-def get_receipt(user, fsm):
+def get_receipt(user, fsm) -> RegistrationReceipt:
     if fsm.registration_form and fsm.event.registration_form:
         raise ParseError(serialize_error('4077'))
     registration_form = fsm.registration_form or fsm.event.registration_form
@@ -62,28 +59,29 @@ def get_receipt(user, fsm):
                                               is_participating=True).first()
 
 
-def get_player(user, fsm, receipt):
+def get_player(user, fsm, receipt) -> Player:
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
 
 
-def move_on_edge(player:Player, edge:Edge, departure_time, is_forward):
+def move_on_edge(player: Player, edge: Edge, departure_time, is_forward) -> Player:
     player.current_state = edge.head if is_forward else edge.tail
     player.last_visit = departure_time
     player.save()
     try:
-        last_state_history = PlayerHistory.objects.get(
-            player=player, state=edge.tail if is_forward else edge.head, end_time=None)
+        last_state_history = PlayerStateHistory.objects.filter(
+            player=player, state=edge.tail if is_forward else edge.head, departure_time=None).last()
+        last_state_history.departure_time = departure_time
+        last_state_history.save()
     except:
         last_state_history = None
-    if last_state_history:
-        last_state_history.end_time = departure_time
-        last_state_history.save()
-    PlayerHistory.objects.create(player=player, state=edge.head if is_forward else edge.tail, passed_edge=edge,
-                                 start_time=departure_time, is_edge_passed_in_reverse=not is_forward)
+    PlayerStateHistory.objects.create(player=player,
+                                      state=edge.head if is_forward else edge.tail,
+                                      transited_edge=edge, arrival_time=departure_time,
+                                      is_edge_transited_in_reverse=not is_forward)
     return player
 
 
-def get_a_player_from_team(team, fsm):
+def get_a_player_from_team(team, fsm) -> Player:
     head_receipt = team.team_head
     players = Player.objects.filter(fsm=fsm, receipt__in=team.members.all())
     if len(players) <= 0:
@@ -96,12 +94,12 @@ def get_a_player_from_team(team, fsm):
         return player
 
 
-def get_player_latest_taken_edge(player: Player):
+def get_player_latest_taken_edge(player: Player) -> Edge:
     latest_history = player.histories.filter(
-        is_edge_passed_in_reverse=False, state=player.current_state).last()
+        is_edge_transited_in_reverse=False, state=player.current_state).last()
 
-    if latest_history and latest_history.passed_edge:
-        last_taken_edge = latest_history.passed_edge
+    if latest_history and latest_history.transited_edge:
+        last_taken_edge = latest_history.transited_edge
     else:
         # if the latest hostory is deleted, choose an inward_edges randomly
         last_taken_edge = player.current_state.inward_edges.all().first()

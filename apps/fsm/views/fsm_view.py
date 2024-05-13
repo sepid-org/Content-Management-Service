@@ -13,7 +13,7 @@ from rest_framework import viewsets
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
 from errors.error_codes import serialize_error
-from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerHistory, Player, RegistrationReceipt, Problem
+from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import MentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer
@@ -223,7 +223,7 @@ class FSMViewSet(viewsets.ModelViewSet):
             if len(Player.objects.filter(user=r.user, fsm=f, receipt=r)) <= 0:
                 p = Player.objects.create(user=r.user, fsm=f, receipt=r, current_state=f.first_state,
                                           last_visit=timezone.now())
-                PlayerHistory.objects.create(
+                PlayerStateHistory.objects.create(
                     player=p, state=f.first_state, start_time=p.last_visit)
 
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},

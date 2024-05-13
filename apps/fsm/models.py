@@ -402,19 +402,34 @@ class Edge(models.Model):
         return f'از {self.tail.name} به {self.head.name}'
 
 
-class PlayerHistory(models.Model):
+class PlayerTransition(models.Model):
+    source_state = models.ForeignKey(
+        State, on_delete=models.SET_NULL, related_name='source_of_player_transitions', null=True)
+    target_state = models.ForeignKey(
+        State, on_delete=models.SET_NULL, related_name='target_of_player_transitions', null=True)
+    time = models.DateTimeField(auto_now_add=True)
+    transited_edge = models.ForeignKey(Edge, related_name='player_transition_histories', null=True, blank=True,
+                                       on_delete=models.SET_NULL)
+    is_edge_transited_in_reverse = models.BooleanField(null=True, blank=True)
+
+
+class PlayerStateHistory(models.Model):
     player = models.ForeignKey(
         'fsm.Player', on_delete=models.CASCADE, related_name='histories')
     state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='players_histories', null=True, blank=True)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    passed_edge = models.ForeignKey(Edge, related_name='players_histories', null=True, blank=True,
-                                    on_delete=models.SET_NULL)
-    is_edge_passed_in_reverse = models.BooleanField(default=False, null=True, blank=True)
+        State, on_delete=models.SET_NULL, related_name='player_state_histories', null=True, blank=True)
+    arrival = models.ForeignKey(
+        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='state_arrival_history')
+    departure = models.ForeignKey(
+        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='state_departure_history')
+    arrival_time = models.DateTimeField(auto_now_add=True)
+    departure_time = models.DateTimeField(null=True)
+    transited_edge = models.ForeignKey(Edge, related_name='player_histories', null=True, blank=True,
+                                       on_delete=models.SET_NULL)
+    is_edge_transited_in_reverse = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.player.id}-{self.state.name}'
+        return f'{self.player.id}-{self.state.name if self.state else ""}'
 
 
 ################ ARTICLE #################
@@ -422,7 +437,7 @@ class PlayerHistory(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(unique=True, max_length=25)
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.name

@@ -9,7 +9,7 @@ from import_export.admin import ExportActionMixin
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Event, \
-    UploadFileAnswer, UploadFileProblem, PlayerHistory, Article, Tag, Aparat
+    UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat
 
 from apps.fsm.utils import get_django_file
 
@@ -44,15 +44,15 @@ class UploadFileAnswerAdmin(admin.ModelAdmin):
 
 
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
-    model = PlayerHistory
-    list_display = ['player', 'state', 'start_time', 'end_time',
-                    'passed_edge', 'is_edge_passed_in_reverse', 'delta_time']
-    list_filter = ['start_time', 'end_time',
-                   'state__fsm', 'state', 'passed_edge']
+    model = PlayerStateHistory
+    list_display = ['player', 'state', 'arrival_time', 'departure_time',
+                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time']
+    list_filter = ['arrival_time', 'departure_time',
+                   'state__fsm', 'state', 'transited_edge']
 
     def delta_time(self, obj):
-        if (obj.end_time and obj.start_time):
-            return obj.end_time - obj.start_time
+        if (obj.departure_time and obj.arrival_time):
+            return obj.departure_time - obj.arrival_time
         return "-"
 
 
@@ -526,7 +526,7 @@ admin.site.register(SmallAnswerProblem, SmallAnswerProblemAdmin)
 admin.site.register(TextWidget, TextWidgetAdmin)
 admin.site.register(DetailBoxWidget, DetailBoxWidgetAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(PlayerHistory, PlayerHistoryAdmin)
+admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
 admin.site.register(Widget, WidgetAdmin)
 admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
