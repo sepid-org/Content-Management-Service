@@ -5,7 +5,7 @@ from django.shortcuts import render
 
 from django.core.mail import send_mail
 from django.http import HttpResponse
-
+from messenger.tasks import *
 
 
 from django.core.mail import EmailMessage
@@ -13,12 +13,7 @@ from django.core.mail import EmailMessage
 
 
 def send_email(request):
-    subject = 'Hello from Sepid'
-    message = 'This is a test email sent from Ehsan'
-    from_email = 'your@example.com'  # Replace with your email address
-    to_email = 'amoo.hashem.mehraban@gmail.com'  # Replace with recipient's email address
-
-    send_mail(subject, message, from_email, [to_email])
+    send_emailQeue.delay("ehsna" , "ehsan.ghechisaz82@gmail.com")
     return  HttpResponse("goi")
 
 
