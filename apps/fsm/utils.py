@@ -1,3 +1,4 @@
+from django.utils import timezone
 from errors.error_codes import serialize_error
 from rest_framework.exceptions import ParseError
 import logging
@@ -7,7 +8,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 
-from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, RegistrationReceipt
+from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State
 
 
 def go_next_step(player):
@@ -63,21 +64,35 @@ def get_player(user, fsm, receipt) -> Player:
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
 
 
-def move_on_edge(player: Player, edge: Edge, departure_time, is_forward) -> Player:
-    player.current_state = edge.head if is_forward else edge.tail
-    player.last_visit = departure_time
+def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge) -> Player:
+    player.current_state = target_state
+    transition_time = timezone.now()
+
+    player.last_visit = transition_time
     player.save()
+
+    player_transition = PlayerTransition.objects.create(
+        source_state=source_state,
+        target_state=target_state,
+        time=transition_time,
+        transited_edge=edge
+    )
+
     try:
         last_state_history = PlayerStateHistory.objects.filter(
-            player=player, state=edge.tail if is_forward else edge.head, departure_time=None).last()
-        last_state_history.departure_time = departure_time
+            player=player, state=source_state, departure_time=None).last()
+        last_state_history.departure_time = transition_time
+        last_state_history.departure = player_transition
         last_state_history.save()
     except:
-        last_state_history = None
-    PlayerStateHistory.objects.create(player=player,
-                                      state=edge.head if is_forward else edge.tail,
-                                      transited_edge=edge, arrival_time=departure_time,
-                                      is_edge_transited_in_reverse=not is_forward)
+        pass
+
+    PlayerStateHistory.objects.create(
+        player=player,
+        state=target_state,
+        arrival=player_transition,
+    )
+
     return player
 
 

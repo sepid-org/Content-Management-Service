@@ -15,7 +15,7 @@ from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils import get_receipt, get_player, move_on_edge, get_a_player_from_team
+from apps.fsm.utils import get_receipt, get_player, transit_player_in_fsm, get_a_player_from_team
 
 logger = logging.getLogger(__name__)
 
@@ -72,12 +72,10 @@ class EdgeViewSet(ModelViewSet):
 
                 # todo - handle scoring things
 
-                departure_time = timezone.now()
                 for member in team.members.all():
                     player = member.get_player_of(fsm=fsm)
                     if player:
-                        player = move_on_edge(
-                            player, edge, departure_time, is_forward=True)
+                        player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
                         if player.id == player.id:
                             player = player
 
@@ -92,9 +90,7 @@ class EdgeViewSet(ModelViewSet):
                 raise ParseError(serialize_error('4083'))
         elif fsm.fsm_p_type in [FSM.FSMPType.Individual, FSM.FSMPType.Hybrid]:
             if player.current_state == edge.tail:
-                departure_time = timezone.now()
-                player = move_on_edge(
-                    player, edge, departure_time, is_forward=True)
+                player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
             elif player.current_state == edge.head:
@@ -120,7 +116,6 @@ class EdgeViewSet(ModelViewSet):
             for member in team.members.all():
                 player = member.get_player_of(fsm=fsm)
                 if player:
-                    player = move_on_edge(
-                        player, edge,  departure_time=timezone.now(), is_forward=True)
+                    player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
 
         return Response({'message': 'ok'}, status=status.HTTP_200_OK)

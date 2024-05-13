@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 from import_export.admin import ExportActionMixin
 
-from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
+from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Event, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat
@@ -54,6 +54,13 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
         if (obj.departure_time and obj.arrival_time):
             return obj.departure_time - obj.arrival_time
         return "-"
+
+
+@admin.register(PlayerTransition)
+class PlayerTransitionAdmin(admin.ModelAdmin):
+    model = PlayerTransition
+    list_display = ['source_state', 'target_state', 'time', 'transited_edge']
+    list_filter = []
 
 
 class TextWidgetAdmin(admin.ModelAdmin):
