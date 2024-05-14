@@ -225,3 +225,11 @@ VOUCHER_CODE_LENGTH = 5
 DISCOUNT_CODE_LENGTH = 10
 
 PURCHASE_UNIQ_CODE_LENGTH = 10
+
+
+def GET_PAYMENT_CALLBACK_URL(domain, status):
+    PAYMENT = {
+        'success': f'http://{domain}/message/payment/success',
+        'failure': f'http://{domain}/message/payment/failure',
+    }
+    return PAYMENT[status]

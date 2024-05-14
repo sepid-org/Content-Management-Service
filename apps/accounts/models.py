@@ -302,6 +302,7 @@ class Purchase(models.Model):
         blank=False, default=Status.Started, choices=Status.choices, max_length=25)
     created_at = models.DateTimeField(auto_now_add=True)
     uniq_code = models.CharField(blank=False, max_length=100, default="")
+    callback_domain = models.CharField(blank=True, null=True, max_length=100)
 
     user = models.ForeignKey(
         User, related_name='purchases', on_delete=models.CASCADE)
