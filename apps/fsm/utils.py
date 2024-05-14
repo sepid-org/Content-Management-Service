@@ -80,7 +80,7 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
 
     try:
         last_state_history = PlayerStateHistory.objects.filter(
-            player=player, state=source_state, departure_time=None).last()
+            player=player, state=source_state, departure_time__lte=transition_time).last()
         last_state_history.departure_time = transition_time
         last_state_history.departure = player_transition
         last_state_history.save()
