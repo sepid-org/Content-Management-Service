@@ -407,12 +407,12 @@ class PlayerTransition(models.Model):
         State, on_delete=models.SET_NULL, related_name='source_of_player_transitions', null=True)
     target_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, related_name='target_of_player_transitions', null=True)
-    time = models.DateTimeField(auto_now_add=True)
+    time = models.DateTimeField(null=True)
     transited_edge = models.ForeignKey(Edge, related_name='player_transition_histories', null=True, blank=True,
                                        on_delete=models.SET_NULL)
 
     def is_edge_transited_in_reverse(self):
-        return True # todo: fix
+        return True  # todo: fix
 
 
 class PlayerStateHistory(models.Model):
@@ -429,6 +429,8 @@ class PlayerStateHistory(models.Model):
     transited_edge = models.ForeignKey(Edge, related_name='player_histories', null=True, blank=True,
                                        on_delete=models.SET_NULL)
     is_edge_transited_in_reverse = models.BooleanField(null=True, blank=True)
+
+    is_processed = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.player.id}-{self.state.name if self.state else ""}'

@@ -45,10 +45,11 @@ class UploadFileAnswerAdmin(admin.ModelAdmin):
 
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
     model = PlayerStateHistory
+    readonly_fields = ('arrival_time',)
     list_display = ['player', 'state', 'arrival_time', 'departure_time',
-                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time']
+                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed']
     list_filter = ['arrival_time', 'departure_time',
-                   'state__fsm', 'state', 'transited_edge']
+                   'state__fsm', 'state', 'transited_edge', 'is_processed']
 
     def delta_time(self, obj):
         if (obj.departure_time and obj.arrival_time):
@@ -59,6 +60,7 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
 @admin.register(PlayerTransition)
 class PlayerTransitionAdmin(admin.ModelAdmin):
     model = PlayerTransition
+    readonly_fields = ('time',)
     list_display = ['source_state', 'target_state', 'time', 'transited_edge']
     list_filter = []
 
