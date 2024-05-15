@@ -15,7 +15,7 @@ def _get_player_taken_path(player_id: int):
     player = Player.get_player(player_id)
     player_current_state: State = player.current_state
     fsm = player_current_state.fsm
-    histories: list[PlayerStateHistory] = player.histories.all()
+    histories: list[PlayerStateHistory] = player.player_state_histories.all()
     taken_path: list[Link] = []
 
     # 100 is consumed as maximum length in a fsm graph
