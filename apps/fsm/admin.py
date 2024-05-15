@@ -50,6 +50,7 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
                     'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed']
     list_filter = ['arrival_time', 'departure_time',
                    'state__fsm', 'state', 'transited_edge', 'is_processed']
+    raw_id_fields = ('player', 'state', 'arrival', 'departure')
 
     def delta_time(self, obj):
         if (obj.departure_time and obj.arrival_time):
@@ -63,6 +64,7 @@ class PlayerTransitionAdmin(admin.ModelAdmin):
     readonly_fields = ('time',)
     list_display = ['source_state', 'target_state', 'time', 'transited_edge']
     list_filter = []
+    raw_id_fields = ('source_state', 'target_state', 'transited_edge')
 
 
 class TextWidgetAdmin(admin.ModelAdmin):
