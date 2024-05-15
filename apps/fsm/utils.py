@@ -24,16 +24,16 @@ def _get_fsm_edges(fsm: FSM) -> list[Edge]:
 
 
 def get_django_file(url: str):
-    r = requests.get(url, allow_redirects=True)
+    request = requests.get(url, allow_redirects=True)
 
-    if not r.ok:
+    if not request.ok:
         raise Exception("fail to fetch")
 
     file_name = url.rsplit('/', 1)[1]
-    file_type = r.headers.get('content-type')
-    file_size = int(r.headers.get('content-length'))
+    file_type = request.headers.get('content-type')
+    file_size = int(request.headers.get('content-length'))
 
-    file_io = BytesIO(r.content)
+    file_io = BytesIO(request.content)
 
     django_file = InMemoryUploadedFile(
         file_io, None, file_name, file_type,  file_size, None)
@@ -110,7 +110,7 @@ def get_a_player_from_team(team, fsm) -> Player:
 
 
 def get_player_latest_taken_edge(player: Player) -> Edge:
-    latest_history = player.histories.filter(
+    latest_history = player.player_state_histories.filter(
         is_edge_transited_in_reverse=False, state=player.current_state).last()
 
     if latest_history and latest_history.transited_edge:
