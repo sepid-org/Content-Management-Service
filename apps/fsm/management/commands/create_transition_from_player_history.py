@@ -71,4 +71,3 @@ class Command(BaseCommand):
 
         thread = Thread(target=long_task)
         thread.start()
-        return
