@@ -62,9 +62,9 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
 class PlayerTransitionAdmin(admin.ModelAdmin):
     model = PlayerTransition
     readonly_fields = ('time',)
-    list_display = ['source_state', 'target_state', 'time', 'transited_edge']
+    list_display = ['player', 'source_state', 'target_state', 'time', 'transited_edge']
     list_filter = []
-    raw_id_fields = ('source_state', 'target_state', 'transited_edge')
+    raw_id_fields = ('player', 'source_state', 'target_state', 'transited_edge')
 
 
 class TextWidgetAdmin(admin.ModelAdmin):

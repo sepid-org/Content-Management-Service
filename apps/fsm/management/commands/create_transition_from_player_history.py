@@ -14,46 +14,61 @@ class Command(BaseCommand):
 
                 @transaction.atomic
                 def do():
-                    if playerStateHistory.is_processed:
-                        return
+                    if not playerStateHistory.is_processed:
 
-                    playerStateHistory.is_processed = True
-                    playerStateHistory.save()
+                        playerStateHistory.is_processed = True
 
-                    if not playerStateHistory.transited_edge or playerStateHistory.is_edge_transited_in_reverse is None:
-                        return
+                        if playerStateHistory.transited_edge or playerStateHistory.is_edge_transited_in_reverse is None:
+                            edge = playerStateHistory.transited_edge
+                            player = playerStateHistory.player
+                            is_reverse = playerStateHistory.is_edge_transited_in_reverse
+                            source_state = edge.head if is_reverse else edge.tail
+                            target_state = edge.tail if is_reverse else edge.head
+                            transition_time = playerStateHistory.arrival_time
+                            departure_time = playerStateHistory.departure_time
 
-                    edge = playerStateHistory.transited_edge
-                    player = playerStateHistory.player
-                    is_reverse = playerStateHistory.is_edge_transited_in_reverse
-                    source_state = edge.head if is_reverse else edge.tail
-                    target_state = edge.tail if is_reverse else edge.head
-                    transition_time = playerStateHistory.arrival_time
-                    departure_time = playerStateHistory.departure_time
+                            # last player transition
+                            last_player_transition = PlayerTransition.objects.create(
+                                player=player,
+                                source_state=source_state,
+                                target_state=target_state,
+                                time=transition_time,
+                                transited_edge=edge
+                            )
 
-                    # last player transition
-                    last_player_transition = PlayerTransition.objects.create(
-                        source_state=source_state,
-                        target_state=target_state,
-                        time=transition_time,
-                        transited_edge=edge
-                    )
+                            # previous player state history
+                            try:
+                                previous_state_history = PlayerStateHistory.objects.filter(
+                                    player=player, state=source_state, departure_time__lte=transition_time).last()
+                                # previous_state_history.departure_time = transition_time
+                                previous_state_history.departure = last_player_transition
+                                previous_state_history.save()
+                            except:
+                                pass
 
-                    # previous player state history
-                    try:
-                        previous_state_history = PlayerStateHistory.objects.filter(
-                            player=player, state=source_state, departure_time__lte=transition_time).last()
-                        # previous_state_history.departure_time = transition_time
-                        previous_state_history.departure = last_player_transition
-                        previous_state_history.save()
-                    except:
-                        pass
+                            # current player state history
+                            playerStateHistory.arrival = last_player_transition
 
-                    # current player state history
-                    playerStateHistory.arrival = last_player_transition
-                    playerStateHistory.save()
+                        playerStateHistory.save()
+
+                    if not playerStateHistory.is_processed2:
+                        playerStateHistory.is_processed2 = True
+                        playerStateHistory.save()
+
+                        player = playerStateHistory.player
+
+                        arrival_transtion = playerStateHistory.arrival
+                        if arrival_transtion:
+                            arrival_transtion.player = player
+                            arrival_transtion.save()
+
+                        departure_transition = playerStateHistory.departure
+                        if departure_transition:
+                            departure_transition.player = player
+                            departure_transition.save()
 
                 do()
 
         thread = Thread(target=long_task)
         thread.start()
+        return
