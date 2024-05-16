@@ -47,9 +47,9 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
     model = PlayerStateHistory
     readonly_fields = ('arrival_time',)
     list_display = ['player', 'state', 'arrival_time', 'departure_time',
-                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed']
+                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed', 'is_processed2']
     list_filter = ['arrival_time', 'departure_time',
-                   'state__fsm', 'state', 'transited_edge', 'is_processed']
+                   'state__fsm', 'state', 'transited_edge', 'is_processed', 'is_processed2']
     raw_id_fields = ('player', 'state', 'arrival', 'departure')
 
     def delta_time(self, obj):
