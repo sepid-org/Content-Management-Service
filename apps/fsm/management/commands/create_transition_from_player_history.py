@@ -38,8 +38,9 @@ class Command(BaseCommand):
 
                             # previous player state history
                             try:
-                                previous_state_history = PlayerStateHistory.objects.filter(
-                                    player=player, state=source_state, departure_time__lte=transition_time).last()
+                                previous_state_history = player.player_state_histories.filter(
+                                    state=source_state, departure=None
+                                ).last()
                                 # previous_state_history.departure_time = transition_time
                                 previous_state_history.departure = last_player_transition
                                 previous_state_history.save()
