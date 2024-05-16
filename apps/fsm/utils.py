@@ -72,6 +72,7 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
     player.save()
 
     player_transition = PlayerTransition.objects.create(
+        player=player,
         source_state=source_state,
         target_state=target_state,
         time=transition_time,

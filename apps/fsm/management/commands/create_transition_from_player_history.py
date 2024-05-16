@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
                         playerStateHistory.is_processed = True
 
-                        if playerStateHistory.transited_edge or playerStateHistory.is_edge_transited_in_reverse is None:
+                        if playerStateHistory.transited_edge and playerStateHistory.is_edge_transited_in_reverse is None:
                             edge = playerStateHistory.transited_edge
                             player = playerStateHistory.player
                             is_reverse = playerStateHistory.is_edge_transited_in_reverse
