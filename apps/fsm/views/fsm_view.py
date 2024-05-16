@@ -229,6 +229,6 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
-    @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
+    # @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)

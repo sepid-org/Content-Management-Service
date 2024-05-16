@@ -37,6 +37,6 @@ class ProgramViewSet(ModelViewSet):
             permission_classes = [IsEventModifier]
         return [permission() for permission in permission_classes]
 
-    @method_decorator(cache_page(60 * 1,  key_prefix="program"))
+    # @method_decorator(cache_page(60 * 1,  key_prefix="program"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)
