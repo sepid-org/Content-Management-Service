@@ -19,8 +19,7 @@ def _get_player_transited_path(player_id: int):
     current_time = timezone.now()
     taken_path: list[Link] = []
 
-    # 100 is consumed as maximum length in a fsm graph
-    for i in range(100):
+    for i in range(len(transitions)):
         previous_transition = _get_player_previous_transition(
             player_current_state, current_time, transitions)
         # if the transited_edge is deleted, it isn't possible to reach to previous state
