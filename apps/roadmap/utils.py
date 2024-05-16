@@ -31,7 +31,6 @@ def _get_player_transited_path(player_id: int):
         player_current_state = previous_transition.source_state
         current_time = previous_transition.time
 
-    print("FFFFFFFFf", taken_path)
     taken_path.reverse()
     return taken_path
 
