@@ -165,23 +165,11 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sepid.platform@gmail.com'
 EMAIL_HOST_PASSWORD = 'tmyz glmk cjsj urnw'
-# Activate Django-Heroku.
-
-OK_STATUS = 'ok'
-ERROR_STATUS = 'err'
-HELP_STATUS = 'help'
-
-THUMBNAIL_ALIASES = {
-    '': {
-        'avatar': {'size': (80, 80), 'crop': True},
-    },
-}
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 CONSTANTS = {
     "PAGINATION_NUMBER": 50,
-
 }
 
 # Custom user model

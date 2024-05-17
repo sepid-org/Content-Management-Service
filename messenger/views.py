@@ -1,23 +1,14 @@
-from django.shortcuts import render
-
-# Create your views here.
-# emailsender/views.py
-
-from django.core.mail import send_mail
 from django.http import HttpResponse
 from messenger.tasks import *
 import os
 from manage_content_service.settings.base import BASE_DIR
 
-from django.core.mail import EmailMessage
-
-
 
 def send_email(request):
-    html_content =os.path.join(BASE_DIR, "assets/greeting_mail.html")
-    html_content= open(html_content, "r", encoding="utf-8").read()
-    send_emailQeue.delay("ehsna" , "ehsan.ghechisaz82@gmail.com" ,  html_content)
-    return  HttpResponse("goi")
+    html_content = os.path.join(BASE_DIR, "assets/greeting_mail.html")
+    html_content = open(html_content, "r", encoding="utf-8").read()
+    send_emailQeue.delay("ehsna", "ehsan.ghechisaz82@gmail.com",  html_content)
+    return HttpResponse("goi")
 
 
 # def send_email(request):
