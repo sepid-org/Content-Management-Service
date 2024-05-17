@@ -1,13 +1,14 @@
-from django.http import HttpResponse
-from messenger.tasks import *
 import os
+from django.http import HttpResponse
+from messenger.tasks import send_email_task
 from manage_content_service.settings.base import BASE_DIR
 
 
 def send_email(request):
-    html_content = os.path.join(BASE_DIR, "assets/greeting_mail.html")
-    html_content = open(html_content, "r", encoding="utf-8").read()
-    send_emailQeue.delay("ehsna", "ehsan.ghechisaz82@gmail.com",  html_content)
+    html_content_path = os.path.join(BASE_DIR, "assets/greeting_mail.html")
+    html_content = open(html_content_path, "r", encoding="utf-8").read()
+    send_email_task.delay(
+        "Email Subject", ["ehsan.ghechisaz82@gmail.com"], html_content)
     return HttpResponse("goi")
 
 

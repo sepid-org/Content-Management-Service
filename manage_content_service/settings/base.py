@@ -19,6 +19,8 @@ def get_environment_var(var_name, default, prefixed=True):
     return os.getenv(var_name, default)
 
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))
@@ -74,31 +76,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# multi-lingual settings below
-# LANGUAGES = [
-#     ('en', _('English')),
-#     ('fa', _('Persian')),
-# ]
-
-# USE_I18N = True
-#
-# USE_L10N = True
-#
-# LANGUAGE_CODE = 'en'
-#
-# LOCALE_PATHS = [
-#     os.path.join(BASE_DIR, 'locale'),
-# ]
-# multilingual settings above
-BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
-CORS_ORIGIN_ALLOW_ALL = True
-CELERY_TIMEZONE = "Australia/Tasmania"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-ROOT_URLCONF = 'manage_content_service.urls'
-CELERY_BROKER_URL = BROKER_URL
-# CELERY_BROKER_URL = 'amqp://rabbitmq:lSlaxl020tkIN6lW1sQiRymJ5PN6tpFS@23688f0d-18eb-4a74-9524-148122178ddd.hsvc.ir:31866//'
 
 TEMPLATES = [
     {
@@ -219,3 +196,12 @@ VOUCHER_CODE_LENGTH = 5
 DISCOUNT_CODE_LENGTH = 10
 
 PURCHASE_UNIQ_CODE_LENGTH = 10
+
+
+########## Celery Settings ##########
+
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+ROOT_URLCONF = 'manage_content_service.urls'
+CELERY_BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
