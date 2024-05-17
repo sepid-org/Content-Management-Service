@@ -4,7 +4,7 @@ from django.core.mail import EmailMessage
 
 @shared_task()
 def send_email_task(subject, recipients_emails, body):
-    sender_email = 'sepid.org@gmail.com'
+    sender_email = 'sepid.platform@gmail.com'
     mail = EmailMessage(subject=subject, body=body,
                         from_email=sender_email, to=recipients_emails)
     mail.content_subtype = 'html'
