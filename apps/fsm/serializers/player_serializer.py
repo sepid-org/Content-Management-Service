@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
-from apps.fsm.models import Player, PlayerHistory
+from apps.fsm.models import Player, PlayerStateHistory
 from apps.fsm.serializers.paper_serializers import StateSerializer
 from apps.fsm.serializers.team_serializer import TeamSerializer
 
 
 class PlayerHistorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = PlayerHistory
+        model = PlayerStateHistory
         fields = '__all__'
         read_only_fields = ['id']
 

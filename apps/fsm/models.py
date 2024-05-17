@@ -158,7 +158,6 @@ class Event(models.Model):
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
 
- 
     def __str__(self):
         return self.name
 
@@ -403,19 +402,41 @@ class Edge(models.Model):
         return f'از {self.tail.name} به {self.head.name}'
 
 
-class PlayerHistory(models.Model):
+class PlayerTransition(models.Model):
     player = models.ForeignKey(
-        'fsm.Player', on_delete=models.CASCADE, related_name='histories')
+        Player, on_delete=models.CASCADE, related_name='player_transitions', null=True, blank=True)
+    source_state = models.ForeignKey(
+        State, on_delete=models.SET_NULL, related_name='player_departure_transitions', null=True)
+    target_state = models.ForeignKey(
+        State, on_delete=models.SET_NULL, related_name='player_arrival_transitions', null=True)
+    time = models.DateTimeField(null=True)
+    transited_edge = models.ForeignKey(Edge, related_name='player_transitions', null=True, blank=True,
+                                       on_delete=models.SET_NULL)
+
+    def is_edge_transited_in_reverse(self):
+        return True  # todo: fix
+
+
+class PlayerStateHistory(models.Model):
+    player = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name='player_state_histories')
     state = models.ForeignKey(
-        State, on_delete=models.CASCADE, related_name='player_histories')
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    entered_by_edge = models.ForeignKey(Edge, related_name='histories', default=None, null=True, blank=True,
-                                        on_delete=models.SET_NULL)
-    reverse_enter = models.BooleanField(default=False)
+        State, on_delete=models.SET_NULL, related_name='player_state_histories', null=True, blank=True)
+    arrival = models.ForeignKey(
+        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_target_state_history')
+    departure = models.ForeignKey(
+        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_source_state_history')
+    arrival_time = models.DateTimeField(auto_now_add=True)
+    departure_time = models.DateTimeField(null=True)
+    transited_edge = models.ForeignKey(Edge, related_name='player_histories', null=True, blank=True,
+                                       on_delete=models.SET_NULL)
+    is_edge_transited_in_reverse = models.BooleanField(null=True, blank=True)
+
+    is_processed = models.BooleanField(default=False)
+    is_processed2 = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.player.id}-{self.state.name}'
+        return f'{self.player.id}-{self.state.name if self.state else ""}'
 
 
 ################ ARTICLE #################
@@ -423,7 +444,7 @@ class PlayerHistory(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(unique=True, max_length=25)
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.name
@@ -481,10 +502,14 @@ class RegistrationReceipt(AnswerSheet):
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
-    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
-                             related_name='members', null=True, blank=True)
     certificate = models.FileField(
         upload_to='certificates/', null=True, blank=True, default=None)
+
+    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
+                             related_name='members', null=True, blank=True)
+
+    def get_player_of(self, fsm: FSM):
+        return self.players.filter(fsm=fsm).first()
 
     @property
     def purchases(self):

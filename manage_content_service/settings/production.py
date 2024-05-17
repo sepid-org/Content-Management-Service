@@ -8,15 +8,14 @@ SECRET_KEY = get_environment_var(
 
 ALLOWED_HOSTS = get_environment_var('ALLOWED_HOSTS', '*').split(',')
 
-SERVICE_DOMAIN = 'https://kamva.academy/'
+SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://kamva.academy/')
 
 DB_NAME = get_environment_var('DB_NAME', 'workshop')
 DB_USER = get_environment_var('DB_USER', 'user')
 DB_PASS = get_environment_var('DB_PASS', 'p4s$pAsS')
 DB_HOST = get_environment_var('DB_HOST', 'localhost')
 DB_PORT = get_environment_var('DB_PORT', '5432')
-RD_HOST= get_environment_var("RD_HOST" , 'redis://0.0.0.0:6379')
-
+RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
 
 
 DATABASES = {
@@ -111,11 +110,6 @@ ZARINPAL_CONFIG = {
     'PERSON_FEE': int(get_environment_var('PERSON_FEE', '100000')),  # Required
     'MERCHANT': '817461df-e332-4657-85d1-76e7e0a06f0e',  # Required
     'DESCRIPTION': ''  # Required
-}
-
-PAYMENT = {
-    'FRONT_HOST_SUCCESS': f'{SERVICE_DOMAIN}message/payment/success',
-    'FRONT_HOST_FAILURE': f'{SERVICE_DOMAIN}message/payment/failure',
 }
 
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'

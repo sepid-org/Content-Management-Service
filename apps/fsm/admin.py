@@ -6,10 +6,10 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 from import_export.admin import ExportActionMixin
 
-from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
+from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Event, \
-    UploadFileAnswer, UploadFileProblem, PlayerHistory, Article, Tag, Aparat
+    UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat
 
 from apps.fsm.utils import get_django_file
 
@@ -44,16 +44,27 @@ class UploadFileAnswerAdmin(admin.ModelAdmin):
 
 
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
-    model = PlayerHistory
-    list_display = ['player', 'state', 'start_time', 'end_time',
-                    'entered_by_edge', 'reverse_enter', 'delta_time']
-    list_filter = ['start_time', 'end_time',
-                   'state__fsm', 'state', 'entered_by_edge']
+    model = PlayerStateHistory
+    readonly_fields = ('arrival_time',)
+    list_display = ['player', 'state', 'arrival_time', 'departure_time',
+                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed', 'is_processed2']
+    list_filter = ['arrival_time', 'departure_time',
+                   'state__fsm', 'state', 'transited_edge', 'is_processed', 'is_processed2']
+    raw_id_fields = ('player', 'state', 'arrival', 'departure')
 
     def delta_time(self, obj):
-        if (obj.end_time and obj.start_time):
-            return obj.end_time - obj.start_time
+        if (obj.departure_time and obj.arrival_time):
+            return obj.departure_time - obj.arrival_time
         return "-"
+
+
+@admin.register(PlayerTransition)
+class PlayerTransitionAdmin(admin.ModelAdmin):
+    model = PlayerTransition
+    readonly_fields = ('time',)
+    list_display = ['player', 'source_state', 'target_state', 'time', 'transited_edge']
+    list_filter = []
+    raw_id_fields = ('player', 'source_state', 'target_state', 'transited_edge')
 
 
 class TextWidgetAdmin(admin.ModelAdmin):
@@ -526,7 +537,7 @@ admin.site.register(SmallAnswerProblem, SmallAnswerProblemAdmin)
 admin.site.register(TextWidget, TextWidgetAdmin)
 admin.site.register(DetailBoxWidget, DetailBoxWidgetAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(PlayerHistory, PlayerHistoryAdmin)
+admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
 admin.site.register(Widget, WidgetAdmin)
 admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)

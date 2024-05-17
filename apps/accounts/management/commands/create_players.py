@@ -4,7 +4,7 @@ import logging
 
 from django.utils import timezone
 
-from apps.fsm.models import RegistrationReceipt, Event, Player, PlayerHistory
+from apps.fsm.models import RegistrationReceipt, Event, Player, PlayerStateHistory
 from .users import users
 
 logger = logging.getLogger(__file__)
@@ -19,6 +19,6 @@ class Command(BaseCommand):
                 for r in RegistrationReceipt.objects.filter(is_participating=True):
                     if len(Player.objects.filter(user=r.user, fsm=f, receipt=r)) <= 0:
                         p = Player.objects.create(user=r.user, fsm=f, receipt=r, current_state=f.first_state, last_visit=timezone.now())
-                        PlayerHistory.objects.create(player=p, state=f.first_state, start_time=p.last_visit)
+                        PlayerStateHistory.objects.create(player=p, state=f.first_state, start_time=p.last_visit)
 
                         self.stdout.write(self.style.SUCCESS(f'created_for {r.user.username} & {f.name}'))

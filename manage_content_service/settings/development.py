@@ -85,10 +85,6 @@ ZARINPAL_CONFIG = {
     'MERCHANT': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',  # Required
     'DESCRIPTION': 'ثبت‌نام در رویداد «رستاخیز: مسافر صفر» به صورت آزمایشی'  # Required
 }
-PAYMENT = {
-    'FRONT_HOST_SUCCESS': f'{SERVICE_DOMAIN}message/payment/success',
-    'FRONT_HOST_FAILURE': f'{SERVICE_DOMAIN}message/payment/failure',
-}
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
 

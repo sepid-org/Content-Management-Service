@@ -198,10 +198,20 @@ DISCOUNT_CODE_LENGTH = 10
 PURCHASE_UNIQ_CODE_LENGTH = 10
 
 
-########## Celery Settings ##########
+########## Celery ##########
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 ROOT_URLCONF = 'manage_content_service.urls'
 CELERY_BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
+
+
+########## Zarrinpal Payment ##########
+
+def GET_PAYMENT_CALLBACK_URL(domain, status):
+    PAYMENT = {
+        'success': f'http://{domain}/message/payment/success',
+        'failure': f'http://{domain}/message/payment/failure',
+    }
+    return PAYMENT[status]
