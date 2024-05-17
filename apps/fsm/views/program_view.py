@@ -7,7 +7,6 @@ from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
 from django.utils.decorators import method_decorator
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
-from apps.fsm.utils import SafeTokenAuthentication
 
 
 class ProgramViewSet(ModelViewSet):
@@ -15,11 +14,6 @@ class ProgramViewSet(ModelViewSet):
     queryset = Event.objects.all()
     my_tags = ['event']
     filterset_fields = ['website', 'is_private']
-
-    def get_authenticators(self):
-        if self.request.method == 'GET':
-            self.authentication_classes = [SafeTokenAuthentication]
-        return super().get_authenticators()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
