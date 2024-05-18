@@ -43,10 +43,7 @@ class FSMSerializer(serializers.ModelSerializer):
                 raise ParseError(serialize_error('4069'))
             if holder and event.holder and holder != event.holder:
                 raise ParseError(serialize_error('4070'))
-            if fsm_p_type == FSM.FSMPType.Individual:
-                if event.event_type != Event.EventType.Individual:
-                    raise ParseError(serialize_error('4071'))
-            else:
+            if fsm_p_type == FSM.FSMPType.Team:
                 if event.event_type == Event.EventType.Individual:
                     raise ParseError(serialize_error('4071'))
                 if team_size and team_size != event.team_size:
