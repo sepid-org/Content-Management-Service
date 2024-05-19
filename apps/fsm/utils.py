@@ -60,7 +60,8 @@ def get_receipt(user, fsm) -> RegistrationReceipt:
                                               is_participating=True).first()
 
 
-def get_player(user, fsm, receipt) -> Player:
+def get_player(user, fsm) -> Player:
+    receipt = get_receipt(user, fsm)
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
 
 

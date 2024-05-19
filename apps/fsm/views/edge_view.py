@@ -48,60 +48,47 @@ class EdgeViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def go_forward(self, request, pk):
-        key = self.request.data.get('key', None)
         edge = self.get_object()
-        fsm = edge.tail.fsm
+        fsm = edge.fsm
         user = request.user
-        receipt = get_receipt(user, fsm)
-        player = get_player(user, fsm, receipt)
+        player = get_player(user, fsm)
+
         if player is None:
             raise ParseError(serialize_error('4082'))
+
         if not edge.is_visible:
             raise PermissionDenied(serialize_error('4087'))
+
+        # check password:
+        if edge.lock and len(edge.lock) > 0:
+            password = request.data.get('password', None)
+            if not password:
+                raise PermissionDenied(serialize_error('4085'))
+            elif edge.lock != password:
+                raise PermissionDenied(serialize_error('4084'))
+
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
             if player.receipt.id != team.team_head.id:
                 raise ParseError(serialize_error('4089'))
 
             if player.current_state == edge.tail:
-                if edge.lock and len(edge.lock) > 0:
-                    if not key:
-                        raise PermissionDenied(serialize_error('4085'))
-                    elif edge.lock != key:
-                        raise PermissionDenied(serialize_error('4084'))
-
-                # todo - handle scoring things
-
                 for member in team.members.all():
                     player = member.get_player_of(fsm=fsm)
                     if player:
                         player = transit_player_in_fsm(
                             player, edge.tail, edge.head, edge)
-                        if player.id == player.id:
-                            player = player
 
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            elif player.current_state == edge.head:
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            else:
+            return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
+                            status=status.HTTP_200_OK)
 
-                logger.warning(serialize_error('4083'))
-                raise ParseError(serialize_error('4083'))
-        elif fsm.fsm_p_type in [FSM.FSMPType.Individual, FSM.FSMPType.Hybrid]:
+        elif fsm.fsm_p_type == FSM.FSMPType.Individual:
             if player.current_state == edge.tail:
                 player = transit_player_in_fsm(
                     player, edge.tail, edge.head, edge)
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            elif player.current_state == edge.head:
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            else:
-                raise ParseError(serialize_error('4083'))
-        else:
-            raise InternalServerError('Not implemented Yet😎')
+
+            return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
+                            status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
     @transaction.atomic

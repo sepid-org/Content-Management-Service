@@ -62,7 +62,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         fsm = self.get_object()
         user = self.request.user
         receipt = get_receipt(user, fsm)
-        player = get_player(user, fsm, receipt)
+        player = get_player(user, fsm)
 
         if receipt is None:
             raise ParseError(serialize_error('4079'))

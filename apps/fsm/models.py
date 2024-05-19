@@ -388,6 +388,10 @@ class Edge(models.Model):
     class Meta:
         unique_together = ('tail', 'head')
 
+    @property
+    def fsm(self):
+        return self.head.fsm
+
     def clone(self, tail, head):
         cloned_edge = Edge(
             tail=tail,

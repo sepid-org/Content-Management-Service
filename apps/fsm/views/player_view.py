@@ -63,8 +63,6 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
                     player = member.get_player_of(fsm=fsm)
                     if player:
                         player = transit_player_in_fsm(player, edge.head, edge.tail, edge)
-                        if player.id == player.id:
-                            player = player
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
             elif player.current_state == edge.tail:
