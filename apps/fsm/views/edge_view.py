@@ -75,7 +75,8 @@ class EdgeViewSet(ModelViewSet):
                 for member in team.members.all():
                     player = member.get_player_of(fsm=fsm)
                     if player:
-                        player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
+                        player = transit_player_in_fsm(
+                            player, edge.tail, edge.head, edge)
                         if player.id == player.id:
                             player = player
 
@@ -90,7 +91,8 @@ class EdgeViewSet(ModelViewSet):
                 raise ParseError(serialize_error('4083'))
         elif fsm.fsm_p_type in [FSM.FSMPType.Individual, FSM.FSMPType.Hybrid]:
             if player.current_state == edge.tail:
-                player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
+                player = transit_player_in_fsm(
+                    player, edge.tail, edge.head, edge)
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
             elif player.current_state == edge.head:
@@ -116,6 +118,8 @@ class EdgeViewSet(ModelViewSet):
             for member in team.members.all():
                 player = member.get_player_of(fsm=fsm)
                 if player:
-                    player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
+                    player = transit_player_in_fsm(
+                        player, edge.tail, edge.head, edge)
 
-        return Response({'message': 'ok'}, status=status.HTTP_200_OK)
+        return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
+                        status=status.HTTP_200_OK)

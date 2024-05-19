@@ -47,6 +47,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     def go_backward(self, request, pk):
         player = self.get_object()
         fsm = player.fsm
+        # todo: it should go back through one of this state inward links:
         edge = get_player_latest_taken_edge(player)
 
         if player is None:
@@ -96,18 +97,14 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             team = serializer.validated_data['team']
             player = self.get_object()
             fsm = player.fsm
+            # todo: it should go back through one of this state inward links:
             edge = get_player_latest_taken_edge(player)
 
             if fsm.fsm_p_type == FSM.FSMPType.Team:
-
-                departure_time = timezone.now()
                 for member in team.members.all():
                     player = member.get_player_of(fsm=fsm)
                     if player:
-                        player = transit_player_in_fsm(
-                            player, edge.head, edge.tail, edge, departure_time)
-                        if player.id == player.id:
-                            player = player
+                        player = transit_player_in_fsm(player, edge.head, edge.tail, edge)
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
 
