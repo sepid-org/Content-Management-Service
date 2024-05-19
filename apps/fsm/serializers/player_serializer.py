@@ -13,16 +13,10 @@ class PlayerHistorySerializer(serializers.ModelSerializer):
 
 
 class PlayerSerializer(serializers.ModelSerializer):
+    current_state = StateSerializer()
+    team = TeamSerializer()
+
     class Meta:
         model = Player
-        fields = '__all__'
+        fields = ['id', 'current_state', 'team']
         read_only_fields = ['id']
-
-    def to_representation(self, instance):
-        representation = super(PlayerSerializer, self).to_representation(instance)
-        representation['current_state'] = StateSerializer(context=self.context).to_representation(
-            instance.current_state)
-        representation['team'] = TeamSerializer(context=self.context).to_representation(
-            instance.team) if instance.team else None
-        representation['full_name'] = instance.user.full_name
-        return representation

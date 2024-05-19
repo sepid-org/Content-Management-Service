@@ -8,7 +8,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 
-from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State
+from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State, Team
 
 
 def go_next_step(player):
@@ -63,6 +63,18 @@ def get_receipt(user, fsm) -> RegistrationReceipt:
 def get_player(user, fsm) -> Player:
     receipt = get_receipt(user, fsm)
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
+
+
+def get_a_random_player_from_team(team, fsm) -> Player:
+    member = team.members.first()
+    return member.get_player_of(fsm=fsm)
+
+
+def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge) -> None:
+    for member in team.members.all():
+        player = member.get_player_of(fsm=fsm)
+        if player:
+            transit_player_in_fsm(player, source_state, target_state, edge)
 
 
 def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge) -> Player:
