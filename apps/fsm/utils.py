@@ -111,13 +111,6 @@ def get_a_player_from_team(team, fsm) -> Player:
         return player
 
 
-def get_player_latest_taken_edge(player: Player) -> Edge:
-    latest_history = player.player_state_histories.filter(
-        is_edge_transited_in_reverse=False, state=player.current_state).last()
-
-    if latest_history and latest_history.transited_edge:
-        last_taken_edge = latest_history.transited_edge
-    else:
-        # if the latest hostory is deleted, choose an inward_edges randomly
-        last_taken_edge = player.current_state.inward_edges.all().first()
-    return last_taken_edge
+def get_player_backward_edge(player: Player) -> Edge:
+    # todo: it should get the desired backward edge, not mustly the first one
+    return player.current_state.inward_edges.first()

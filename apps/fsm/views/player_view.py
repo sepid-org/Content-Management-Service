@@ -16,7 +16,7 @@ from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.models import FSM
 from apps.fsm.serializers.fsm_serializers import KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils import transit_player_in_fsm, get_player_latest_taken_edge
+from apps.fsm.utils import get_player_backward_edge, transit_player_in_fsm
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
@@ -48,7 +48,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         player = self.get_object()
         fsm = player.fsm
         # todo: it should go back through one of this state inward links:
-        edge = get_player_latest_taken_edge(player)
+        edge = get_player_backward_edge(player)
 
         if player is None:
             raise ParseError(serialize_error('4082'))
@@ -98,7 +98,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             player = self.get_object()
             fsm = player.fsm
             # todo: it should go back through one of this state inward links:
-            edge = get_player_latest_taken_edge(player)
+            edge = get_player_backward_edge(player)
 
             if fsm.fsm_p_type == FSM.FSMPType.Team:
                 for member in team.members.all():
