@@ -49,6 +49,9 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         # todo: it should go back through one of this state inward links:
         edge = get_player_backward_edge(player)
 
+        if not edge:
+            raise ParseError(serialize_error('4114'))
+
         if player is None:
             raise ParseError(serialize_error('4082'))
 

@@ -120,6 +120,7 @@ errors_dict = {'4000': 'phone number must be digit',
                '4111': 'fsm has no state',
                '4112': 'team id is not found',
                '4113': 'data are inconsistent',
+               '4114': 'there is no inward edge',
 
                '5000': 'sending SMS failed',
                '5001': 'zarinpal request failed, contact with support',
