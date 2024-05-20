@@ -12,7 +12,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
-from apps.fsm.serializers.player_serializer import PlayerSerializer
+from apps.fsm.serializers.player_serializer import PlayerStateSerializer
 from apps.fsm.utils import get_a_random_player_from_team, get_player, transit_player_in_fsm, transit_team_in_fsm
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class EdgeViewSet(ModelViewSet):
             permission_classes = [IsEdgeModifier]
         return [permission() for permission in permission_classes]
 
-    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
+    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['player'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def transit_player_on_edge(self, request, pk):
@@ -72,18 +72,17 @@ class EdgeViewSet(ModelViewSet):
             if player.current_state == edge.tail:
                 transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
                 player = get_a_random_player_from_team(team, fsm)
-            return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                            status=status.HTTP_200_OK)
+            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
         elif fsm.fsm_p_type == FSM.FSMPType.Individual:
             if player.current_state == edge.tail:
                 player = transit_player_in_fsm(
                     player, edge.tail, edge.head, edge)
 
-            return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
+            return Response(PlayerStateSerializer(player).data,
                             status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['mentor'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def mentor_move_forward(self, request, pk):
@@ -96,5 +95,4 @@ class EdgeViewSet(ModelViewSet):
         transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
         player = get_a_random_player_from_team(team, fsm)
 
-        return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                        status=status.HTTP_200_OK)
+        return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
