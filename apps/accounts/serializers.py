@@ -268,7 +268,7 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         username = attrs.get('username', None)
         user = attrs.get('user', None)
-        if creator not in merchandise.event_or_fsm.modifiers:
+        if creator not in merchandise.program_or_fsm.modifiers:
             raise PermissionDenied(serialize_error('4066'))
         if user is None:
             if username is not None:

@@ -58,7 +58,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     @transaction.atomic
     def validate(self, request, pk=None):
         receipt = self.get_object()
-        if self.request.user not in receipt.answer_sheet_of.event_or_fsm.modifiers:
+        if self.request.user not in receipt.answer_sheet_of.program_or_fsm.modifiers:
             raise PermissionDenied(serialize_error('4061'))
         # if not self.request.user.school_studentship.is_document_verified:
         #     raise PermissionDenied(serialize_error('4062'))
@@ -69,7 +69,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                 'status', RegistrationReceipt.RegistrationStatus.Waiting)
 
             if registration_status == RegistrationReceipt.RegistrationStatus.Accepted:
-                merchandise = receipt.answer_sheet_of.event_or_fsm.merchandise
+                merchandise = receipt.answer_sheet_of.program_or_fsm.merchandise
                 if receipt.answer_sheet_of is not None and (merchandise is None or merchandise.price == 0):
                     receipt.is_participating = True
             else:
@@ -89,7 +89,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                     type=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
                     # todo: get real academy name from mps
                     token='کاموا',
-                    token2=receipt.answer_sheet_of.event_or_fsm.name
+                    token2=receipt.answer_sheet_of.program_or_fsm.name
                 )
 
             return Response(

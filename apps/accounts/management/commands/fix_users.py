@@ -9,7 +9,7 @@ logger = logging.getLogger(__file__)
 
 
 class Command(BaseCommand):
-    help = 'Create user of problem_day event by phone_number and nationall code from list'
+    help = 'Create user of problem_day program by phone_number and nationall code from list'
 
     # def add_arguments(self, parser):
     #     parser.add_argument(nargs='+', type=str)

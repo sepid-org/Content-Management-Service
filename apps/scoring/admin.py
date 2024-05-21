@@ -17,7 +17,7 @@ class CriteriaCustomAdmin(admin.ModelAdmin):
             return
         criteria = queryset[0]
         registration_receipts = getattr(
-            criteria, 'paper').state.fsm.event.registration_form.registration_receipts.all()
+            criteria, 'paper').state.fsm.program.registration_form.registration_receipts.all()
 
         for receipt in registration_receipts:
             if criteria.evaluate(receipt.user):

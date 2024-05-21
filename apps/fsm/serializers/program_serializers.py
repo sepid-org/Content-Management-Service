@@ -5,7 +5,7 @@ from rest_framework import serializers
 from apps.accounts.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Event, RegistrationForm, RegistrationReceipt
+from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class ProgramSerializer(serializers.ModelSerializer):
         instance = super(ProgramSerializer, self).create(
             {'creator': creator, 'website': website, **validated_data})
         if merchandise and merchandise.get('name', None) is None:
-            merchandise['name'] = validated_data.get('name', 'unnamed_event')
+            merchandise['name'] = validated_data.get('name', 'unnamed_program')
             serializer = MerchandiseSerializer(data=merchandise)
             if serializer.is_valid(raise_exception=True):
                 merchandise_instance = serializer.save()
@@ -57,9 +57,10 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         team_size = attrs.get('team_size', 0)
-        event_type = attrs.get('event_type', Event.EventType.Individual)
-        if (team_size > 0 and event_type != Event.EventType.Team) or (
-                event_type == Event.EventType.Team and team_size <= 0):
+        program_type = attrs.get(
+            'program_type', Program.ProgramType.Individual)
+        if (team_size > 0 and program_type != Program.ProgramType.Team) or (
+                program_type == Program.ProgramType.Team and team_size <= 0):
             raise ParseError(serialize_error('4074'))
         return attrs
 
@@ -88,7 +89,7 @@ class ProgramSerializer(serializers.ModelSerializer):
             representation['is_paid'] = False
             representation['is_user_participating'] = False
             representation['registration_receipt'] = None
-        if receipt and receipt.is_participating and instance.event_type == Event.EventType.Team:
+        if receipt and receipt.is_participating and instance.program_type == Program.ProgramType.Team:
             if receipt.team:
                 representation['team'] = receipt.team.id
                 if receipt.team.team_head:
@@ -102,7 +103,7 @@ class ProgramSerializer(serializers.ModelSerializer):
         return representation
 
     class Meta:
-        model = Event
+        model = Program
         fields = '__all__'
-        read_only_fields = ['id', 'creator',
+        read_only_fields = ['id', 'creator', 'merchandise',
                             'is_approved', 'registration_form']

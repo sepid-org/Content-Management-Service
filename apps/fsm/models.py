@@ -77,7 +77,7 @@ class Hint(Paper):
 class TeamManager(models.Manager):
 
     def get_team_from_widget(self, user, widget):
-        form = widget.paper.fsm.registration_form or widget.paper.fsm.event.registration_form
+        form = widget.paper.fsm.registration_form or widget.paper.fsm.program.registration_form
         return Team.objects.filter(registration_form=form, members__user=user).first()
 
     def get_teammates_from_widget(self, user, widget):
@@ -122,20 +122,20 @@ class Invitation(models.Model):
 ################ COURSE #################
 
 
-class Event(models.Model):
-    class EventType(models.TextChoices):
+class Program(models.Model):
+    class ProgramType(models.TextChoices):
         Team = "Team"
         Individual = "Individual"
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    merchandise = models.OneToOneField('accounts.Merchandise', related_name='event', on_delete=models.SET_NULL,
+    merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
                                        null=True, blank=True)
-    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='event', on_delete=models.SET_NULL,
+    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.SET_NULL,
                                              null=True, blank=True)
-    creator = models.ForeignKey('accounts.User', related_name='events', on_delete=models.SET_NULL, null=True,
+    creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
-    holder = models.ForeignKey('accounts.EducationalInstitute', related_name='events', on_delete=models.SET_NULL,
+    holder = models.ForeignKey('accounts.EducationalInstitute', related_name='programs', on_delete=models.SET_NULL,
                                null=True, blank=True)
 
     name = models.CharField(max_length=100)
@@ -145,8 +145,8 @@ class Event(models.Model):
     is_approved = models.BooleanField(default=False)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    event_type = models.CharField(
-        max_length=40, default=EventType.Individual, choices=EventType.choices)
+    program_type = models.CharField(
+        max_length=40, default=ProgramType.Individual, choices=ProgramType.choices)
     team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
@@ -177,7 +177,7 @@ class Event(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None
         self.merchandise.delete() if self.merchandise is not None else None
-        return super(Event, self).delete(using, keep_parents)
+        return super(Program, self).delete(using, keep_parents)
 
     class Meta:
         ordering = ['-id']
@@ -219,7 +219,7 @@ class FSM(models.Model):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    event = models.ForeignKey(Event, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
+    program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                               blank=True)
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='fsm', on_delete=models.SET_NULL, null=True,
                                        blank=True)
@@ -507,14 +507,14 @@ class RegistrationReceipt(AnswerSheet):
 
     @property
     def purchases(self):
-        if self.answer_sheet_of.event_or_fsm.merchandise:
-            return self.answer_sheet_of.event_or_fsm.merchandise.purchases.filter(user=self.user)
+        if self.answer_sheet_of.program_or_fsm.merchandise:
+            return self.answer_sheet_of.program_or_fsm.merchandise.purchases.filter(user=self.user)
         return Purchase.objects.none()
 
     @property
     def is_paid(self):
         return len(self.purchases.filter(
-            status=Purchase.Status.Success)) > 0 if self.answer_sheet_of.event_or_fsm.merchandise else True
+            status=Purchase.Status.Success)) > 0 if self.answer_sheet_of.program_or_fsm.merchandise else True
 
     class Meta:
         unique_together = ('answer_sheet_of', 'user',)
@@ -582,10 +582,10 @@ class RegistrationForm(Paper):
     certificates_ready = models.BooleanField(default=False)
 
     @property
-    def event_or_fsm(self):
+    def program_or_fsm(self):
         try:
-            if self.event:
-                return self.event
+            if self.program:
+                return self.program
         except:
             try:
                 if self.fsm:
@@ -651,7 +651,7 @@ class RegistrationForm(Paper):
         return 'ok'
 
     def __str__(self):
-        return f'<{self.id}-{self.paper_type}>:{self.event_or_fsm.name if self.event_or_fsm else None}'
+        return f'<{self.id}-{self.paper_type}>:{self.program_or_fsm.name if self.program_or_fsm else None}'
 
 
 ############ Widget ############

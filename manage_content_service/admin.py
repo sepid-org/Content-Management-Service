@@ -63,7 +63,7 @@ def export_registration(request):
         form = RegistrationForm.objects.get(id=q)
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{form.event_or_fsm.name}.csv"'
+        response['Content-Disposition'] = f'attachment; filename="{form.program_or_fsm.name}.csv"'
 
         writer = csv.writer(response)
         writer.writerow(

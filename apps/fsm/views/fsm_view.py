@@ -29,7 +29,7 @@ class FSMViewSet(viewsets.ModelViewSet):
     queryset = FSM.objects.all()
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filterset_fields = ['website', 'event']
+    filterset_fields = ['website', 'program']
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
@@ -171,7 +171,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         if account_serializer.is_valid(raise_exception=True):
             new_mentor = find_user(account_serializer.validated_data)
             fsm.mentors.add(new_mentor)
-            registration_form = fsm.event.registration_form
+            registration_form = fsm.program.registration_form
             if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=new_mentor)) == 0:
                 RegistrationReceipt.objects.create(
                     answer_sheet_of=registration_form,

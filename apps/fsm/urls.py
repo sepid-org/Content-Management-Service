@@ -20,7 +20,7 @@ urlpatterns = [
     path("test/" , say_hello)
 ]
 
-router.register(r'event', ProgramViewSet, basename='events')
+router.register(r'program', ProgramViewSet, basename='programs')
 router.register(r'fsm', FSMViewSet, basename='fsms')
 router.register(r'article', ArticleViewSet, basename='articles')
 

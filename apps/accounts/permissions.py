@@ -47,13 +47,13 @@ class IsMerchandiseOwner(permissions.BasePermission):
     message = 'you are not this merchandise owner'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.event_or_fsm.modifiers
+        return request.user in obj.program_or_fsm.modifiers
 
 
 class IsDiscountCodeModifier(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.merchandise.event_or_fsm.modifiers
+        return request.user in obj.merchandise.program_or_fsm.modifiers
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):

@@ -204,7 +204,7 @@ class InvitationViewSet(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixin
                 'status', Invitation.InvitationStatus.Waiting)
             team = invitation.team
             if invitation_status == Invitation.InvitationStatus.Accepted:
-                if len(team.members.all()) >= team.registration_form.event_or_fsm.team_size:
+                if len(team.members.all()) >= team.registration_form.program_or_fsm.team_size:
                     raise ParseError('4059')
                 invitation.status = Invitation.InvitationStatus.Accepted
                 invitation.save()
