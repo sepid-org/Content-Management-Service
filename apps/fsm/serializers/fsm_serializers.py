@@ -35,14 +35,11 @@ class FSMSerializer(serializers.ModelSerializer):
         team_size = attrs.get('team_size', None)
         merchandise = attrs.get('merchandise', None)
         registration_form = attrs.get('registration_form', None)
-        holder = attrs.get('registration_form', None)
         fsm_p_type = attrs.get('fsm_p_type', FSM.FSMPType.Individual)
         creator = self.context.get('user', None)
         if event:
             if merchandise or registration_form:
                 raise ParseError(serialize_error('4069'))
-            if holder and event.holder and holder != event.holder:
-                raise ParseError(serialize_error('4070'))
             if fsm_p_type == FSM.FSMPType.Team:
                 if event.event_type == Event.EventType.Individual:
                     raise ParseError(serialize_error('4071'))
@@ -51,8 +48,6 @@ class FSMSerializer(serializers.ModelSerializer):
             if creator not in event.modifiers:
                 raise ParseError(serialize_error('4073'))
         else:
-            if holder and creator not in holder.admins.all():
-                raise ParseError(serialize_error('4031'))
             if fsm_p_type == FSM.FSMPType.Team and team_size is None:
                 raise ParseError(serialize_error('4074'))
         return attrs

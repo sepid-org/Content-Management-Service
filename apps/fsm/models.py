@@ -227,8 +227,6 @@ class FSM(models.Model):
                                              blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
                                 blank=True)
-    holder = models.ForeignKey('accounts.EducationalInstitute', related_name='fsms', on_delete=models.SET_NULL,
-                               null=True, blank=True)
     mentors = models.ManyToManyField(
         'accounts.User', related_name='fsms', blank=True)
     name = models.CharField(max_length=100)
@@ -281,14 +279,6 @@ class FSM(models.Model):
 
         cloned_fsm.first_state = cloned_states[self.first_state.id]
         cloned_fsm.save()
-
-    @property
-    def modifiers(self):
-        modifiers = {self.creator} if self.creator is not None else set()
-        modifiers |= set(self.holder.admins.all()
-                         ) if self.holder is not None else set()
-        modifiers |= set(self.mentors.all())
-        return modifiers
 
     def get_fsm(fsm_id: int):
         return FSM.objects.filter(id=fsm_id).first()

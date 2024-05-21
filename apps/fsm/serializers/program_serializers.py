@@ -61,10 +61,6 @@ class ProgramSerializer(serializers.ModelSerializer):
         if (team_size > 0 and event_type != Event.EventType.Team) or (
                 event_type == Event.EventType.Team and team_size <= 0):
             raise ParseError(serialize_error('4074'))
-        creator = self.context.get('user', None)
-        holder = attrs.get('holder', None)
-        if holder and creator not in holder.admins.all():
-            raise ParseError(serialize_error('4031'))
         return attrs
 
     def to_representation(self, instance):
