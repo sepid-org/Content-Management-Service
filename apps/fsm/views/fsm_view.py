@@ -21,7 +21,7 @@ from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSi
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer, PlayerStateSerializer
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
-from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges
+from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program
 
 
 class FSMViewSet(viewsets.ModelViewSet):
@@ -157,50 +157,33 @@ class FSMViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def get_mentors(self, request, pk):
         mentors = self.get_object().mentors
-        return Response(data=AccountSerializer(mentors, context=self.get_serializer_context(), many=True).data,
-                        status=status.HTTP_200_OK)
+        return Response(data=AccountSerializer(mentors, many=True).data)
 
     @swagger_auto_schema(responses={200: FSMSerializer}, tags=['mentor'])
-    @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[MentorPermission, ])
     def add_mentor(self, request, pk=None):
-        data = request.data
         fsm = self.get_object()
-        account_serializer = AccountSerializer(
-            data=data, context=self.get_serializer_context())
-        if account_serializer.is_valid(raise_exception=True):
-            new_mentor = find_user(account_serializer.validated_data)
-            fsm.mentors.add(new_mentor)
-            registration_form = fsm.program.registration_form
-            if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=new_mentor)) == 0:
-                RegistrationReceipt.objects.create(
-                    answer_sheet_of=registration_form,
-                    user=new_mentor,
-                    answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
-                    status=RegistrationReceipt.RegistrationStatus.Accepted,
-                    is_participating=True)
-            return Response(FSMSerializer(context=self.get_serializer_context()).to_representation(fsm),
-                            status=status.HTTP_200_OK)
+        account_serializer = AccountSerializer(data=request.data)
+        account_serializer.is_valid(raise_exception=True)
+        new_mentor = find_user(account_serializer.validated_data)
+        fsm.mentors.add(new_mentor)
+        register_user_in_program(new_mentor, fsm.program)
+        return Response()
 
     @swagger_auto_schema(responses={200: FSMSerializer}, tags=['mentor'])
-    @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[MentorPermission, ])
     def remove_mentor(self, request, pk=None):
-        data = request.data
         fsm = self.get_object()
-        serializer = AccountSerializer(
-            data=data, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            deleted_mentor = find_user(serializer.validated_data)
-            if deleted_mentor not in fsm.mentors.all():
-                raise ParseError(serialize_error('5005'))
-            else:
-                fsm.mentors.remove(deleted_mentor)
-                return Response(FSMSerializer(context=self.get_serializer_context()).to_representation(fsm),
-                                status=status.HTTP_200_OK)
+        serializer = AccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        removed_mentor = find_user(serializer.validated_data)
+        if removed_mentor == fsm.creator:
+            raise ParseError(serialize_error('5006'))
+        if removed_mentor in fsm.mentors.all():
+            fsm.mentors.remove(removed_mentor)
+        return Response()
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
-    @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def get_player_from_team(self, request, pk):
         fsm = self.get_object()

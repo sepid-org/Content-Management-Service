@@ -128,6 +128,8 @@ errors_dict = {'4000': 'phone number must be digit',
                '5003': 'given merchandise is illegal, a merch must be either for an program or a fsm',
                '5004': 'each program/fsm must have a registration form, given one doesn\'t',
                '5005': 'user was not mentor',
+               '5006': 'you can\'t remove the creator of fsm from it\'s mentors list',
+               '5007': 'you can\'t remove the creator of program from it\'s admins list',
 
                '6000': 'user has already answered this question correctly',
                '6001': 'user does not have enough scores',
