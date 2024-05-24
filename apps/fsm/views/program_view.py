@@ -1,12 +1,21 @@
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from django.views.decorators.cache import cache_page
-from apps.fsm.models import Program
-from apps.fsm.permissions import IsProgramModifier, HasActiveRegistration
-from django.utils.decorators import method_decorator
+from apps.fsm.models import Program, AnswerSheet, RegistrationReceipt, RegistrationReceipt
+from apps.fsm.permissions import ProgramAdmin, HasActiveRegistration, MentorPermission, HasActiveRegistration
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
+
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
+
+from apps.accounts.serializers import AccountSerializer
+from apps.accounts.utils import find_user
+from apps.fsm.utils import register_user_in_program
+from errors.error_codes import serialize_error
+from apps.fsm.serializers.fsm_serializers import FSMSerializer
 
 
 class ProgramViewSet(ModelViewSet):
@@ -21,16 +30,39 @@ class ProgramViewSet(ModelViewSet):
         return context
 
     def get_permissions(self):
-        if self.action in ['create']:
-            permission_classes = [permissions.IsAuthenticated]
-        elif self.action == 'retrieve' or self.action == 'list':
+        if self.action == 'retrieve' or self.action == 'list':
             permission_classes = [permissions.AllowAny]
-        elif self.action == 'get_fsms':
-            permission_classes = [HasActiveRegistration]
         else:
-            permission_classes = [IsProgramModifier]
+            permission_classes = [ProgramAdmin]
         return [permission() for permission in permission_classes]
 
     # @method_decorator(cache_page(60 * 1,  key_prefix="program"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)
+
+    @action(detail=True, methods=['get'])
+    def get_admins(self, request, pk):
+        admins = self.get_object().admins
+        return Response(data=AccountSerializer(admins, many=True).data)
+
+    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[ProgramAdmin, ])
+    def add_admin(self, request, pk=None):
+        program = self.get_object()
+        user_serializer = AccountSerializer(data=request.data)
+        user_serializer.is_valid(raise_exception=True)
+        new_admin = find_user(user_serializer.validated_data)
+        program.admins.add(new_admin)
+        register_user_in_program(new_admin, program)
+        return Response()
+
+    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[MentorPermission, ])
+    def remove_admin(self, request, pk=None):
+        program = self.get_object()
+        serializer = AccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        removed_admin = find_user(serializer.validated_data)
+        if removed_admin == program.creator:
+            raise ParseError(serialize_error('5007'))
+        if removed_admin in program.admins.all():
+            program.admins.remove(removed_admin)
+        return Response()

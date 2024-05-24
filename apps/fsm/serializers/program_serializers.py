@@ -28,6 +28,7 @@ class ProgramSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         instance = super(ProgramSerializer, self).create(
             {'creator': creator, 'website': website, **validated_data})
+        instance.admins.add(creator)
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name', 'unnamed_program')
             serializer = MerchandiseSerializer(data=merchandise)
@@ -107,3 +108,4 @@ class ProgramSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'merchandise',
                             'is_approved', 'registration_form']
+        

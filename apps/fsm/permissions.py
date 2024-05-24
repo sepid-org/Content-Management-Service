@@ -6,7 +6,7 @@ from rest_framework import permissions
 from apps.fsm.models import RegistrationReceipt, Program, RegistrationForm, FSM, Problem, State, Team
 
 
-class IsProgramModifier(permissions.BasePermission):
+class ProgramAdmin(permissions.BasePermission):
     """
     Permission for evet's admin to update program
     """

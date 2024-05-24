@@ -127,6 +127,9 @@ class Program(models.Model):
         Team = "Team"
         Individual = "Individual"
 
+    admins = models.ManyToManyField(
+        User, related_name='administered_programs', null=True, blank=True)
+
     website = models.CharField(blank=True, null=True, max_length=50)
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
@@ -164,8 +167,7 @@ class Program(models.Model):
     @property
     def modifiers(self):
         modifiers = {self.creator} if self.creator is not None else set()
-        modifiers |= set(self.holder.admins.all()
-                         ) if self.holder is not None else set()
+        modifiers |= set(self.admins.all())
         return modifiers
 
     @property
@@ -220,7 +222,7 @@ class FSM(models.Model):
     website = models.CharField(blank=True, null=True, max_length=50)
 
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
-                              blank=True)
+                                blank=True)
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='fsm', on_delete=models.SET_NULL, null=True,
                                        blank=True)
     registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='fsm', on_delete=models.SET_NULL, null=True,
@@ -491,8 +493,7 @@ class RegistrationReceipt(AnswerSheet):
     # should be in every answer sheet child
     answer_sheet_of = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
                                         on_delete=models.SET_NULL)
-    user = models.ForeignKey('accounts.User', related_name='registration_receipts', on_delete=models.CASCADE,
-                             null=True, blank=True)
+    user = models.ForeignKey('accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
