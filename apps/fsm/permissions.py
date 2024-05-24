@@ -6,7 +6,7 @@ from rest_framework import permissions
 from apps.fsm.models import RegistrationReceipt, Program, RegistrationForm, FSM, Problem, State, Team
 
 
-class ProgramAdmin(permissions.BasePermission):
+class ProgramAdminPermission(permissions.BasePermission):
     """
     Permission for program's admin to manage program
     """
@@ -118,14 +118,14 @@ class IsTeamMember(permissions.BasePermission):
         return len(obj.members.filter(user=request.user)) == 1
 
 
-class MentorPermission(permissions.BasePermission):
+class FSMMentorPermission(permissions.BasePermission):
     """
     Permission for mentor
     """
     message = 'you are not a mentor of this fsm'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.mentors.all() or ProgramAdmin().has_permission(request, view)
+        return request.user in obj.mentors.all() or ProgramAdminPermission().has_object_permission(request, view, obj.program)
 
 
 class MentorCorrectionPermission(permissions.BasePermission):

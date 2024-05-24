@@ -2,7 +2,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.fsm.models import Program
-from apps.fsm.permissions import ProgramAdmin
+from apps.fsm.permissions import ProgramAdminPermission
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
 
@@ -31,7 +31,7 @@ class ProgramViewSet(ModelViewSet):
         if self.action == 'retrieve' or self.action == 'list':
             permission_classes = [permissions.AllowAny]
         else:
-            permission_classes = [ProgramAdmin]
+            permission_classes = [ProgramAdminPermission]
         return [permission() for permission in permission_classes]
 
     # @method_decorator(cache_page(60 * 1,  key_prefix="program"))
