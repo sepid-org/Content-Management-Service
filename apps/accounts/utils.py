@@ -29,7 +29,7 @@ def find_user(data):
                                 Q(phone_number=phone_number) |
                                 Q(email=email))
     except:
-        return None
+        raise ParseError(serialize_error('4115'))
 
 
 def find_registration_receipt(user, registration_form):
