@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.db import transaction
@@ -34,7 +35,7 @@ class PaymentViewSet(GenericViewSet):
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except(KeyError, AttributeError):
+        except (KeyError, AttributeError):
             return super().get_serializer_class()
 
     def get_permissions(self):
@@ -60,14 +61,16 @@ class PaymentViewSet(GenericViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], serializer_class=DiscountCodeValidationSerializer)
     def verify_discount(self, request, pk=None):
-        serializer = DiscountCodeValidationSerializer(data=request.data, context=self.get_serializer_context())
+        serializer = DiscountCodeValidationSerializer(
+            data=request.data, context=self.get_serializer_context())
 
         if serializer.is_valid(raise_exception=True):
             code = serializer.data.get('code', None)
             merchandise_id = serializer.data.get('merchandise', None)
             discount_code = get_object_or_404(DiscountCode, code=code)
             merchandise = get_object_or_404(Merchandise, id=merchandise_id)
-            new_price = DiscountCode.calculate_discount(discount_code.value, merchandise.price)
+            new_price = DiscountCode.calculate_discount(
+                discount_code.value, merchandise.price)
             return Response({'new_price': new_price, **serializer.to_representation(discount_code)},
                             status=status.HTTP_200_OK)
 
@@ -75,29 +78,36 @@ class PaymentViewSet(GenericViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], serializer_class=DiscountCodeValidationSerializer)
     def purchase(self, request, pk=None):
-        serializer = DiscountCodeValidationSerializer(data=request.data, context=self.get_serializer_context())
+        serializer = DiscountCodeValidationSerializer(
+            data=request.data, context=self.get_serializer_context())
 
         if serializer.is_valid(raise_exception=True):
             code = serializer.data.get('code', None)
             merchandise_id = serializer.data.get('merchandise', None)
-            discount_code = get_object_or_404(DiscountCode, code=code) if code else None
+            discount_code = get_object_or_404(
+                DiscountCode, code=code) if code else None
             merchandise = get_object_or_404(Merchandise, id=merchandise_id)
             registration_form = merchandise.event_or_fsm.registration_form
             if not registration_form:
                 raise InternalServerError(serialize_error('5004'))
-            user_registration = registration_form.registration_receipts.filter(user=request.user).last()
+            user_registration = registration_form.registration_receipts.filter(
+                user=request.user).last()
             if user_registration:
                 if user_registration.status == RegistrationReceipt.RegistrationStatus.Accepted:
                     if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
                         raise ParseError(serialize_error('4046'))
                     if discount_code:
-                        price = DiscountCode.calculate_discount(discount_code.value, merchandise.price)
+                        price = DiscountCode.calculate_discount(
+                            discount_code.value, merchandise.price)
                         discount_code.remaining -= 1
                         discount_code.save()
                     else:
                         price = merchandise.price
+
+                    website_domain = urlparse(
+                        request.META['HTTP_ORIGIN']).netloc
                     purchase = Purchase.objects.create_purchase(merchandise=merchandise, user=self.request.user,
-                                                                amount=price, discount_code=discount_code)
+                                                                amount=price, discount_code=discount_code, callback_domain=website_domain)
                     callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?id={request.user.id}&uniq_code={purchase.uniq_code}'
                     response = zarinpal.send_request(amount=price, description=merchandise.name,
                                                      callback_url=callback_url)
@@ -113,7 +123,8 @@ class PaymentViewSet(GenericViewSet):
     @action(detail=False, methods=['get'])
     def verify_payment(self, request):
         user = get_object_or_404(User, id=request.GET.get('id', None))
-        purchase = get_object_or_404(Purchase, uniq_code=request.GET.get('uniq_code'), status=Purchase.Status.Started)
+        purchase = get_object_or_404(Purchase, uniq_code=request.GET.get(
+            'uniq_code'), status=Purchase.Status.Started)
         discount_code = purchase.discount_code
         logger.warning(f'Zarinpal callback: {request.GET}')
         res = zarinpal.verify(status=request.GET.get('Status', None),
@@ -134,7 +145,7 @@ class PaymentViewSet(GenericViewSet):
                     discount_code.save()
             purchase.save()
 
-            return redirect(f'{settings.PAYMENT["FRONT_HOST_SUCCESS"]}/{purchase.uniq_code}')
+            return redirect(f'{settings.GET_PAYMENT_CALLBACK_URL(purchase.callback_domain, "success")}/{purchase.uniq_code}')
         else:
             purchase.authority = request.GET.get('Authority')
             purchase.status = Purchase.Status.Failed
@@ -142,7 +153,7 @@ class PaymentViewSet(GenericViewSet):
                 discount_code.remaining += 1
                 discount_code.save()
             purchase.save()
-            return redirect(f'{settings.PAYMENT["FRONT_HOST_FAILURE"]}/{purchase.uniq_code}')
+            return redirect(f'{settings.GET_PAYMENT_CALLBACK_URL(purchase.callback_domain, "failure")}/{purchase.uniq_code}')
 
 
 class MerchandiseViewSet(GenericViewSet, RetrieveModelMixin):
@@ -156,7 +167,7 @@ class MerchandiseViewSet(GenericViewSet, RetrieveModelMixin):
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except(KeyError, AttributeError):
+        except (KeyError, AttributeError):
             return super().get_serializer_class()
 
     def get_permissions(self):

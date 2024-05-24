@@ -12,9 +12,8 @@ from rest_framework import viewsets
 
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
-from apps.fsm.utils import _get_fsm_edges
 from errors.error_codes import serialize_error
-from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerHistory, Player, RegistrationReceipt, Problem
+from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import MentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer
@@ -22,7 +21,7 @@ from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSi
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
-from apps.fsm.views.functions import get_player, get_receipt, get_a_player_from_team
+from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges
 
 
 class FSMViewSet(viewsets.ModelViewSet):
@@ -224,12 +223,12 @@ class FSMViewSet(viewsets.ModelViewSet):
             if len(Player.objects.filter(user=r.user, fsm=f, receipt=r)) <= 0:
                 p = Player.objects.create(user=r.user, fsm=f, receipt=r, current_state=f.first_state,
                                           last_visit=timezone.now())
-                PlayerHistory.objects.create(
+                PlayerStateHistory.objects.create(
                     player=p, state=f.first_state, start_time=p.last_visit)
 
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
-    @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
+    # @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)

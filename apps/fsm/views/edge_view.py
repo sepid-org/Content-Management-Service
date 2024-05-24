@@ -11,11 +11,11 @@ from rest_framework.viewsets import ModelViewSet
 
 from errors.error_codes import serialize_error
 from errors.exceptions import InternalServerError
-from apps.fsm.models import Edge, FSM
+from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.views.functions import get_receipt, get_player, move_on_edge, get_a_player_from_team
+from apps.fsm.utils import get_receipt, get_player, transit_player_in_fsm, get_a_player_from_team
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class EdgeViewSet(ModelViewSet):
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except(KeyError, AttributeError):
+        except (KeyError, AttributeError):
             return super().get_serializer_class()
 
     def get_serializer_context(self):
@@ -72,13 +72,12 @@ class EdgeViewSet(ModelViewSet):
 
                 # todo - handle scoring things
 
-                departure_time = timezone.now()
                 for member in team.members.all():
-                    p = member.players.filter(fsm=fsm).first()
-                    if p:
-                        p = move_on_edge(p, edge, departure_time, is_forward=True)
-                        if player.id == p.id:
-                            player = p
+                    player = member.get_player_of(fsm=fsm)
+                    if player:
+                        player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
+                        if player.id == player.id:
+                            player = player
 
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
@@ -91,8 +90,7 @@ class EdgeViewSet(ModelViewSet):
                 raise ParseError(serialize_error('4083'))
         elif fsm.fsm_p_type in [FSM.FSMPType.Individual, FSM.FSMPType.Hybrid]:
             if player.current_state == edge.tail:
-                departure_time = timezone.now()
-                player = move_on_edge(player, edge, departure_time, is_forward=True)
+                player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
                 return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                                 status=status.HTTP_200_OK)
             elif player.current_state == edge.head:
@@ -107,23 +105,17 @@ class EdgeViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def mentor_move_forward(self, request, pk):
-        serializer = TeamGetSerializer(data=self.request.data, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            team = serializer.validated_data['team']
-            edge = self.get_object()
-            fsm = edge.tail.fsm
-            player = get_a_player_from_team(team, fsm)
+        edge = self.get_object()
+        fsm = edge.tail.fsm
 
-            if fsm.fsm_p_type == FSM.FSMPType.Team:
+        serializer = TeamGetSerializer(
+            data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        team: Team = serializer.validated_data['team']
+        if team:
+            for member in team.members.all():
+                player = member.get_player_of(fsm=fsm)
+                if player:
+                    player = transit_player_in_fsm(player, edge.tail, edge.head, edge)
 
-                departure_time = timezone.now()
-                for member in team.members.all():
-                    p = member.players.filter(fsm=fsm).first()
-                    if p:
-                        p = move_on_edge(p, edge, departure_time, is_forward=True)
-                        if player.id == p.id:
-                            player = p
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            else:
-                raise InternalServerError('Not implemented Yet😎')
+        return Response({'message': 'ok'}, status=status.HTTP_200_OK)

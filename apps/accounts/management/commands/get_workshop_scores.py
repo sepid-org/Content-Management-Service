@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from apps.accounts.models import Teamm
 from apps.fsm.models import PlayerWorkshop, FSM
-from apps.fsm.views.functions import get_scores_sum
+from apps.fsm.utils import get_scores_sum
 
 logger = logging.getLogger(__file__)
 

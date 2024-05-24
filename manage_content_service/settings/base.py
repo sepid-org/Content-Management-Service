@@ -19,6 +19,8 @@ def get_environment_var(var_name, default, prefixed=True):
     return os.getenv(var_name, default)
 
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))
@@ -74,31 +76,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# multi-lingual settings below
-# LANGUAGES = [
-#     ('en', _('English')),
-#     ('fa', _('Persian')),
-# ]
-
-# USE_I18N = True
-#
-# USE_L10N = True
-#
-# LANGUAGE_CODE = 'en'
-#
-# LOCALE_PATHS = [
-#     os.path.join(BASE_DIR, 'locale'),
-# ]
-# multilingual settings above
-BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
-CORS_ORIGIN_ALLOW_ALL = True
-CELERY_TIMEZONE = "Australia/Tasmania"
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-ROOT_URLCONF = 'manage_content_service.urls'
-CELERY_BROKER_URL = BROKER_URL
-# CELERY_BROKER_URL = 'amqp://rabbitmq:lSlaxl020tkIN6lW1sQiRymJ5PN6tpFS@23688f0d-18eb-4a74-9524-148122178ddd.hsvc.ir:31866//'
 
 TEMPLATES = [
     {
@@ -165,23 +142,11 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sepid.platform@gmail.com'
 EMAIL_HOST_PASSWORD = 'tmyz glmk cjsj urnw'
-# Activate Django-Heroku.
-
-OK_STATUS = 'ok'
-ERROR_STATUS = 'err'
-HELP_STATUS = 'help'
-
-THUMBNAIL_ALIASES = {
-    '': {
-        'avatar': {'size': (80, 80), 'crop': True},
-    },
-}
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 CONSTANTS = {
     "PAGINATION_NUMBER": 50,
-
 }
 
 # Custom user model
@@ -231,3 +196,22 @@ VOUCHER_CODE_LENGTH = 5
 DISCOUNT_CODE_LENGTH = 10
 
 PURCHASE_UNIQ_CODE_LENGTH = 10
+
+
+########## Celery ##########
+
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+ROOT_URLCONF = 'manage_content_service.urls'
+CELERY_BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
+
+
+########## Zarrinpal Payment ##########
+
+def GET_PAYMENT_CALLBACK_URL(domain, status):
+    PAYMENT = {
+        'success': f'http://{domain}/message/payment/success',
+        'failure': f'http://{domain}/message/payment/failure',
+    }
+    return PAYMENT[status]

@@ -1,15 +1,8 @@
-from django.shortcuts import render
-
-# Create your views here.
-# emailsender/views.py
-
-from django.core.mail import send_mail
-from django.http import HttpResponse
-from messenger.tasks import *
 import os
+from django.http import HttpResponse
+from messenger.tasks import send_email_task
 from manage_content_service.settings.base import BASE_DIR
 
-from django.core.mail import EmailMessage
 
 import requests
 from django.http import JsonResponse

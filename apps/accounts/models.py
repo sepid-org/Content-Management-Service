@@ -10,7 +10,8 @@ from polymorphic.models import PolymorphicModel
 
 from apps.accounts.validators import percentage_validator
 from manage_content_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
-from proxies.sms_system.main import SMS_CODE_DELAY, SMS_CODE_LENGTH, get_sms_service_proxy
+from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
+from proxies.sms_system.sms_service_facade import SMSServiceFacade
 
 
 class User(AbstractUser):
@@ -302,6 +303,7 @@ class Purchase(models.Model):
         blank=False, default=Status.Started, choices=Status.choices, max_length=25)
     created_at = models.DateTimeField(auto_now_add=True)
     uniq_code = models.CharField(blank=False, max_length=100, default="")
+    callback_domain = models.CharField(blank=True, null=True, max_length=100)
 
     user = models.ForeignKey(
         User, related_name='purchases', on_delete=models.CASCADE)
@@ -356,8 +358,8 @@ class VerificationCode(models.Model):
     objects = VerificationCodeManager()
 
     def notify(self, verification_type, party_display_name='سپید'):
-        sms_service_proxy = get_sms_service_proxy(type='kavenegar', token='todo')
-        sms_service_proxy.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
+        sms_service_facade = SMSServiceFacade(provider='kavenegar')
+        sms_service_facade.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'
