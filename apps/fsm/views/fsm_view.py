@@ -1,7 +1,5 @@
 from django.db import transaction
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -13,7 +11,7 @@ from rest_framework import viewsets
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
 from errors.error_codes import serialize_error
-from apps.fsm.models import AnswerSheet, RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
+from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import MentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer

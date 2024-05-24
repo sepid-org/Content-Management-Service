@@ -1,12 +1,11 @@
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from apps.fsm.models import Program, AnswerSheet, RegistrationReceipt, RegistrationReceipt
-from apps.fsm.permissions import ProgramAdmin, HasActiveRegistration, MentorPermission, HasActiveRegistration
+from apps.fsm.models import Program
+from apps.fsm.permissions import ProgramAdmin
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
 
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
@@ -15,7 +14,6 @@ from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
 from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
-from apps.fsm.serializers.fsm_serializers import FSMSerializer
 
 
 class ProgramViewSet(ModelViewSet):
@@ -45,7 +43,7 @@ class ProgramViewSet(ModelViewSet):
         admins = self.get_object().admins
         return Response(data=AccountSerializer(admins, many=True).data)
 
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[ProgramAdmin, ])
+    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
     def add_admin(self, request, pk=None):
         program = self.get_object()
         user_serializer = AccountSerializer(data=request.data)
@@ -55,7 +53,7 @@ class ProgramViewSet(ModelViewSet):
         register_user_in_program(new_admin, program)
         return Response()
 
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[MentorPermission, ])
+    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
     def remove_admin(self, request, pk=None):
         program = self.get_object()
         serializer = AccountSerializer(data=request.data)
