@@ -8,9 +8,9 @@ from apps.fsm.models import RegistrationReceipt, Program, RegistrationForm, FSM,
 
 class ProgramAdmin(permissions.BasePermission):
     """
-    Permission for evet's admin to update program
+    Permission for program's admin to manage program
     """
-    message = 'You are not this program\'s modifier'
+    message = 'You are not this program\'s admin'
 
     def has_object_permission(self, request, view, obj):
         return request.user in obj.modifiers
@@ -125,7 +125,7 @@ class MentorPermission(permissions.BasePermission):
     message = 'you are not a mentor of this fsm'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.mentors.all()
+        return request.user in obj.mentors.all() or ProgramAdmin().has_permission(request, view)
 
 
 class MentorCorrectionPermission(permissions.BasePermission):
