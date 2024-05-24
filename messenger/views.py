@@ -13,9 +13,11 @@ from django.shortcuts import redirect
 def send_email(request):
     if request.method == 'POST':
         email_data = {
+            # todo: convert it to recipients: 
             "email": request.POST.get("email"),
             "subject": request.POST.get("subject"),
             "body": request.POST.get("body")
+            # todo: add a field for choosing template
         }
         response = requests.post("http://127.0.0.1:8080/send-email/", json=email_data)
 
