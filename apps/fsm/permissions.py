@@ -3,21 +3,21 @@ from datetime import timezone, datetime
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions
-from apps.fsm.models import RegistrationReceipt, Event, RegistrationForm, FSM, Problem, State, Team
+from apps.fsm.models import RegistrationReceipt, Program, RegistrationForm, FSM, Problem, State, Team
 
 
-class IsEventModifier(permissions.BasePermission):
+class IsProgramModifier(permissions.BasePermission):
     """
-    Permission for evet's admin to update event
+    Permission for evet's admin to update program
     """
-    message = 'You are not this event\'s modifier'
+    message = 'You are not this program\'s modifier'
 
     def has_object_permission(self, request, view, obj):
         return request.user in obj.modifiers
 
 
 def is_form_modifier(form, user):
-    return (form.event_or_fsm and user in form.event_or_fsm.modifiers) or user == form.creator
+    return (form.program_or_fsm and user in form.program_or_fsm.modifiers) or user == form.creator
 
 
 class IsRegistrationFormModifier(permissions.BasePermission):
@@ -59,7 +59,7 @@ class IsReceiptsFormModifier(permissions.BasePermission):
     message = 'You are not this registration receipt\'s registration form modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.answer_sheet_of.event_or_fsm.modifiers
+        return request.user in obj.answer_sheet_of.program_or_fsm.modifiers
 
 
 class IsArticleModifier(permissions.BasePermission):
@@ -76,13 +76,13 @@ class IsTeamModifier(permissions.BasePermission):
     """
     Permission for team's modifier
     """
-    message = 'You are not this team\'s modifier (event owner/team head)'
+    message = 'You are not this team\'s modifier (program owner/team head)'
 
     def has_object_permission(self, request, view, obj):
         head = obj.team_head
         if head and obj.team_head.user == request.user:
             return True
-        fsm_modifiers = obj.registration_form.event_or_fsm.modifiers
+        fsm_modifiers = obj.registration_form.program_or_fsm.modifiers
         if request.user in fsm_modifiers:
             return True
         return False
@@ -195,18 +195,18 @@ class IsAnswerModifier(permissions.BasePermission):
 
 class HasActiveRegistration(permissions.BasePermission):
     """
-    Permission for checking registration of users in events / fsms
+    Permission for checking registration of users in programs / fsms
     """
     message = 'you don\'t have an active registration receipt for this entity'
 
     def has_object_permission(self, request, view, obj):
-        if isinstance(obj, Event):
+        if isinstance(obj, Program):
             return len(RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.registration_form,
                                                           is_participating=True)) > 0
         elif isinstance(obj, FSM):
-            if obj.event:
+            if obj.program:
                 return len(
-                    RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.event.registration_form,
+                    RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.program.registration_form,
                                                        is_participating=True)) > 0
             else:
                 return len(
@@ -222,7 +222,7 @@ class CanAnswerWidget(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Problem):
             if isinstance(obj.paper, State):
-                registration_form = obj.paper.fsm.registration_form or obj.paper.fsm.event.registration_form
+                registration_form = obj.paper.fsm.registration_form or obj.paper.fsm.program.registration_form
                 receipt = RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=request.user,
                                                              is_participating=True).first()
                 if receipt is not None:

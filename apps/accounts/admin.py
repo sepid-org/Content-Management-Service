@@ -40,9 +40,9 @@ class CustomSchoolAdmin(admin.ModelAdmin):
             for fsm in school.fsms.all():
                 fsm.holder = first
                 fsm.save()
-            for event in school.events.all():
-                event.holder = first
-                event.save()
+            for program in school.programs.all():
+                program.holder = first
+                program.save()
             for studentship in school.students.all():
                 studentship.school = first
                 studentship.save()

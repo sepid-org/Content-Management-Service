@@ -4,7 +4,7 @@ from apps.fsm.models import Player
 
 from apps.accounts.serializers import MerchandiseSerializer, MentorSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Event, RegistrationReceipt, FSM, Edge, Team
+from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer
 
 
@@ -31,31 +31,23 @@ class FSMSerializer(serializers.ModelSerializer):
     first_state = StateSerializer(read_only=True)
 
     def validate(self, attrs):
-        event = attrs.get('event', None)
+        program = attrs.get('program', None)
         team_size = attrs.get('team_size', None)
         merchandise = attrs.get('merchandise', None)
         registration_form = attrs.get('registration_form', None)
-        holder = attrs.get('registration_form', None)
         fsm_p_type = attrs.get('fsm_p_type', FSM.FSMPType.Individual)
         creator = self.context.get('user', None)
-        if event:
+        if program:
             if merchandise or registration_form:
                 raise ParseError(serialize_error('4069'))
-            if holder and event.holder and holder != event.holder:
-                raise ParseError(serialize_error('4070'))
-            if fsm_p_type == FSM.FSMPType.Individual:
-                if event.event_type != Event.EventType.Individual:
+            if fsm_p_type == FSM.FSMPType.Team:
+                if program.program_type == Program.ProgramType.Individual:
                     raise ParseError(serialize_error('4071'))
-            else:
-                if event.event_type == Event.EventType.Individual:
-                    raise ParseError(serialize_error('4071'))
-                if team_size and team_size != event.team_size:
+                if team_size and team_size != program.team_size:
                     raise ParseError(serialize_error('4072'))
-            if creator not in event.modifiers:
+            if creator not in program.modifiers:
                 raise ParseError(serialize_error('4073'))
         else:
-            if holder and creator not in holder.admins.all():
-                raise ParseError(serialize_error('4031'))
             if fsm_p_type == FSM.FSMPType.Team and team_size is None:
                 raise ParseError(serialize_error('4074'))
         return attrs
@@ -64,16 +56,16 @@ class FSMSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         merchandise = validated_data.pop('merchandise', None)
         team_size = validated_data.get('team_size', None)
-        event = validated_data.get('event', None)
+        program = validated_data.get('program', None)
         fsm_p_type = validated_data.get('fsm_p_type')
-        if team_size is None and event and fsm_p_type != FSM.FSMPType.Individual:
-            validated_data['team_size'] = event.team_size
+        if team_size is None and program and fsm_p_type != FSM.FSMPType.Individual:
+            validated_data['team_size'] = program.team_size
 
         instance = super(FSMSerializer, self).create(
             {'creator': creator, **validated_data})
 
         if merchandise and merchandise.get('name', None) is None:
-            merchandise['name'] = validated_data.get('name', 'unnamed_event')
+            merchandise['name'] = validated_data.get('name', 'unnamed_program')
             serializer = MerchandiseSerializer(data=merchandise)
             if serializer.is_valid(raise_exception=True):
                 merchandise_instance = serializer.save()

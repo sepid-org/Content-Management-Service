@@ -6,7 +6,7 @@ registration_form_creation_test_case = {
     "min_grade": 0,
     "max_grade": 0,
     "conditions": "string",
-    "event": 4,
+    "program": 4,
     "deadline": "2022-08-11T23:14:07.934000+04:30",
     "accepting_status": "CorrectAccept",
     "paper_type": "RegistrationForm",
@@ -102,7 +102,7 @@ registration_form_creation_test_case_response = {
             }
         }
     ],
-    "event": 4,
+    "program": 4,
     "fsm": None,
     "paper_type": "RegistrationForm",
     "creator": 2

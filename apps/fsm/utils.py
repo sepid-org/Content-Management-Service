@@ -8,7 +8,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 
-from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State
+from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State, Team
 
 
 def go_next_step(player):
@@ -53,15 +53,28 @@ logger = logging.getLogger(__name__)
 
 
 def get_receipt(user, fsm) -> RegistrationReceipt:
-    if fsm.registration_form and fsm.event.registration_form:
+    if fsm.registration_form and fsm.program.registration_form:
         raise ParseError(serialize_error('4077'))
-    registration_form = fsm.registration_form or fsm.event.registration_form
+    registration_form = fsm.registration_form or fsm.program.registration_form
     return RegistrationReceipt.objects.filter(user=user, answer_sheet_of=registration_form,
                                               is_participating=True).first()
 
 
-def get_player(user, fsm, receipt) -> Player:
+def get_player(user, fsm) -> Player:
+    receipt = get_receipt(user, fsm)
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
+
+
+def get_a_random_player_from_team(team, fsm) -> Player:
+    member = team.members.first()
+    return member.get_player_of(fsm=fsm)
+
+
+def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge) -> None:
+    for member in team.members.all():
+        player = member.get_player_of(fsm=fsm)
+        if player:
+            transit_player_in_fsm(player, source_state, target_state, edge)
 
 
 def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge) -> Player:
@@ -111,13 +124,6 @@ def get_a_player_from_team(team, fsm) -> Player:
         return player
 
 
-def get_player_latest_taken_edge(player: Player) -> Edge:
-    latest_history = player.player_state_histories.filter(
-        is_edge_transited_in_reverse=False, state=player.current_state).last()
-
-    if latest_history and latest_history.transited_edge:
-        last_taken_edge = latest_history.transited_edge
-    else:
-        # if the latest hostory is deleted, choose an inward_edges randomly
-        last_taken_edge = player.current_state.inward_edges.all().first()
-    return last_taken_edge
+def get_player_backward_edge(player: Player) -> Edge:
+    # todo: it should get the desired backward edge, not mustly the first one
+    return player.current_state.inward_edges.first()

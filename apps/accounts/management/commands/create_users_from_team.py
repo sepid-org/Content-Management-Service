@@ -3,13 +3,13 @@ from django.core.management.base import BaseCommand
 from accounts.management.commands.tournament_users import tournament_teams
 from apps.accounts.models import Participant, Team
 import logging
-from apps.fsm.models import FSM, PlayerWorkshop, Event
+from apps.fsm.models import FSM, PlayerWorkshop, Program
 
 logger = logging.getLogger(__file__)
 
 
 class Command(BaseCommand):
-    help = 'Create user of tournament event by phone_number and national code from list'
+    help = 'Create user of tournament program by phone_number and national code from list'
 
     def add_arguments(self, parser):
         parser.add_argument('mode', nargs='+', type=str)
@@ -18,7 +18,7 @@ class Command(BaseCommand):
         for mode in options['mode']:
             fsm_1 = FSM.objects.get(id=1)
             fsm_2 = FSM.objects.get(id=2)
-            event = Event.objects.get(id=1)
+            program = Program.objects.get(id=1)
             for team in tournament_teams[mode]:
                 user_1 = Participant.objects.create_participant_2(
                     phone_number=team['password_1'],
@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 team_player.team_members.add(user_1)
                 team_player.team_members.add(user_2)
                 team_player.team_members.add(user_3)
-                team_player.events.add(event)
+                team_player.programs.add(program)
                 team_player.save()
                 if mode == 't1':
                     player1_f1 = PlayerWorkshop.objects.create(player=user_1, workshop=fsm_1,

@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -15,14 +14,14 @@ from apps.fsm.models import FSM, Player
 from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.models import FSM
 from apps.fsm.serializers.fsm_serializers import KeySerializer, TeamGetSerializer
-from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils import transit_player_in_fsm, get_player_latest_taken_edge
+from apps.fsm.serializers.player_serializer import PlayerStateSerializer
+from apps.fsm.utils import get_a_random_player_from_team, get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     permission_classes = [IsAuthenticated]
     queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
+    serializer_class = PlayerStateSerializer
     my_tags = ['fsm']
 
     def get_permissions(self):
@@ -41,75 +40,57 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     def retrieve(self, request, *args, **kwargs):
         return super(PlayerViewSet, self).retrieve(request, *args, **kwargs)
 
-    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
+    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['player'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def go_backward(self, request, pk):
         player = self.get_object()
         fsm = player.fsm
-        edge = get_player_latest_taken_edge(player)
+        # todo: it should go back through one of this state inward links:
+        edge = get_player_backward_edge(player)
+
+        if not edge:
+            raise ParseError(serialize_error('4114'))
 
         if player is None:
             raise ParseError(serialize_error('4082'))
+
         # todo check back enable
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
             if player.receipt.id != team.team_head.id:
                 raise ParseError(serialize_error('4089'))
-
             if player.current_state == edge.head:
-                for member in team.members.all():
-                    player = member.get_player_of(fsm=fsm)
-                    if player:
-                        player = transit_player_in_fsm(player, edge.head, edge.tail, edge)
-                        if player.id == player.id:
-                            player = player
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            elif player.current_state == edge.tail:
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            else:
-                raise ParseError(serialize_error('4083'))
+                transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
+                player = get_a_random_player_from_team(team, fsm)
+            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
-        elif fsm.fsm_p_type in [FSM.FSMPType.Individual, FSM.FSMPType.Hybrid]:
+        elif fsm.fsm_p_type == FSM.FSMPType.Individual:
             if player.current_state == edge.head:
-                player = transit_player_in_fsm(player, edge.head, edge.tail, edge)
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            elif player.current_state == edge.tail:
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-            else:
-                raise ParseError(serialize_error('4083'))
+                player = transit_player_in_fsm(
+                    player, edge.head, edge.tail, edge)
+            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
         else:
             raise InternalServerError('Not implemented Yet😎')
 
-    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['mentor'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def mentor_move_backward(self, request, pk):
         serializer = TeamGetSerializer(
             data=self.request.data, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            team = serializer.validated_data['team']
-            player = self.get_object()
-            fsm = player.fsm
-            edge = get_player_latest_taken_edge(player)
+        serializer.is_valid(raise_exception=True)
+        team = serializer.validated_data['team']
+        player = self.get_object()
+        fsm = player.fsm
+        # todo: it should go back through one of this state inward links:
+        edge = get_player_backward_edge(player)
 
-            if fsm.fsm_p_type == FSM.FSMPType.Team:
+        if fsm.fsm_p_type == FSM.FSMPType.Team:
+            transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
+            player = get_a_random_player_from_team(team, fsm)
+            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
-                departure_time = timezone.now()
-                for member in team.members.all():
-                    player = member.get_player_of(fsm=fsm)
-                    if player:
-                        player = transit_player_in_fsm(
-                            player, edge.head, edge.tail, edge, departure_time)
-                        if player.id == player.id:
-                            player = player
-                return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                                status=status.HTTP_200_OK)
-
-            else:
-                raise InternalServerError('Not implemented Yet😎')
+        else:
+            raise InternalServerError('Not implemented Yet😎')

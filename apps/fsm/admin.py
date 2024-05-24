@@ -8,7 +8,7 @@ from import_export.admin import ExportActionMixin
 
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
-    SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Event, \
+    SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat
 
 from apps.fsm.utils import get_django_file
@@ -106,9 +106,9 @@ class RegistrationFormAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(f'/api/admin/export_registration_data/?q={selected}')
 
     model = RegistrationForm
-    list_display = ['id', 'event_or_fsm', 'accepting_status',
+    list_display = ['id', 'program_or_fsm', 'accepting_status',
                     'min_grade', 'max_grade', 'audience_type']
-    list_display_links = ['id', 'event_or_fsm']
+    list_display_links = ['id', 'program_or_fsm']
     actions = [get_registration_status_for_users]
 
 
@@ -211,14 +211,14 @@ def download_team_info_csv(modeladmin, request, queryset):
 
 class TeamAdmin(admin.ModelAdmin):
     model = Team
-    list_display = ['name', 'event_or_fsm', 'team_head',
+    list_display = ['name', 'program_or_fsm', 'team_head',
                     'members', 'has_been_online_in_last_hour']
     list_filter = ['registration_form']
     search_fields = ['name']
     actions = [download_team_info_csv]
 
-    def event_or_fsm(self, obj):
-        return obj.registration_form.event_or_fsm
+    def program_or_fsm(self, obj):
+        return obj.registration_form.program_or_fsm
 
     def members(self, obj):
         return ', '.join(member.user.full_name for member in obj.members.all())
@@ -509,8 +509,8 @@ class WidgetHintCustomAdmin(admin.ModelAdmin):
     list_filter = ['paper_type']
 
 
-@admin.register(Event)
-class EventCustomAdmin(admin.ModelAdmin):
+@admin.register(Program)
+class ProgramCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'registration_form',
                     'merchandise', 'creator', 'holder']
     list_display_links = ['id', 'name']

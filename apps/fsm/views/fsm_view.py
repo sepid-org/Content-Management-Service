@@ -18,7 +18,7 @@ from apps.fsm.permissions import MentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer
 from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSimpleSerializer
-from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer
+from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer, PlayerStateSerializer
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges
@@ -29,7 +29,7 @@ class FSMViewSet(viewsets.ModelViewSet):
     queryset = FSM.objects.all()
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filterset_fields = ['website', 'event']
+    filterset_fields = ['website', 'program']
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
@@ -58,11 +58,11 @@ class FSMViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def enter(self, request, pk=None):
-        key = self.request.data.get('key', None)
+        password = self.request.data.get('password', None)
         fsm = self.get_object()
         user = self.request.user
         receipt = get_receipt(user, fsm)
-        player = get_player(user, fsm, receipt)
+        player = get_player(user, fsm)
 
         if receipt is None:
             raise ParseError(serialize_error('4079'))
@@ -81,20 +81,19 @@ class FSMViewSet(viewsets.ModelViewSet):
         # first time entering fsm
         if not player:
             if fsm.lock and len(fsm.lock) > 0:
-                if not key:
+                if not password:
                     raise PermissionDenied(serialize_error('4085'))
-                elif key != fsm.lock:
+                elif password != fsm.lock:
                     raise PermissionDenied(serialize_error('4080'))
             serializer = PlayerSerializer(data={'user': user.id, 'fsm': fsm.id, 'receipt': receipt.id,
                                                 'current_state': fsm.first_state.id, 'last_visit': timezone.now()},
                                           context=self.get_serializer_context())
-            if serializer.is_valid(raise_exception=True):
-                player = serializer.save()
-                serializer = PlayerHistorySerializer(data={'player': player.id, 'state': player.current_state.id,
-                                                           'start_time': player.last_visit},
-                                                     context=self.get_serializer_context())
-                if serializer.is_valid(raise_exception=True):
-                    player_history = serializer.save()
+            serializer.is_valid(raise_exception=True)
+            player = serializer.save()
+            serializer = PlayerHistorySerializer(data={'player': player.id, 'state': player.current_state.id,
+                                                       'start_time': player.last_visit}, context=self.get_serializer_context())
+            serializer.is_valid(raise_exception=True)
+            player_history = serializer.save()
 
         else:
             # if any state has been deleted and player has no current state:
@@ -102,8 +101,7 @@ class FSMViewSet(viewsets.ModelViewSet):
                 player.current_state = fsm.first_state
                 player.save()
 
-        return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                        status=status.HTTP_200_OK)
+        return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
     @transaction.atomic
@@ -173,7 +171,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         if account_serializer.is_valid(raise_exception=True):
             new_mentor = find_user(account_serializer.validated_data)
             fsm.mentors.add(new_mentor)
-            registration_form = fsm.event.registration_form
+            registration_form = fsm.program.registration_form
             if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=new_mentor)) == 0:
                 RegistrationReceipt.objects.create(
                     answer_sheet_of=registration_form,

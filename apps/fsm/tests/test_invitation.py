@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.accounts.models import User, AcademicStudentship, SchoolStudentship
-from apps.fsm.models import Event, RegistrationForm, RegistrationReceipt
+from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
 
 class InvitationTest(APITestCase):
@@ -14,16 +14,16 @@ class InvitationTest(APITestCase):
         b = User.objects.create(phone_number='09134019390', username='b', password=make_password('b'), first_name='b')
         AcademicStudentship.objects.create(user=b), SchoolStudentship.objects.create(user=b)
         form = RegistrationForm.objects.create()
-        Event.objects.create(registration_form=form, name='event', event_type='Team', is_approved=True)
+        Program.objects.create(registration_form=form, name='program', program_type='Team', is_approved=True)
         r_a = RegistrationReceipt.objects.create(answer_sheet_of=form, user=a, status='Accepted', is_participating=True)
         r_b = RegistrationReceipt.objects.create(answer_sheet_of=form, user=b, status='Accepted', is_participating=True)
 
     def test_invite(self):
-        event = Event.objects.filter(name='event').first()
+        program = Program.objects.filter(name='program').first()
         token_a = AccessToken.for_user(User.objects.filter(username='a').first())
         self.client.credentials(HTTP_AUTHORIZATION=f'JWT {token_a}')
         team_response = self.client.post('/api/fsm/team/', format='json',
-                                         data={'name': 'name', 'registration_form': event.registration_form.id})
+                                         data={'name': 'name', 'registration_form': program.registration_form.id})
         self.assertEqual(team_response.status_code, 201)
         invite_response = self.client.post(f'/api/fsm/team/{team_response.data.get("id")}/invite_member/',
                                            format='json', data={'username': 'b'})
@@ -31,7 +31,7 @@ class InvitationTest(APITestCase):
         token_b = AccessToken.for_user(User.objects.filter(username='b').first())
         self.client.credentials(HTTP_AUTHORIZATION=f'JWT {token_b}')
         r_b = RegistrationReceipt.objects.filter(user__username='b').first()
-        my_invitations_response = self.client.get(f'/api/fsm/registration/{event.registration_form.id}/my_invitations/')
+        my_invitations_response = self.client.get(f'/api/fsm/registration/{program.registration_form.id}/my_invitations/')
         respond_response = self.client.post(f'/api/fsm/invitations/{my_invitations_response.data[0].get("id")}/respond/',
                                              format='json', data={'status': 'Accepted'})
         self.assertEqual(respond_response.status_code, 200)

@@ -5,7 +5,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied, ValidationEr
 from rest_polymorphic.serializers import PolymorphicSerializer
 
 from errors.error_codes import serialize_error
-from apps.fsm.models import Event, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
+from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
 
@@ -37,8 +37,8 @@ class RegistrationFormSerializer(PaperSerializer):
                                          MaxValueValidator(12), MinValueValidator(0)])
     max_grade = serializers.IntegerField(required=False, validators=[
                                          MaxValueValidator(12), MinValueValidator(0)])
-    event = serializers.PrimaryKeyRelatedField(
-        queryset=Event.objects.all(), required=False, allow_null=True)
+    program = serializers.PrimaryKeyRelatedField(
+        queryset=Program.objects.all(), required=False, allow_null=True)
     fsm = serializers.PrimaryKeyRelatedField(
         queryset=FSM.objects.all(), required=False, allow_null=True)
     certificate_templates = CertificateTemplateSerializer(
@@ -48,13 +48,13 @@ class RegistrationFormSerializer(PaperSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        event = validated_data.get('event', None)
+        program = validated_data.get('program', None)
         fsm = validated_data.get('fsm', None)
         instance = super(RegistrationFormSerializer,
                          self).create(validated_data)
-        if event is not None:
-            event.registration_form = instance
-            event.save()
+        if program is not None:
+            program.registration_form = instance
+            program.save()
         elif fsm is not None:
             fsm.registration_form = instance
             fsm.save()
@@ -62,22 +62,22 @@ class RegistrationFormSerializer(PaperSerializer):
         return instance
 
     def validate(self, attrs):
-        event = attrs.get('event', None)
+        program = attrs.get('program', None)
         fsm = attrs.get('fsm', None)
-        if event is not None and fsm is not None:
+        if program is not None and fsm is not None:
             raise ParseError(serialize_error('4022'))
-        if event is not None and event.registration_form is not None:
+        if program is not None and program.registration_form is not None:
             raise ParseError(serialize_error('4023'))
         if fsm is not None and fsm.registration_form is not None:
             raise ParseError(serialize_error('4024'))
-        if fsm is None and event is None:
+        if fsm is None and program is None:
             raise ParseError(serialize_error('4025'))
         return attrs
 
-    def validate_event(self, event):
-        if event is not None and self.context.get('user', None) not in event.modifiers:
+    def validate_program(self, program):
+        if program is not None and self.context.get('user', None) not in program.modifiers:
             raise PermissionDenied(serialize_error('4026'))
-        return event
+        return program
 
     def validate_fsm(self, fsm):
         if fsm is not None and self.context.get('user', None) not in fsm.modifiers:
@@ -88,7 +88,7 @@ class RegistrationFormSerializer(PaperSerializer):
         model = RegistrationForm
         ref_name = 'registration_form'
         fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam', 'conditions', 'widgets',
-                  'event', 'fsm', 'paper_type', 'creator', 'accepting_status', 'certificate_templates',
+                  'program', 'fsm', 'paper_type', 'creator', 'accepting_status', 'certificate_templates',
                   'has_certificate', 'certificates_ready', 'audience_type']
         read_only_fields = ['id', 'creator']
 

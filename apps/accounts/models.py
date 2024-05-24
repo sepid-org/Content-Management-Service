@@ -194,10 +194,10 @@ class Merchandise(models.Model):
     is_active = models.BooleanField(default=True)
 
     @property
-    def event_or_fsm(self):
+    def program_or_fsm(self):
         try:
-            if self.event:
-                return self.event
+            if self.program:
+                return self.program
         except:
             try:
                 if self.fsm:
@@ -319,7 +319,7 @@ class Purchase(models.Model):
 
     @property
     def registration_receipt(self):
-        return self.merchandise.event_or_fsm.registration_form.registration_receipts.filter(user=self.user).last()
+        return self.merchandise.program_or_fsm.registration_form.registration_receipts.filter(user=self.user).last()
 
     def __str__(self):
         return f'{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}'
@@ -377,7 +377,7 @@ class Member(AbstractBaseUser):
         unique=True, max_length=15, blank=True, null=True)
     is_participant = models.BooleanField(default=True)
     is_mentor = models.BooleanField(default=False)
-    is_event_owner = models.BooleanField(default=False)
+    is_program_owner = models.BooleanField(default=False)
     first_name = models.CharField(max_length=15, blank=True, null=True)
     last_name = models.CharField(max_length=15, blank=True, null=True)
     email = models.CharField(max_length=15, blank=True, null=True)

@@ -27,7 +27,7 @@ class InvitationSerializer(serializers.ModelSerializer):
                     raise ParseError(serialize_error('4065'))
                 self.context['invitee'] = invitee
 
-        if len(team.members.all()) >= team.registration_form.event_or_fsm.team_size:
+        if len(team.members.all()) >= team.registration_form.program_or_fsm.team_size:
             raise PermissionDenied(serialize_error('4059'))
         if invitee.answer_sheet_of != team.registration_form:
             raise ParseError(serialize_error('4052'))
@@ -73,7 +73,7 @@ class TeamSerializer(serializers.ModelSerializer):
     #     registration_form = attrs.get('registration_form', None)
     #     user = self.context.get('user', None)
     #     user_registration = registration_form.registration_receipts.filter(user=user).first()
-    #     if user in registration_form.event_or_fsm.modifiers:
+    #     if user in registration_form.program_or_fsm.modifiers:
     #         return attrs
     #     if not user_registration or not user_registration.is_participating:
     #         raise PermissionDenied(serialize_error('4050'))

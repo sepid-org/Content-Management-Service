@@ -87,7 +87,7 @@ class PaymentViewSet(GenericViewSet):
             discount_code = get_object_or_404(
                 DiscountCode, code=code) if code else None
             merchandise = get_object_or_404(Merchandise, id=merchandise_id)
-            registration_form = merchandise.event_or_fsm.registration_form
+            registration_form = merchandise.program_or_fsm.registration_form
             if not registration_form:
                 raise InternalServerError(serialize_error('5004'))
             user_registration = registration_form.registration_receipts.filter(

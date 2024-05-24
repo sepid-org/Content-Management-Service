@@ -151,19 +151,19 @@ class RegistrationViewSet(ModelViewSet):
                 registration_receipt = serializer.save()
 
                 form = registration_receipt.answer_sheet_of
-                event = form.event
+                program = form.program
                 # TODO - handle fsm sign up
-                if event:
-                    if event.maximum_participant is None or len(event.participants) < event.maximum_participant:
+                if program:
+                    if program.maximum_participant is None or len(program.participants) < program.maximum_participant:
                         if form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
                             registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                            if not event.merchandise:
+                            if not program.merchandise:
                                 registration_receipt.is_participating = True
                             registration_receipt.save()
                         elif form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
                             if registration_receipt.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
                                 registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                                if not event.merchandise:
+                                if not program.merchandise:
                                     registration_receipt.is_participating = True
                                 registration_receipt.save()
                     else:

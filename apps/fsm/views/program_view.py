@@ -2,8 +2,8 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from django.views.decorators.cache import cache_page
-from apps.fsm.models import Event
-from apps.fsm.permissions import IsEventModifier, HasActiveRegistration
+from apps.fsm.models import Program
+from apps.fsm.permissions import IsProgramModifier, HasActiveRegistration
 from django.utils.decorators import method_decorator
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
@@ -11,8 +11,8 @@ from apps.fsm.serializers.program_serializers import ProgramSerializer
 
 class ProgramViewSet(ModelViewSet):
     serializer_class = ProgramSerializer
-    queryset = Event.objects.all()
-    my_tags = ['event']
+    queryset = Program.objects.all()
+    my_tags = ['program']
     filterset_fields = ['website', 'is_private']
 
     def get_serializer_context(self):
@@ -28,7 +28,7 @@ class ProgramViewSet(ModelViewSet):
         elif self.action == 'get_fsms':
             permission_classes = [HasActiveRegistration]
         else:
-            permission_classes = [IsEventModifier]
+            permission_classes = [IsProgramModifier]
         return [permission() for permission in permission_classes]
 
     # @method_decorator(cache_page(60 * 1,  key_prefix="program"))

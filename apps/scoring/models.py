@@ -7,7 +7,7 @@ class ScoreType(models.Model):
     institute = models.ForeignKey(
         EducationalInstitute, on_delete=models.CASCADE, related_name='score_types', null=True, blank=True)
     programs = models.ManyToManyField(
-        to='fsm.Event', related_name='score_types', null=True, blank=True)
+        to='fsm.Program', related_name='score_types', null=True, blank=True)
     is_public = models.BooleanField(default=False)
     icon = models.ImageField(
         upload_to='score_types_icons/', null=True, blank=True)
