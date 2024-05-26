@@ -202,9 +202,6 @@ class FSMManager(models.Manager):
     def create(self, **args):
         fsm = super().create(**args)
         fsm.mentors.add(fsm.creator)
-        # ct = ContentType.objects.get_for_model(institute)
-        # assign_perm(Permission.objects.filter(codename='add_admin', content_type=ct).first(), institute.owner, institute)
-        # these permission settings worked correctly but were too messy
         fsm.save()
         return fsm
 
@@ -247,8 +244,6 @@ class FSM(models.Model):
     order_in_program = models.IntegerField(default=0)
 
     objects = FSMManager()
-
-    # TODO - make locks as mixins
 
     def __str__(self):
         return self.name
@@ -493,7 +488,8 @@ class RegistrationReceipt(AnswerSheet):
     # should be in every answer sheet child
     answer_sheet_of = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
                                         on_delete=models.SET_NULL)
-    user = models.ForeignKey('accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
@@ -1036,19 +1032,3 @@ class CertificateTemplate(models.Model):
     font = models.ForeignKey(
         Font, on_delete=models.SET_NULL, related_name='templates', null=True)
     font_size = models.IntegerField(default=100)
-
-
-########## MUST BE DELETED ###########
-
-
-class PlayerWorkshop(models.Model):
-    player = models.ForeignKey(
-        'accounts.Player', on_delete=models.CASCADE, related_name='player_workshop')
-    workshop = models.ForeignKey(
-        FSM, on_delete=models.CASCADE, related_name='player_workshop')
-    current_state = models.ForeignKey(State, null=True, blank=True, on_delete=models.SET_NULL,
-                                      related_name='player_workshop')
-    last_visit = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return f'{self.id}:{str(self.player)}-{self.workshop.name}'
