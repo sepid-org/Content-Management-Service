@@ -24,7 +24,7 @@ from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get
 
 class FSMViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = FSM.objects.all()
+    queryset = FSM.objects.filter(is_deleted=False)
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_fields = ['website', 'program']
@@ -211,3 +211,10 @@ class FSMViewSet(viewsets.ModelViewSet):
     # @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)
+
+    @action(detail=True, methods=['get'])
+    def soft_remove_fsm(self, request, pk=None):
+        fsm = self.get_object()
+        fsm.is_deleted = True
+        fsm.save()
+        return Response()

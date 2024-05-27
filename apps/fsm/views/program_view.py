@@ -18,7 +18,7 @@ from errors.error_codes import serialize_error
 
 class ProgramViewSet(ModelViewSet):
     serializer_class = ProgramSerializer
-    queryset = Program.objects.all()
+    queryset = Program.objects.filter(is_deleted=False)
     my_tags = ['program']
     filterset_fields = ['website', 'is_private']
 
@@ -63,4 +63,11 @@ class ProgramViewSet(ModelViewSet):
             raise ParseError(serialize_error('5007'))
         if removed_admin in program.admins.all():
             program.admins.remove(removed_admin)
+        return Response()
+
+    @action(detail=True, methods=['get'])
+    def soft_remove_program(self, request, pk=None):
+        program = self.get_object()
+        program.is_deleted = True
+        program.save()
         return Response()

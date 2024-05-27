@@ -160,6 +160,7 @@ class Program(models.Model):
     program_contact_info = models.OneToOneField(
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -242,6 +243,7 @@ class FSM(models.Model):
     lock = models.CharField(max_length=10, null=True, blank=True)
     team_size = models.IntegerField(default=3)
     order_in_program = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
 
     objects = FSMManager()
 
