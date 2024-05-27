@@ -161,6 +161,7 @@ class Program(models.Model):
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -244,6 +245,8 @@ class FSM(models.Model):
     team_size = models.IntegerField(default=3)
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
 
     objects = FSMManager()
 

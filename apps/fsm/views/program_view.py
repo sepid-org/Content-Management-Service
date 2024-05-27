@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.fsm.models import Program
@@ -69,5 +70,6 @@ class ProgramViewSet(ModelViewSet):
     def soft_remove_program(self, request, pk=None):
         program = self.get_object()
         program.is_deleted = True
+        program.deleted_at = timezone.now()
         program.save()
         return Response()

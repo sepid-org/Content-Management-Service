@@ -216,5 +216,6 @@ class FSMViewSet(viewsets.ModelViewSet):
     def soft_remove_fsm(self, request, pk=None):
         fsm = self.get_object()
         fsm.is_deleted = True
+        fsm.deleted_at = timezone.now()
         fsm.save()
         return Response()
