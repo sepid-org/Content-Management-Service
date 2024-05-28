@@ -10,6 +10,7 @@ from rest_framework import viewsets
 
 from apps.accounts.serializers import AccountSerializer
 from apps.accounts.utils import find_user
+from apps.fsm.pagination import StandardPagination
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
@@ -28,6 +29,7 @@ class FSMViewSet(viewsets.ModelViewSet):
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_fields = ['website', 'program']
+    pagination_class = StandardPagination
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',

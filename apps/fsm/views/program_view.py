@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.fsm.models import Program
+from apps.fsm.pagination import StandardPagination
 from apps.fsm.permissions import ProgramAdminPermission
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer
@@ -22,6 +23,7 @@ class ProgramViewSet(ModelViewSet):
     queryset = Program.objects.filter(is_deleted=False)
     my_tags = ['program']
     filterset_fields = ['website', 'is_private']
+    pagination_class = StandardPagination
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
