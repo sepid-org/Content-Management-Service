@@ -169,11 +169,13 @@ class DetailBoxWidgetSerializer(WidgetSerializer):
 
     def to_internal_value(self, data):
         from apps.fsm.serializers.paper_serializers import PaperSerializer
-        details_serializer = PaperSerializer(data=data.get('details'))
-        details_serializer.is_valid(raise_exception=True)
-        details_object = details_serializer.save()
         data = super().to_internal_value(data)
-        data['details'] = details_object
+        details_serializer = PaperSerializer(data=data.get('details'))
+        try:
+            details_serializer.is_valid(raise_exception=True)
+            data['details'] = details_serializer.save()
+        except:
+            pass
         return data
 
     def create(self, validated_data):
