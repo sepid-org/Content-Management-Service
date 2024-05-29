@@ -142,7 +142,7 @@ class FSMViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['get'])
     def get_states(self, request, pk):
-        return Response(data=StateSimpleSerializer(self.get_object().states, context=self.get_serializer_context(),
+        return Response(data=StateSimpleSerializer(self.get_object().states.order_by('id'), context=self.get_serializer_context(),
                                                    many=True).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: EdgeSimpleSerializer}, tags=['mentor'])
