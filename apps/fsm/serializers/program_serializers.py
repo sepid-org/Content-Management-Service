@@ -9,8 +9,8 @@ from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
 
 class ProgramSerializer(serializers.ModelSerializer):
-    merchandise = MerchandiseSerializer(required=False)
-    program_contact_info = ProgramContactInfoSerializer(required=False)
+    merchandise = MerchandiseSerializer(required=False, read_only=True)
+    program_contact_info = ProgramContactInfoSerializer(required=False, read_only=True)
     is_manager = serializers.SerializerMethodField()
 
     def get_is_manager(self, obj):
@@ -107,5 +107,5 @@ class ProgramSerializer(serializers.ModelSerializer):
         model = Program
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'merchandise',
-                            'is_approved', 'registration_form']
+                            'is_approved', 'registration_form', 'program_contact_info']
         
