@@ -15,7 +15,7 @@ from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer,
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
 from apps.scoring.views.apply_scores_on_user import apply_cost, apply_reward
-from proxies.corrector.main import correct_answer
+from proxies.assess_answer_service.main import assess_answer
 
 
 class WidgetViewSet(viewsets.ModelViewSet):
@@ -81,7 +81,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
         # check if user has already answered this question correctly
         question = self.get_object()
         user = request.user
-        if question.be_corrected:
+        if question.correct_answer:
             user_correctly_answered_problems = Answer.objects.filter(
                 submitted_by=user, is_correct=True)
             for answer in user_correctly_answered_problems:
@@ -104,7 +104,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
             apply_cost(
                 question.cost, request.user, 'کسر هزینه بابت تصحیح پاسخ', f'بابت تصحیح پاسخ سوال {question.id} از شما امتیاز کسر شد')
 
-            correctness_percentage, comment = correct_answer(
+            correctness_percentage, comment = assess_answer(
                 self.get_object(), given_answer_object)
 
             if correctness_percentage == 100:
@@ -113,7 +113,9 @@ class WidgetViewSet(viewsets.ModelViewSet):
                 apply_reward(
                     given_answer_object.problem.reward, request.user, 'پاداش حل سوال', f'بابت حل سوال {question.id} به شما امتیاز اضافه شد')
 
-        return Response(data={'answer': serializer.data, 'correctness_percentage': correctness_percentage, 'comment': comment})
+            return Response(data={'correctness_percentage': correctness_percentage, 'comment': comment})
+        
+        return Response()
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
