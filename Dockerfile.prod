@@ -17,15 +17,15 @@ COPY ./entrypoint.prod.sh /usr/src/app/entrypoint.prod.sh
 # copy project
 COPY . /usr/src/app/
 
-RUN adduser kamva
+RUN adduser sepid
 
-RUN mkdir -p /usr/src/app/logging && chown -R kamva /usr/src/app/logging \
-	&& mkdir -p /usr/src/app/staticfiles && chown -R kamva /usr/src/app/staticfiles \
-	&& mkdir -p /usr/src/app/media && chown -R kamva /usr/src/app/media
+RUN mkdir -p /usr/src/app/logging && chown -R sepid /usr/src/app/logging \
+	&& mkdir -p /usr/src/app/staticfiles && chown -R sepid /usr/src/app/staticfiles \
+	&& mkdir -p /usr/src/app/media && chown -R sepid /usr/src/app/media
 
-RUN chown -R kamva /usr/src/app/
+RUN chown -R sepid /usr/src/app/
 
-USER kamva
+USER sepid
 
 # run entrypoint.prod.sh
 ENTRYPOINT ["/usr/src/app/entrypoint.prod.sh"]

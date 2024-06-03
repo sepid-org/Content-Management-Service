@@ -8,7 +8,7 @@ SECRET_KEY = get_environment_var(
 
 ALLOWED_HOSTS = get_environment_var('ALLOWED_HOSTS', '*').split(',')
 
-SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://kamva.academy/')
+SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://mcs.sepid.org/')
 
 DB_NAME = get_environment_var('DB_NAME', 'workshop')
 DB_USER = get_environment_var('DB_USER', 'user')
