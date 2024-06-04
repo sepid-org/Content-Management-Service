@@ -94,8 +94,8 @@ class IframeSerializer(WidgetSerializer):
     class Meta:
         model = Iframe
         fields = ['id', 'name', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'link', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'link', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class VideoSerializer(WidgetSerializer):
@@ -107,8 +107,8 @@ class VideoSerializer(WidgetSerializer):
     class Meta:
         model = Video
         fields = ['id', 'name', 'file', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'link', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'link', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class AudioSerializer(WidgetSerializer):
@@ -120,8 +120,8 @@ class AudioSerializer(WidgetSerializer):
     class Meta:
         model = Audio
         fields = ['id', 'name', 'file', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'link', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'link', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class AparatSerializer(WidgetSerializer):
@@ -131,8 +131,8 @@ class AparatSerializer(WidgetSerializer):
     class Meta:
         model = Aparat
         fields = ['id', 'name', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'video_id', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'video_id', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class ImageSerializer(WidgetSerializer):
@@ -144,8 +144,8 @@ class ImageSerializer(WidgetSerializer):
     class Meta:
         model = Image
         fields = ['id', 'name', 'file', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'link', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'link', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class TextWidgetSerializer(WidgetSerializer):
@@ -156,8 +156,8 @@ class TextWidgetSerializer(WidgetSerializer):
     class Meta:
         model = TextWidget
         fields = ['id', 'name', 'file', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'text', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+                  'creator', 'text', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator']
 
 
 class DetailBoxWidgetSerializer(WidgetSerializer):
@@ -185,8 +185,8 @@ class DetailBoxWidgetSerializer(WidgetSerializer):
     class Meta:
         model = DetailBoxWidget
         fields = ['id', 'name', 'file', 'paper', 'widget_type',
-                  'creator', 'duplication_of', 'title', 'details', 'hints', 'cost', 'reward']
-        read_only_fields = ['id', 'creator', 'duplication_of', 'details']
+                  'creator', 'title', 'details', 'hints', 'cost', 'reward']
+        read_only_fields = ['id', 'creator', 'details']
 
 ########### QUESTIONS ###########
 
@@ -196,9 +196,9 @@ class SmallAnswerProblemSerializer(WidgetSerializer):
 
     class Meta:
         model = SmallAnswerProblem
-        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'duplication_of', 'text',
+        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
                   'required', 'correct_answer', 'solution', 'hints', 'cost', 'reward', 'be_corrected']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+        read_only_fields = ['id', 'creator']
 
     @transaction.atomic
     def create(self, validated_data):
@@ -246,9 +246,9 @@ class BigAnswerProblemSerializer(WidgetSerializer):
 
     class Meta:
         model = BigAnswerProblem
-        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'duplication_of', 'text',
+        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
                   'required', 'solution', 'hints', 'cost', 'reward', 'be_corrected']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+        read_only_fields = ['id', 'creator']
 
     @transaction.atomic
     def create(self, validated_data):
@@ -262,9 +262,9 @@ class MultiChoiceProblemSerializer(WidgetSerializer):
 
     class Meta:
         model = MultiChoiceProblem
-        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'duplication_of', 'text',
+        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
                   'required', 'max_choices', 'choices', 'hints', 'cost', 'reward', 'be_corrected']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+        read_only_fields = ['id', 'creator']
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices')
@@ -321,9 +321,9 @@ class UploadFileProblemSerializer(WidgetSerializer):
 
     class Meta:
         model = UploadFileProblem
-        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'duplication_of', 'text',
+        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
                   'required', 'solution', 'hints', 'cost', 'reward', 'be_corrected']
-        read_only_fields = ['id', 'creator', 'duplication_of']
+        read_only_fields = ['id', 'creator']
 
     def validate_answer(self, answer):
         if answer.problem is not None:

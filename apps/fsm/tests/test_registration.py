@@ -61,7 +61,6 @@ registration_form_creation_test_case_response = {
             "paper": 51,
             "widget_type": "MultiChoiceProblem",
             "creator": 2,
-            "duplication_of": None,
             "text": "mcp1",
             "max_choices": 2,
             "choices": [
