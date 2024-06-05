@@ -4,7 +4,6 @@ from rest_framework.decorators import action, parser_classes
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from rest_framework.exceptions import ParseError
 
@@ -24,8 +23,6 @@ class WidgetViewSet(viewsets.ModelViewSet):
     queryset = Widget.objects.all()
     serializer_class = WidgetPolymorphicSerializer
     my_tags = ['widgets']
-
-    # todo - manage permissions
 
     def get_serializer_class(self):
         try:
@@ -48,12 +45,6 @@ class WidgetViewSet(viewsets.ModelViewSet):
             {'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
 
-    @swagger_auto_schema(tags=['widgets'])
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, ])
-    def make_widget_file_empty(self, request, *args, **kwargs):
-        self.get_object().make_file_empty()
-        return Response(status=status.HTTP_200_OK)
-
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -61,7 +52,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
             data=request.data, context=self.get_serializer_context())
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
@@ -71,7 +62,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
             instance, data=request.data, partial=True, context=self.get_serializer_context())
         if serializer.is_valid(raise_exception=True):
             self.perform_update(serializer)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
     @action(detail=True, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
@@ -114,13 +105,13 @@ class WidgetViewSet(viewsets.ModelViewSet):
                     given_answer_object.problem.reward, request.user, 'پاداش حل سوال', f'بابت حل سوال {question.id} به شما امتیاز اضافه شد')
 
             return Response(data={'correctness_percentage': correctness_percentage, 'comment': comment})
-        
+
         return Response()
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
     @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget, ])
-    def make_empty(self, request, *args, **kwargs):
+    def clear_widget_answer(self, request, *args, **kwargs):
         self.get_object().unfinalize_older_answers(request.user)
         return Response(status=status.HTTP_200_OK)
 
