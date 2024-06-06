@@ -50,9 +50,9 @@ class WidgetViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = WidgetPolymorphicSerializer(
             data=request.data, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        widget_instance = serializer.save()
+        return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic

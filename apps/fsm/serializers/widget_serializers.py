@@ -8,10 +8,9 @@ from errors.error_codes import serialize_error
 
 from apps.scoring.serializers.cost_serializer import CostSerializer
 from apps.scoring.serializers.reward_serializer import RewardSerializer
-from apps.fsm.models import DetailBoxWidget, Player, Iframe, Video, Image, TextWidget, Problem, SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, State, Hint, \
+from apps.fsm.models import DetailBoxWidget, Paper, Player, Iframe, Video, Image, TextWidget, Problem, SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, State, Hint, \
     Widget, Team, Aparat, Audio
-from apps.fsm.serializers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, \
-    UploadFileAnswerSerializer
+from apps.fsm.serializers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
 
 
 def add_datetime_to_filename(file):
@@ -164,23 +163,20 @@ class DetailBoxWidgetSerializer(WidgetSerializer):
     details = serializers.SerializerMethodField()
 
     def get_details(self, obj):
-        from apps.fsm.serializers.paper_serializers import PaperSerializer
-        return PaperSerializer(obj.details).data
-
-    def to_internal_value(self, data):
-        from apps.fsm.serializers.paper_serializers import PaperSerializer
-        data = super().to_internal_value(data)
-        details_serializer = PaperSerializer(data=data.get('details'))
-        try:
-            details_serializer.is_valid(raise_exception=True)
-            data['details'] = details_serializer.save()
-        except:
-            pass
-        return data
+        from apps.fsm.serializers.paper_serializers import PaperMinimalSerializer
+        return PaperMinimalSerializer(obj.details).data
 
     def create(self, validated_data):
-        return super(DetailBoxWidgetSerializer, self).create(
-            {'widget_type': Widget.WidgetTypes.DetailBoxWidget, **validated_data})
+        user = self.context.get('request').user
+        details_instance = Paper.objects.create(**{
+            'paper_type': Paper.PaperType.General,
+            'creator': user,
+        })
+        return super(DetailBoxWidgetSerializer, self).create({
+            'widget_type': Widget.WidgetTypes.DetailBoxWidget,
+            'details': details_instance,
+            **validated_data,
+        })
 
     class Meta:
         model = DetailBoxWidget
