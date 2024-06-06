@@ -60,9 +60,9 @@ class WidgetViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = WidgetPolymorphicSerializer(
             instance, data=request.data, partial=True, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            self.perform_update(serializer)
-            return Response(status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(WidgetPolymorphicSerializer(instance).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
     @action(detail=True, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
