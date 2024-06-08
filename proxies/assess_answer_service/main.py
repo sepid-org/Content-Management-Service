@@ -6,10 +6,10 @@ import requests
 from manage_content_service.settings.base import get_environment_var
 
 url = get_environment_var(
-    'CORRECTOR_API', 'http://localhost:9000/api/corrector/correct/')
+    'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')
 
 
-def correct_answer(question, given_answer):
+def assess_answer(question, given_answer):
     correct_answer = question.correct_answer
     if not question.correct_answer:
         raise Exception("no correct answer provided")
@@ -23,7 +23,8 @@ def correct_answer(question, given_answer):
             'text': given_answer.string_answer,
         }
     }
-    response = requests.post(url, json=body)
+
+    response = requests.post(f'{url}api/assessments/assess/', json=body)
     result = json.loads(response.text)
     correctness_percentage = result.get('correctness_percentage')
     comment = result.get('comment')

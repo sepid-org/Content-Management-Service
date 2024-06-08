@@ -681,8 +681,6 @@ class Widget(PolymorphicModel):
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    duplication_of = models.ForeignKey('Widget', default=None, null=True, blank=True,
-                                       on_delete=models.SET_NULL, related_name='duplications')
     cost = models.ForeignKey(
         Cost, on_delete=models.CASCADE, null=True, blank=True)
     reward = models.ForeignKey(

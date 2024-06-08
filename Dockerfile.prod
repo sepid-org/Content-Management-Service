@@ -20,18 +20,18 @@ COPY ./entrypoint.prod.sh /usr/src/app/entrypoint.prod.sh
 COPY . /usr/src/app/
 
 # Create a non-root user and set permissions
-RUN adduser --disabled-password --gecos "" kamva && \
-    chown -R kamva:kamva /usr/src/app
+RUN adduser --disabled-password --gecos "" sepid && \
+    chown -R sepid:sepid /usr/src/app
 
 # Create necessary directories and set permissions
 RUN mkdir -p /usr/src/app/logging /usr/src/app/staticfiles /usr/src/app/media && \
-    chown -R kamva:kamva /usr/src/app/logging /usr/src/app/staticfiles /usr/src/app/media
+    chown -R sepid:sepid /usr/src/app/logging /usr/src/app/staticfiles /usr/src/app/media
 
 # Make the entrypoint script executable
 RUN chmod +x /usr/src/app/entrypoint.prod.sh
 
 # Switch to non-root user
-USER kamva
+USER sepid
 
 # Set entrypoint
 ENTRYPOINT ["/usr/src/app/entrypoint.prod.sh"]

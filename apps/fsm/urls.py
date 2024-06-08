@@ -1,6 +1,8 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
+from apps.fsm.views.paper_view import PaperViewSet
+
 from .views.answer_view import UploadAnswerViewSet, AnswerViewSet
 from .views.article_view import ArticleViewSet, say_hello
 from .views.program_view import ProgramViewSet
@@ -36,6 +38,7 @@ router.register(r'invitations', InvitationViewSet, basename='invitations')
 router.register(r'upload_answer', UploadAnswerViewSet,
                 basename='upload_answer')
 router.register(r'state', StateViewSet, basename='states')
+router.register(r'paper', PaperViewSet, basename='papers')
 router.register(r'edge', EdgeViewSet, basename='edges')
 router.register(r'hint', HintViewSet, basename='hints')
 router.register(r'widget-hint', WidgetHintViewSet, basename='widget-hints')

@@ -4,7 +4,6 @@ from rest_framework.decorators import action, parser_classes
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from rest_framework.exceptions import ParseError
 
@@ -15,7 +14,7 @@ from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer,
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
 from apps.scoring.views.apply_scores_on_user import apply_cost, apply_reward
-from proxies.corrector.main import correct_answer
+from proxies.assess_answer_service.main import assess_answer
 
 
 class WidgetViewSet(viewsets.ModelViewSet):
@@ -24,8 +23,6 @@ class WidgetViewSet(viewsets.ModelViewSet):
     queryset = Widget.objects.all()
     serializer_class = WidgetPolymorphicSerializer
     my_tags = ['widgets']
-
-    # todo - manage permissions
 
     def get_serializer_class(self):
         try:
@@ -48,20 +45,14 @@ class WidgetViewSet(viewsets.ModelViewSet):
             {'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
 
-    @swagger_auto_schema(tags=['widgets'])
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated, ])
-    def make_widget_file_empty(self, request, *args, **kwargs):
-        self.get_object().make_file_empty()
-        return Response(status=status.HTTP_200_OK)
-
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = WidgetPolymorphicSerializer(
             data=request.data, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        widget_instance = serializer.save()
+        return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
@@ -69,9 +60,9 @@ class WidgetViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = WidgetPolymorphicSerializer(
             instance, data=request.data, partial=True, context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            self.perform_update(serializer)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(WidgetPolymorphicSerializer(instance).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
     @action(detail=True, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
@@ -81,7 +72,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
         # check if user has already answered this question correctly
         question = self.get_object()
         user = request.user
-        if question.be_corrected:
+        if question.correct_answer:
             user_correctly_answered_problems = Answer.objects.filter(
                 submitted_by=user, is_correct=True)
             for answer in user_correctly_answered_problems:
@@ -104,7 +95,7 @@ class WidgetViewSet(viewsets.ModelViewSet):
             apply_cost(
                 question.cost, request.user, 'کسر هزینه بابت تصحیح پاسخ', f'بابت تصحیح پاسخ سوال {question.id} از شما امتیاز کسر شد')
 
-            correctness_percentage, comment = correct_answer(
+            correctness_percentage, comment = assess_answer(
                 self.get_object(), given_answer_object)
 
             if correctness_percentage == 100:
@@ -113,12 +104,14 @@ class WidgetViewSet(viewsets.ModelViewSet):
                 apply_reward(
                     given_answer_object.problem.reward, request.user, 'پاداش حل سوال', f'بابت حل سوال {question.id} به شما امتیاز اضافه شد')
 
-        return Response(data={'answer': serializer.data, 'correctness_percentage': correctness_percentage, 'comment': comment})
+            return Response(data={'correctness_percentage': correctness_percentage, 'comment': comment})
+
+        return Response()
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
     @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget, ])
-    def make_empty(self, request, *args, **kwargs):
+    def clear_widget_answer(self, request, *args, **kwargs):
         self.get_object().unfinalize_older_answers(request.user)
         return Response(status=status.HTTP_200_OK)
 

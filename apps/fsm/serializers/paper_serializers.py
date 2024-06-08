@@ -10,6 +10,13 @@ from apps.fsm.serializers.certificate_serializer import CertificateTemplateSeria
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
 
 
+class PaperMinimalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Paper
+        fields = ['id', 'paper_type']
+
+
 class PaperSerializer(serializers.ModelSerializer):
     widgets = WidgetPolymorphicSerializer(many=True)
 
@@ -43,8 +50,6 @@ class RegistrationFormSerializer(PaperSerializer):
         queryset=FSM.objects.all(), required=False, allow_null=True)
     certificate_templates = CertificateTemplateSerializer(
         many=True, read_only=True)
-    widgets = WidgetPolymorphicSerializer(
-        many=True, required=False)  # in order of appearance
 
     @transaction.atomic
     def create(self, validated_data):
@@ -87,7 +92,7 @@ class RegistrationFormSerializer(PaperSerializer):
     class Meta:
         model = RegistrationForm
         ref_name = 'registration_form'
-        fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam', 'conditions', 'widgets',
+        fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam', 'conditions',
                   'program', 'fsm', 'paper_type', 'creator', 'accepting_status', 'certificate_templates',
                   'has_certificate', 'certificates_ready', 'audience_type']
         read_only_fields = ['id', 'creator']
@@ -102,15 +107,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ArticleSerializer(PaperSerializer):
-    widgets = WidgetPolymorphicSerializer(many=True, required=False)
     tags = serializers.ListSerializer(required=False, child=serializers.CharField(min_length=1, max_length=100),
                                       allow_null=True, allow_empty=True)
 
     class Meta:
         model = Article
         ref_name = 'article'
-        fields = ['id', 'name', 'description', 'widgets',
-                  'tags', 'is_draft', 'publisher', 'cover_page']
+        fields = ['id', 'name', 'description', 'tags',
+                  'is_draft', 'publisher', 'cover_page']
         read_only_fields = ['id', 'creator']
 
     @transaction.atomic
@@ -154,8 +158,6 @@ class ArticleSerializer(PaperSerializer):
 
 
 class HintSerializer(PaperSerializer):
-    widgets = WidgetPolymorphicSerializer(
-        many=True, required=False)  # in order of appearance
 
     @transaction.atomic
     def create(self, validated_data):
@@ -173,12 +175,11 @@ class HintSerializer(PaperSerializer):
     class Meta:
         model = Hint
         ref_name = 'hint'
-        fields = ['id', 'widgets', 'creator', 'reference']
+        fields = ['id', 'creator', 'reference']
         read_only_fields = ['id', 'creator']
 
 
 class WidgetHintSerializer(PaperSerializer):
-    widgets = WidgetPolymorphicSerializer(many=True, required=False)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -188,7 +189,7 @@ class WidgetHintSerializer(PaperSerializer):
     class Meta:
         model = WidgetHint
         ref_name = 'hint'
-        fields = ['id', 'widgets', 'creator', 'reference']
+        fields = ['id', 'creator', 'reference']
         read_only_fields = ['id', 'creator']
 
 
@@ -212,8 +213,6 @@ class EdgeSimpleSerializer(serializers.ModelSerializer):
 
 
 class StateSerializer(PaperSerializer):
-    widgets = WidgetPolymorphicSerializer(
-        many=True, required=False)  # in order of appearance
     hints = HintSerializer(many=True, read_only=True)
     outward_edges = EdgeSimpleSerializer(many=True, read_only=True)
     inward_edges = EdgeSimpleSerializer(many=True, read_only=True)
@@ -240,7 +239,7 @@ class StateSerializer(PaperSerializer):
     class Meta:
         model = State
         ref_name = 'state'
-        fields = ['id', 'widgets', 'name', 'creator', 'fsm', 'hints', 'inward_edges', 'outward_edges', 'since', 'till',
+        fields = ['id', 'name', 'creator', 'fsm', 'hints', 'inward_edges', 'outward_edges', 'since', 'till',
                   'duration', 'is_exam']
         read_only_fields = ['id', 'creator',
                             'hints', 'inward_edges', 'outward_edges']
