@@ -14,6 +14,9 @@ def assess_answer(question, given_answer):
     if not question.correct_answer:
         raise Exception("no correct answer provided")
     body = {
+        'question': {
+           'question_type': question.widget_type,
+        },
         'correct_answer': {
             'answer_type': question.correct_answer.answer_type,
             'text': correct_answer.string_answer,
@@ -24,7 +27,7 @@ def assess_answer(question, given_answer):
         }
     }
 
-    response = requests.post(f'{url}api/assessments/assess/', json=body)
+    response = requests.post(f'{url}facade/v1/assess/', json=body)
     result = json.loads(response.text)
     correctness_percentage = result.get('correctness_percentage')
     comment = result.get('comment')
