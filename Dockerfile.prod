@@ -1,31 +1,40 @@
-# pull official base image
+# Pull official base image
 FROM python:3.11
 
-# set work directory
+# Set work directory
 WORKDIR /usr/src/app
 
+# Upgrade pip
 RUN pip install --upgrade pip
 
-# copy requirements
+# Copy requirements file
 COPY requirements.txt /usr/src/requirements.txt
 
+# Install dependencies
 RUN pip install -r /usr/src/requirements.txt
 
-# copy entrypoint-prod.sh
+# Copy entrypoint script
 COPY ./entrypoint.prod.sh /usr/src/app/entrypoint.prod.sh
 
-# copy project
+# Copy project files
 COPY . /usr/src/app/
 
-RUN adduser sepid
+# Create a non-root user and set permissions
+RUN adduser --disabled-password --gecos "" sepid && \
+    chown -R sepid:sepid /usr/src/app
 
-RUN mkdir -p /usr/src/app/logging && chown -R sepid /usr/src/app/logging \
-	&& mkdir -p /usr/src/app/staticfiles && chown -R sepid /usr/src/app/staticfiles \
-	&& mkdir -p /usr/src/app/media && chown -R sepid /usr/src/app/media
+# Create necessary directories and set permissions
+RUN mkdir -p /usr/src/app/logging /usr/src/app/staticfiles /usr/src/app/media && \
+    chown -R sepid:sepid /usr/src/app/logging /usr/src/app/staticfiles /usr/src/app/media
 
-RUN chown -R sepid /usr/src/app/
+# Make the entrypoint script executable
+RUN chmod +x /usr/src/app/entrypoint.prod.sh
 
+# Switch to non-root user
 USER sepid
 
-# run entrypoint.prod.sh
+# Set entrypoint
 ENTRYPOINT ["/usr/src/app/entrypoint.prod.sh"]
+
+# Expose port 8000
+EXPOSE 8000
