@@ -2,7 +2,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework import serializers
 from apps.fsm.models import Player
 
-from apps.accounts.serializers import MerchandiseSerializer, MentorSerializer
+from apps.accounts.serializers.serializers import MerchandiseSerializer, MentorSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer

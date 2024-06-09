@@ -11,7 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.models import EducationalInstitute
 from apps.accounts.permissions import IsInstituteOwner, IsInstituteAdmin
-from apps.accounts.serializers import InstituteSerializer, AccountSerializer
+from apps.accounts.serializers.serializers import InstituteSerializer, AccountSerializer
 from apps.accounts.utils import find_user
 from errors.error_codes import serialize_error
 
@@ -32,7 +32,7 @@ class InstituteViewSet(ModelViewSet):
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except(KeyError, AttributeError):
+        except (KeyError, AttributeError):
             return super().get_serializer_class()
 
     def get_queryset(self):
@@ -66,15 +66,15 @@ class InstituteViewSet(ModelViewSet):
                                     400: "error code 4010 for institute not being approved"
                                     })
     @transaction.atomic
-    @action(detail=True, methods=['post'], permission_classes=[IsInstituteOwner, ])
+    @action(detail=True, methods=['post'], permission_classes=[IsInstituteOwner])
     def add_admin(self, request, pk=None):
-        data = request.data
         institute = self.get_object()
         if institute.is_approved:
-            serializer = AccountSerializer(many=False, data=data)
-            if serializer.is_valid(raise_exception=True):
-                new_admin = find_user(serializer.validated_data)
-                institute.admins.add(new_admin)
-                return Response(InstituteSerializer(institute).data, status=status.HTTP_200_OK)
+            serializer = AccountSerializer(many=False, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            new_admin = find_user(
+                user_data={**serializer.validated_data}, website=request.data.get("website"))
+            institute.admins.add(new_admin)
+            return Response(InstituteSerializer(institute).data, status=status.HTTP_200_OK)
         else:
             raise PermissionDenied(serialize_error("4010"))

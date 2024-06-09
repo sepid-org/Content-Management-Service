@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
-from apps.accounts.serializers import AccountSerializer
+from apps.accounts.serializers.serializers import AccountSerializer
 from apps.accounts.utils import find_user
 from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
@@ -51,24 +51,26 @@ class ProgramViewSet(ModelViewSet):
         program = self.get_object()
         user_serializer = AccountSerializer(data=request.data)
         user_serializer.is_valid(raise_exception=True)
-        new_admin = find_user(user_serializer.validated_data)
+        new_admin = find_user(
+            user_data={**user_serializer.validated_data}, website=request.data.get("website"))
         program.admins.add(new_admin)
         register_user_in_program(new_admin, program)
         return Response()
 
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
+    @ action(detail=True, methods=['post'], serializer_class=AccountSerializer)
     def remove_admin(self, request, pk=None):
         program = self.get_object()
         serializer = AccountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        removed_admin = find_user(serializer.validated_data)
+        removed_admin = find_user(
+            user_data={**serializer.validated_data}, website=request.data.get("website"))
         if removed_admin == program.creator:
             raise ParseError(serialize_error('5007'))
         if removed_admin in program.admins.all():
             program.admins.remove(removed_admin)
         return Response()
 
-    @action(detail=True, methods=['get'])
+    @ action(detail=True, methods=['get'])
     def soft_remove_program(self, request, pk=None):
         program = self.get_object()
         program.is_deleted = True

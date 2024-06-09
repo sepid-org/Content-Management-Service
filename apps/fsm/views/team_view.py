@@ -11,7 +11,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.accounts.serializers import PhoneNumberSerializer
+from apps.accounts.serializers.serializers import PhoneNumberSerializer
 from apps.accounts.utils import find_user
 from errors.error_codes import serialize_error
 from apps.fsm import permissions as customPermissions
@@ -136,7 +136,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], serializer_class=PhoneNumberSerializer, permission_classes=[IsAuthenticated])
     def register_and_join(self, request, pk=None):  # todo: change name
         team = self.get_object()
-        user = find_user(request.data)
+        user = find_user(user_data={**request.data}, website=request.data.get("website"))
         if len(RegistrationReceipt.objects.filter(answer_sheet_of=team.registration_form, user=user)) == 0:
             receipt = RegistrationReceipt.objects.create(
                 answer_sheet_of=team.registration_form,

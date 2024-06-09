@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from apps.accounts.models import User
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.serializers.serializers import UserSerializer
 from apps.accounts.utils import update_or_create_team, update_or_create_user_account, update_or_create_registration_receipt, create_team
 from errors.error_codes import serialize_error
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationPerCitySerializer

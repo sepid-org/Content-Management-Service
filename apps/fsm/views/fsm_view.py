@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
 
-from apps.accounts.serializers import AccountSerializer
+from apps.accounts.serializers.serializers import AccountSerializer
 from apps.accounts.utils import find_user
 from apps.fsm.pagination import StandardPagination
 from errors.error_codes import serialize_error
@@ -165,7 +165,8 @@ class FSMViewSet(viewsets.ModelViewSet):
         fsm = self.get_object()
         account_serializer = AccountSerializer(data=request.data)
         account_serializer.is_valid(raise_exception=True)
-        new_mentor = find_user(account_serializer.validated_data)
+        new_mentor = find_user(
+            user_data={**account_serializer.validated_data}, website=request.data.get("website"))
         fsm.mentors.add(new_mentor)
         register_user_in_program(new_mentor, fsm.program)
         return Response()
@@ -176,7 +177,8 @@ class FSMViewSet(viewsets.ModelViewSet):
         fsm = self.get_object()
         serializer = AccountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        removed_mentor = find_user(serializer.validated_data)
+        removed_mentor = find_user(
+            user_data={**serializer.validated_data}, website=request.data.get("website"))
         if removed_mentor == fsm.creator:
             raise ParseError(serialize_error('5006'))
         if removed_mentor in fsm.mentors.all():

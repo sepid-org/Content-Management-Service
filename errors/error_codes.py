@@ -122,6 +122,8 @@ errors_dict = {'4000': 'phone number must be digit',
                '4113': 'data are inconsistent',
                '4114': 'there is no inward edge',
                '4115': 'there is no user with this data',
+               '4116': 'no website provided',
+               '4117': 'user has already registered in the website',
 
                '5000': 'sending SMS failed',
                '5001': 'zarinpal request failed, contact with support',

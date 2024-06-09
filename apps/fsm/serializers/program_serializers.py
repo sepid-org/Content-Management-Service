@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
-from apps.accounts.serializers import MerchandiseSerializer
+from apps.accounts.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt

@@ -2,8 +2,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ParseError
 
-from apps.accounts.serializers import AccountSerializer, MyTokenObtainPairSerializer
+from apps.accounts.serializers.serializers import AccountSerializer, PhoneNumberVerificationCodeSerializer
 from apps.accounts.models import User
+from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
 from apps.fsm.serializers.answer_sheet_serializers import MyRegistrationReceiptSerializer
@@ -13,19 +14,30 @@ def generate_tokens_for_user(user):
     """
     Generate access and refresh tokens for the given user
     """
-    serializer = MyTokenObtainPairSerializer()
+    serializer = CustomTokenObtainSerializer()
     token_data = serializer.get_token(user)
     access_token = token_data.access_token
     refresh_token = token_data
     return access_token, refresh_token
 
 
-def find_user(data):
-    phone_number = data.get('phone_number', -1)
-    email = data.get('email', -1)
-    username = data.get('username', phone_number or email)
+def standardize_phone_number(phone_number):
+    # todo: convert input phone_number string to standard form
+    return phone_number
+
+
+def find_user(user_data, website):
+    # Consciously sat as -1. They should not be None:
+    phone_number = user_data.get('phone_number', -1)
+    phone_number = standardize_phone_number(phone_number)
+    email = user_data.get('email', -1)
+    username = user_data.get('username', -1)
+
+    if not website:
+        raise ParseError(serialize_error('4116'))
+
     try:
-        return User.objects.get(Q(username=username) |
+        return User.objects.get(Q(username=username or phone_number or email) |
                                 Q(phone_number=phone_number) |
                                 Q(email=email))
     except:
