@@ -1,9 +1,10 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ParseError
+from django.contrib.auth.hashers import make_password, check_password
 
 from apps.accounts.serializers.serializers import AccountSerializer, PhoneNumberVerificationCodeSerializer
-from apps.accounts.models import User
+from apps.accounts.models import User, UserWebsite
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
@@ -26,7 +27,7 @@ def standardize_phone_number(phone_number):
     return phone_number
 
 
-def find_user(user_data, website):
+def find_user(user_data, website, raise_exception=True):
     # Consciously sat as -1. They should not be None:
     phone_number = user_data.get('phone_number', -1)
     phone_number = standardize_phone_number(phone_number)
@@ -37,11 +38,31 @@ def find_user(user_data, website):
         raise ParseError(serialize_error('4116'))
 
     try:
-        return User.objects.get(Q(username=username or phone_number or email) |
+        user = User.objects.get(Q(username=(username or phone_number or email)) |
                                 Q(phone_number=phone_number) |
                                 Q(email=email))
+        if user.user_websites.get(website=website):
+            return user
     except:
-        raise ParseError(serialize_error('4115'))
+        return None
+
+
+def create_or_get_user(user_data, website):
+    user = find_user(user_data=user_data, website=website)
+    if user:
+        return user
+
+    serializer = AccountSerializer(data=user_data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    UserWebsite.objects.create(
+        user=user, website=website, password=make_password(user_data.get("password")))
+    return user
+
+
+def can_user_login(user, password, website):
+    user_website = user.user_websites.get(website=website)
+    return check_password(password, user_website.password)
 
 
 def find_registration_receipt(user, registration_form):

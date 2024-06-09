@@ -37,9 +37,31 @@ class User(AbstractUser):
     city = models.CharField(max_length=50, null=True, blank=True)
     postal_code = models.CharField(max_length=10, null=True, blank=True)
 
+    def get_user_website(self, website):
+        return self.user_websites.get(website=website)
+
     @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def __str__(self):
+        return self.username
+
+
+class UserWebsite(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name='user_websites')
+    website = models.CharField(max_length=50)
+    password = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now=True)
+
+    def set_password(self, new_password):
+        from django.contrib.auth.hashers import make_password
+        self.password = make_password(new_password)
+        self.save()
+
+    def __str__(self):
+        return f'{self.user} | {self.website}'
 
 
 class InstituteManager(PolymorphicManager):
@@ -357,8 +379,10 @@ class VerificationCode(models.Model):
     objects = VerificationCodeManager()
 
     def notify(self, verification_type, party_display_name='سپید'):
-        sms_service_proxy = get_sms_service_proxy(type='kavenegar', token='todo')
-        sms_service_proxy.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
+        sms_service_proxy = get_sms_service_proxy(
+            type='kavenegar', token='todo')
+        sms_service_proxy.send_otp(
+            self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'
