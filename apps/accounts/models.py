@@ -60,6 +60,9 @@ class UserWebsite(models.Model):
         self.password = make_password(new_password)
         self.save()
 
+    class Meta:
+        unique_together = ('user', 'website')
+
     def __str__(self):
         return f'{self.user} | {self.website}'
 

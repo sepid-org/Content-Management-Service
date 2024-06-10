@@ -10,8 +10,11 @@ class Command(BaseCommand):
         for registration_receipt in RegistrationReceipt.objects.all():
             website = registration_receipt.answer_sheet_of.program.website
             user = registration_receipt.user
-            UserWebsite.objects.create(
-                user=user,
-                website=website,
-                password=user.password,
-            )
+            try:
+                UserWebsite.objects.create(
+                    user=user,
+                    website=website,
+                    password=user.password,
+                )
+            except:
+                pass

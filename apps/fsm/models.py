@@ -519,7 +519,7 @@ class RegistrationReceipt(AnswerSheet):
             status=Purchase.Status.Success)) > 0 if self.answer_sheet_of.program_or_fsm.merchandise else True
 
     class Meta:
-        unique_together = ('answer_sheet_of', 'user',)
+        unique_together = ('answer_sheet_of', 'user')
 
     def correction_status(self):
         for a in self.answers.all():
