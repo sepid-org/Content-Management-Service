@@ -12,7 +12,10 @@ class Command(BaseCommand):
             for player in registration_receipt.players.all():
                 program = player.fsm.program
             if program:
-                registration_receipt.answer_sheet_of = program.registration_form
-                registration_receipt.save()
+                try:
+                    registration_receipt.answer_sheet_of = program.registration_form
+                    registration_receipt.save()
+                except:
+                    registration_receipt.delete()
             else:
                 registration_receipt.delete()
