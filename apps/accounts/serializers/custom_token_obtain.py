@@ -24,3 +24,10 @@ class CustomTokenObtainSerializer(serializers.Serializer):
             }
         else:
             raise serializers.ValidationError('Username is required.')
+
+    def get_token(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
