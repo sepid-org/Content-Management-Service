@@ -15,8 +15,6 @@ DB_USER = get_environment_var('DB_USER', 'user')
 DB_PASS = get_environment_var('DB_PASS', 'p4s$pAsS')
 DB_HOST = get_environment_var('DB_HOST', 'localhost')
 DB_PORT = get_environment_var('DB_PORT', '5432')
-RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
-
 
 DATABASES = {
     'default': {
@@ -29,6 +27,7 @@ DATABASES = {
     }
 }
 
+RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
 
 CACHES = {
     'default': {
