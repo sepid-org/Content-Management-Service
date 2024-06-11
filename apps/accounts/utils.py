@@ -27,36 +27,47 @@ def standardize_phone_number(phone_number):
     return phone_number
 
 
-def find_user(user_data, website, raise_exception=True):
+def _find_user(user_data):
     # Consciously sat as -1. They should not be None:
     phone_number = user_data.get('phone_number', -1)
     phone_number = standardize_phone_number(phone_number)
     email = user_data.get('email', -1)
     username = user_data.get('username', -1)
 
-    if not website:
-        raise ParseError(serialize_error('4116'))
-
     try:
-        user = User.objects.get(Q(username=(username or phone_number or email)) |
+        return User.objects.get(Q(username=(username or phone_number or email)) |
                                 Q(phone_number=phone_number) |
                                 Q(email=email))
-        if user.user_websites.get(website=website):
-            return user
     except:
         return None
 
 
+def find_user(user_data, website):
+    if not website:
+        raise ParseError(serialize_error('4116'))
+
+    user = _find_user(user_data=user_data)
+
+    if user and user.user_websites.get(website=website):
+        return user
+    else:
+        return None
+
+
 def create_or_get_user(user_data, website):
-    user = find_user(user_data=user_data, website=website)
-    if user:
+    user = _find_user(user_data=user_data)
+
+    if user and user.user_websites.get(website=website):
         return user
 
-    serializer = AccountSerializer(data=user_data)
-    serializer.is_valid(raise_exception=True)
-    user = serializer.save()
+    if not user:
+        serializer = AccountSerializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
     UserWebsite.objects.create(
         user=user, website=website, password=make_password(user_data.get("password")))
+
     return user
 
 
