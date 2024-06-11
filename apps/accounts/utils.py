@@ -17,8 +17,8 @@ def generate_tokens_for_user(user):
     """
     serializer = CustomTokenObtainSerializer()
     token_data = serializer.get_token(user)
-    access_token = token_data.access_token
-    refresh_token = token_data
+    access_token = token_data.get('access')
+    refresh_token = token_data.get('refresh')
     return access_token, refresh_token
 
 
