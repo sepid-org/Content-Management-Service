@@ -48,7 +48,7 @@ def find_user(user_data, website):
 
     user = _find_user(user_data=user_data)
 
-    if user and user.user_websites.get(website=website):
+    if user and user.get_user_website(website=website):
         return user
     else:
         return None
@@ -57,7 +57,7 @@ def find_user(user_data, website):
 def create_or_get_user(user_data, website):
     user = _find_user(user_data=user_data)
 
-    if user and user.user_websites.get(website=website):
+    if user and user.get_user_website(website=website):
         return user
 
     if not user:
@@ -72,8 +72,11 @@ def create_or_get_user(user_data, website):
 
 
 def can_user_login(user, password, website):
-    user_website = user.user_websites.get(website=website)
-    return check_password(password, user_website.password)
+    user_website = user.get_user_website(website=website)
+    if user_website:
+        return check_password(password, user_website.password)
+    else:
+        return False
 
 
 def find_registration_receipt(user, registration_form):

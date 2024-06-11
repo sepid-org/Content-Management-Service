@@ -38,7 +38,10 @@ class User(AbstractUser):
     postal_code = models.CharField(max_length=10, null=True, blank=True)
 
     def get_user_website(self, website):
-        return self.user_websites.get(website=website)
+        try:
+            return self.user_websites.get(website=website)
+        except:
+            return None
 
     @property
     def full_name(self):
