@@ -25,7 +25,7 @@ from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get
 
 class FSMViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = FSM.objects.filter(is_deleted=False)
+    queryset = FSM.objects.filter(is_deleted=False).order_by('-order_in_program')
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_fields = ['website', 'program']
