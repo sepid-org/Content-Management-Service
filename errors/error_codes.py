@@ -1,7 +1,7 @@
 import logging
 from rest_framework.exceptions import ValidationError
 
-from proxies.sms_system.main import SMS_CODE_LENGTH
+from proxies.sms_system.settings import SMS_CODE_LENGTH
 
 logger = logging.getLogger(__name__)
 

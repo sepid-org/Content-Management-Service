@@ -13,7 +13,7 @@ from apps.fsm.models import RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationStatusSerializer
 from apps.fsm.serializers.certificate_serializer import create_certificate
-from proxies.sms_system.main import get_sms_service_proxy
+from proxies.sms_system.sms_service_facade import SMSServiceFacade
 
 
 class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyModelMixin):
@@ -82,11 +82,10 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
 
             # todo: fix academy name
             if older_status != receipt.status:
-                sms_service_proxy = get_sms_service_proxy(
-                    type='kavenegar', token='todo')
-                sms_service_proxy.send_otp(
+                sms_service_facade = SMSServiceFacade(provider='kavenegar')
+                sms_service_facade.send_otp(
                     receptor_phone_number=receipt.user.phone_number,
-                    type=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
+                    type=sms_service_facade.RegularSMSTypes.UpdateRegistrationReceiptState,
                     # todo: get real academy name from mps
                     token='کاموا',
                     token2=receipt.answer_sheet_of.program_or_fsm.name
