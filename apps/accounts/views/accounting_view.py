@@ -170,6 +170,9 @@ class ChangePassword(GenericAPIView):
         user = find_user_in_website(
             user_data={"phone_number": phone_number}, website=request.data.get("website"))
 
+        if not user:
+            raise ParseError(serialize_error('4115'))
+
         new_password = request.data.get("password")
         user.get_user_website(website=request.data.get(
             "website")).set_password(new_password=new_password)
