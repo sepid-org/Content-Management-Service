@@ -14,38 +14,12 @@ def _get_fsm_links(fsm_id: int):
 
 def _get_player_transited_path(player_id: int):
     player: Player = Player.get_player(player_id)
-    transitions: list[PlayerTransition] = player.player_transitions.all()
-    player_current_state: State = player.current_state
-    current_time = timezone.now()
+    transitions: list[PlayerTransition] = player.player_transitions.order_by('time').all()
     taken_path: list[Link] = []
 
-    for i in range(len(transitions)):
-        previous_transition = _get_player_previous_transition(
-            player_current_state, current_time, transitions)
-        # if the transited_edge is deleted, it isn't possible to reach to previous state
-        if not previous_transition:
-            break
-        taken_path.append(Link.get_link_from_transition(previous_transition))
+    for transition in transitions:
+        link = Link.get_link_from_transition(transition)
+        if link:
+            taken_path.append(link)
 
-        player_current_state = previous_transition.source_state
-        current_time = previous_transition.time
-
-    taken_path.reverse()
     return taken_path
-
-
-def _get_player_previous_transition(player_state: State, time, transitions: list[PlayerTransition]) -> PlayerTransition:
-    try:
-        last_transition = transitions.filter(
-            target_state=player_state, time__lte=time).last()
-        return last_transition
-    except:
-        return None
-
-
-def _get_player_previous_state(player_current_state: State, time, transitions: list[PlayerTransition]) -> State:
-    try:
-        _get_player_previous_transition(
-            player_current_state, time, transitions).source_state
-    except:
-        return None

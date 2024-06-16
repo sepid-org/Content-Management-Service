@@ -8,15 +8,13 @@ SECRET_KEY = get_environment_var(
 
 ALLOWED_HOSTS = get_environment_var('ALLOWED_HOSTS', '*').split(',')
 
-SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://kamva.academy/')
+SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://mcs.sepid.org/')
 
 DB_NAME = get_environment_var('DB_NAME', 'workshop')
 DB_USER = get_environment_var('DB_USER', 'user')
 DB_PASS = get_environment_var('DB_PASS', 'p4s$pAsS')
 DB_HOST = get_environment_var('DB_HOST', 'localhost')
 DB_PORT = get_environment_var('DB_PORT', '5432')
-RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
-
 
 DATABASES = {
     'default': {
@@ -28,6 +26,8 @@ DATABASES = {
         'PORT': DB_PORT,
     }
 }
+
+RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
 
 CACHES = {
     'default': {
@@ -117,7 +117,8 @@ SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 CSRF_TRUSTED_ORIGINS = get_environment_var('CSRF_TRUSTED_ORIGINS', '*').split(',')
 
 DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
-# STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
+
 MINIO_STORAGE_ENDPOINT = get_environment_var('MINIO_STORAGE_ENDPOINT', None)
 MINIO_STORAGE_ACCESS_KEY = get_environment_var(
     'MINIO_STORAGE_ACCESS_KEY', None)

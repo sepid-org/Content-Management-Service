@@ -127,6 +127,9 @@ class Program(models.Model):
         Team = "Team"
         Individual = "Individual"
 
+    admins = models.ManyToManyField(
+        User, related_name='administered_programs', null=True, blank=True)
+
     website = models.CharField(blank=True, null=True, max_length=50)
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
@@ -157,6 +160,8 @@ class Program(models.Model):
     program_contact_info = models.OneToOneField(
         'ProgramContactInfo', on_delete=models.SET_NULL, related_name='program', blank=True, null=True)
     is_visible = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -164,8 +169,7 @@ class Program(models.Model):
     @property
     def modifiers(self):
         modifiers = {self.creator} if self.creator is not None else set()
-        modifiers |= set(self.holder.admins.all()
-                         ) if self.holder is not None else set()
+        modifiers |= set(self.admins.all())
         return modifiers
 
     @property
@@ -200,9 +204,6 @@ class FSMManager(models.Manager):
     def create(self, **args):
         fsm = super().create(**args)
         fsm.mentors.add(fsm.creator)
-        # ct = ContentType.objects.get_for_model(institute)
-        # assign_perm(Permission.objects.filter(codename='add_admin', content_type=ct).first(), institute.owner, institute)
-        # these permission settings worked correctly but were too messy
         fsm.save()
         return fsm
 
@@ -220,7 +221,7 @@ class FSM(models.Model):
     website = models.CharField(blank=True, null=True, max_length=50)
 
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
-                              blank=True)
+                                blank=True)
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='fsm', on_delete=models.SET_NULL, null=True,
                                        blank=True)
     registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='fsm', on_delete=models.SET_NULL, null=True,
@@ -243,10 +244,11 @@ class FSM(models.Model):
     lock = models.CharField(max_length=10, null=True, blank=True)
     team_size = models.IntegerField(default=3)
     order_in_program = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
 
     objects = FSMManager()
-
-    # TODO - make locks as mixins
 
     def __str__(self):
         return self.name
@@ -491,8 +493,8 @@ class RegistrationReceipt(AnswerSheet):
     # should be in every answer sheet child
     answer_sheet_of = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
                                         on_delete=models.SET_NULL)
-    user = models.ForeignKey('accounts.User', related_name='registration_receipts', on_delete=models.CASCADE,
-                             null=True, blank=True)
+    user = models.ForeignKey(
+        'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
@@ -517,7 +519,7 @@ class RegistrationReceipt(AnswerSheet):
             status=Purchase.Status.Success)) > 0 if self.answer_sheet_of.program_or_fsm.merchandise else True
 
     class Meta:
-        unique_together = ('answer_sheet_of', 'user',)
+        unique_together = ('answer_sheet_of', 'user')
 
     def correction_status(self):
         for a in self.answers.all():
@@ -679,8 +681,6 @@ class Widget(PolymorphicModel):
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    duplication_of = models.ForeignKey('Widget', default=None, null=True, blank=True,
-                                       on_delete=models.SET_NULL, related_name='duplications')
     cost = models.ForeignKey(
         Cost, on_delete=models.CASCADE, null=True, blank=True)
     reward = models.ForeignKey(
@@ -1035,19 +1035,3 @@ class CertificateTemplate(models.Model):
     font = models.ForeignKey(
         Font, on_delete=models.SET_NULL, related_name='templates', null=True)
     font_size = models.IntegerField(default=100)
-
-
-########## MUST BE DELETED ###########
-
-
-class PlayerWorkshop(models.Model):
-    player = models.ForeignKey(
-        'accounts.Player', on_delete=models.CASCADE, related_name='player_workshop')
-    workshop = models.ForeignKey(
-        FSM, on_delete=models.CASCADE, related_name='player_workshop')
-    current_state = models.ForeignKey(State, null=True, blank=True, on_delete=models.SET_NULL,
-                                      related_name='player_workshop')
-    last_visit = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return f'{self.id}:{str(self.player)}-{self.workshop.name}'

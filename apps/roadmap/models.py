@@ -12,6 +12,8 @@ class Link:
 
     @staticmethod
     def get_link_from_states(source_state: State, taret_state: State):
+        if not source_state or not taret_state:
+            return None
         return Link(source_state.name, taret_state.name)
 
     @staticmethod

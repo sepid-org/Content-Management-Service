@@ -5,7 +5,7 @@ from rest_framework import permissions
 from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.models import User
-from apps.accounts.serializers import ProfileSerializer
+from apps.accounts.serializers.serializers import ProfileSerializer
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class ContactMessage(models.Model):
     subject = models.TextField()
     text = models.TextField()

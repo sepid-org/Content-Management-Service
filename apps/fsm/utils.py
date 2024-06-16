@@ -1,4 +1,5 @@
 from django.utils import timezone
+from apps.accounts.models import User
 from errors.error_codes import serialize_error
 from rest_framework.exceptions import ParseError
 import logging
@@ -8,7 +9,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 
-from apps.fsm.models import FSM, Edge, Player, PlayerStateHistory, PlayerTransition, RegistrationReceipt, State, Team
+from apps.fsm.models import FSM, AnswerSheet, Edge, Player, PlayerStateHistory, PlayerTransition, Program, RegistrationReceipt, State, Team
 
 
 def go_next_step(player):
@@ -20,7 +21,7 @@ def go_to_state(destination):
 
 
 def _get_fsm_edges(fsm: FSM) -> list[Edge]:
-    return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm))
+    return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm)).order_by('-id')
 
 
 def get_django_file(url: str):
@@ -127,3 +128,14 @@ def get_a_player_from_team(team, fsm) -> Player:
 def get_player_backward_edge(player: Player) -> Edge:
     # todo: it should get the desired backward edge, not mustly the first one
     return player.current_state.inward_edges.first()
+
+
+def register_user_in_program(user: User, program: Program):
+    registration_form = program.registration_form
+    if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=user)) == 0:
+        RegistrationReceipt.objects.create(
+            answer_sheet_of=registration_form,
+            user=user,
+            answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
+            status=RegistrationReceipt.RegistrationStatus.Accepted,
+            is_participating=True)

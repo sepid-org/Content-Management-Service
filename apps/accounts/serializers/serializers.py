@@ -3,19 +3,18 @@ from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
-from rest_framework_simplejwt.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_LENGTH
-from .models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
+from ..models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
     AcademicStudentship, Merchandise, DiscountCode, Purchase
-from .validators import phone_number_validator, grade_validator, price_validator
+from ..validators import phone_number_validator, grade_validator, price_validator
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(max_length=15, required=True, validators=[phone_number_validator])
+    phone_number = serializers.CharField(
+        max_length=15, required=True, validators=[phone_number_validator])
     code_type = serializers.CharField(required=True)
     party_display_name = serializers.CharField(required=True)
 
@@ -54,7 +53,8 @@ class PhoneNumberVerificationCodeSerializer(serializers.ModelSerializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(validators=[phone_number_validator], required=False)
+    phone_number = serializers.CharField(
+        validators=[phone_number_validator], required=False)
     password = serializers.CharField(write_only=True, required=False)
     username = serializers.CharField(required=False,)
 
@@ -75,7 +75,8 @@ class AccountSerializer(serializers.ModelSerializer):
             validated_data['password'] = make_password(
                 validated_data.get('password'))
         else:
-            validated_data['password'] = make_password(validated_data['username'])
+            validated_data['password'] = make_password(
+                validated_data['username'])
 
         instance = super().create(validated_data)
         SchoolStudentship.objects.create(
@@ -116,31 +117,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'phone_number', 'first_name', 'last_name', 'username', 'email', 'gender', 'birth_date',
                   'national_code', 'country', 'address', 'province', 'city', 'postal_code', 'profile_picture']
         read_only_fields = ['id']
-
-
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    password = serializers.CharField(write_only=True, required=True)
-    username = serializers.CharField(required=True)
-
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['id'] = str(user.id)
-        return token
-
-    def validate(self, attrs):
-        from apps.accounts.utils import find_user
-        user = find_user(attrs)
-        if user:
-            try:
-                return super().validate({
-                    'username': user.username,
-                    'password': attrs.get('password')
-                })
-            except Exception as e:
-                raise AuthenticationFailed(serialize_error('4009'))
-        else:
-            raise AuthenticationFailed(serialize_error('4006'))
 
 
 class InstituteSerializer(serializers.ModelSerializer):

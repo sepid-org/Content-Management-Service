@@ -4,10 +4,17 @@ from re import search
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
-from .models import Purchase, DiscountCode, User, VerificationCode, \
+from .models import Purchase, DiscountCode, User, UserWebsite, VerificationCode, \
     University, EducationalInstitute, School, SchoolStudentship, AcademicStudentship, Merchandise, Voucher
 
 logger = logging.getLogger(__name__)
+
+
+@admin.register(UserWebsite)
+class UserWebsiteAdmin(admin.ModelAdmin):
+    model = UserWebsite
+    list_display = ['user', 'website']
+    list_filter = ['website']
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -18,8 +25,10 @@ class CustomUserAdmin(admin.ModelAdmin):
 
         documents = queryset.values_list('school_studentship', flat=True)
 
-        updated = SchoolStudentship.objects.filter(pk__in=documents).update(is_document_verified=True)
-        self.message_user(request, f'{updated} document verified.', messages.SUCCESS)
+        updated = SchoolStudentship.objects.filter(
+            pk__in=documents).update(is_document_verified=True)
+        self.message_user(
+            request, f'{updated} document verified.', messages.SUCCESS)
 
     def school(self, obj):
         return obj.school_studentship.school
@@ -27,7 +36,8 @@ class CustomUserAdmin(admin.ModelAdmin):
     model = User
     list_display = ['id', 'username', 'phone_number', 'national_code', 'first_name', 'last_name', 'gender', 'province',
                     'city', 'school']
-    search_fields = ['id', 'username', 'phone_number', 'national_code', 'first_name', 'last_name']
+    search_fields = ['id', 'username', 'phone_number',
+                     'national_code', 'first_name', 'last_name']
     actions = [verify_school_documents]
     ordering = ['-date_joined']
 
@@ -48,10 +58,12 @@ class CustomSchoolAdmin(admin.ModelAdmin):
                 studentship.save()
             school.delete()
 
-        self.message_user(request, f'{schools} schools merged.', messages.SUCCESS)
+        self.message_user(
+            request, f'{schools} schools merged.', messages.SUCCESS)
 
     model = School
-    list_display = ['id', 'name', 'province', 'city', 'school_type', 'postal_code', 'address']
+    list_display = ['id', 'name', 'province', 'city',
+                    'school_type', 'postal_code', 'address']
     actions = [merge_schools]
     ordering = ['id']
 
@@ -65,13 +77,15 @@ def export_selected_objects(model_admin, request, queryset):
 
 class CustomPurchaseAdmin(admin.ModelAdmin):
     model = Purchase
-    list_display = ['id', 'ref_id', 'amount', 'status', 'created_at', 'user', 'merchandise']
+    list_display = ['id', 'ref_id', 'amount',
+                    'status', 'created_at', 'user', 'merchandise']
     search_fields = ['user__username']
 
 
 class UniversityCustomAdmin(admin.ModelAdmin):
     model = University
-    list_display = ['id', 'name', 'province', 'city', 'school_type', 'postal_code', 'address']
+    list_display = ['id', 'name', 'province', 'city',
+                    'school_type', 'postal_code', 'address']
     search_fields = ['name', 'city']
 
 

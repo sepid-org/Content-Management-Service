@@ -85,7 +85,7 @@ def export_registration(request):
 
 
 class MyAdminSite(admin.AdminSite):
-    site_header = gettext_lazy('Kamva admin')
+    site_header = gettext_lazy('Manage Content Service Admin')
 
     def get_urls(self):
         urls = super(MyAdminSite, self).get_urls()

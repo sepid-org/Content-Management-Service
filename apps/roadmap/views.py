@@ -11,7 +11,7 @@ from apps.roadmap.utils import _get_fsm_links, _get_player_transited_path
 
 
 @api_view(["POST"])
-def get_player_taken_path(request):
+def get_player_transited_path(request):
     player_id = request.data.get('player_id', None)
     taken_path: list[Link] = _get_player_transited_path(player_id)
     return Response(data=LinkSerializer(taken_path, many=True).data, status=status.HTTP_200_OK)

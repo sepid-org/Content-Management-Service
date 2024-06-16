@@ -8,14 +8,13 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.models import VerificationCode, User
 from apps.accounts.permissions import IsHimself
-from apps.accounts.serializers import PhoneNumberSerializer, UserSerializer, PhoneNumberVerificationCodeSerializer, AccountSerializer, \
-    MyTokenObtainPairSerializer
-from apps.accounts.utils import find_user
+from apps.accounts.serializers.serializers import PhoneNumberSerializer, UserSerializer, PhoneNumberVerificationCodeSerializer, AccountSerializer
+from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
+from apps.accounts.utils import can_user_login, create_or_get_user, find_user_in_website
 from errors.error_codes import serialize_error
 from errors.exceptions import ServiceUnavailable
 
@@ -36,11 +35,14 @@ class SendVerificationCode(GenericAPIView):
         serializer = PhoneNumberSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             phone_number = serializer.validated_data.get('phone_number', None)
-            party_display_name = serializer.validated_data.get('party_display_name', 'سپید')
-            verification_code = VerificationCode.objects.create_verification_code(phone_number=phone_number)
+            party_display_name = serializer.validated_data.get(
+                'party_display_name', 'سپید')
+            verification_code = VerificationCode.objects.create_verification_code(
+                phone_number=phone_number)
             try:
                 verification_code.notify(
-                    verification_type=serializer.validated_data.get('code_type', None),
+                    verification_type=serializer.validated_data.get(
+                        'code_type', None),
                     party_display_name=party_display_name,
                 )
             except:
@@ -92,31 +94,33 @@ class UserViewSet(ModelViewSet):
                                     })
     @transaction.atomic
     def create(self, request):
-        data = request.data
-        serializer = PhoneNumberVerificationCodeSerializer(data=data)
-        if serializer.is_valid(raise_exception=True):
 
-            phone_number = serializer.validated_data.get('phone_number', None)
-            if User.objects.filter(phone_number__exact=phone_number).count() > 0:
-                raise ParseError(serialize_error(
-                    '4004', {'param1': phone_number}))
+        # validate phone number with verification code:
+        serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = find_user_in_website(user_data=request.data,
+                                    website=request.data.get("website"))
+        if user:
+            raise ParseError(serialize_error('4117'))
 
-            serializer = AccountSerializer(data=data)
-            if serializer.is_valid(raise_exception=True):
-                user = serializer.save()
-                token_serializer = MyTokenObtainPairSerializer(
-                    data={'password': request.data.get('password'), 'username': user.username})
-                if token_serializer.is_valid(raise_exception=True):
-                    return Response({'account': serializer.data, **token_serializer.validated_data},
-                                    status=status.HTTP_201_CREATED)
+        user = create_or_get_user(user_data=request.data,
+                                  website=request.data.get("website"))
+
+        token_serializer = CustomTokenObtainSerializer(
+            data={'username': user.username})
+        if token_serializer.is_valid(raise_exception=True):
+            return Response({'account': AccountSerializer(user).data, **token_serializer.validated_data},
+                            status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])
 def change_phone_number(request):
+    # validate phone number with verification code:
     serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     new_phone_number = serializer.validated_data.get('phone_number', None)
-    if find_user({'phone_number': new_phone_number}):
+
+    if find_user_in_website(user_data={'phone_number': new_phone_number}, website=request.data.get("website")):
         raise ParseError(serialize_error('6002'))
     user = request.user
     user.phone_number = new_phone_number
@@ -125,7 +129,7 @@ def change_phone_number(request):
 
 
 class Login(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+    serializer_class = CustomTokenObtainSerializer
     permission_classes = (permissions.AllowAny,)
 
     @swagger_auto_schema(tags=['accounts'],
@@ -133,15 +137,20 @@ class Login(TokenObtainPairView):
                                     400: "error code 4007 for not enough credentials",
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
-        data = request.data
-        user = find_user(data)
-        token_serializer = self.get_serializer(data=data)
-        try:
-            if token_serializer.is_valid(raise_exception=True):
-                return Response({'account': AccountSerializer(user).data, **token_serializer.validated_data},
-                                status=status.HTTP_200_OK)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
+        website = request.data.get("website")
+        user = find_user_in_website(user_data=request.data, website=website)
+
+        if not user:
+            raise ParseError(serialize_error('4115'))
+
+        if not can_user_login(user=user, password=request.data.get("password"), website=website):
+            raise ParseError(serialize_error('4009'))
+
+        token_serializer = self.get_serializer(
+            data={"username": user.username})
+        token_serializer.is_valid(raise_exception=True)
+        return Response({'account': AccountSerializer(user).data, **token_serializer.validated_data},
+                        status=status.HTTP_200_OK)
 
 
 class ChangePassword(GenericAPIView):
@@ -154,16 +163,18 @@ class ChangePassword(GenericAPIView):
                                     })
     @transaction.atomic
     def post(self, request):
-        data = request.data
-        serializer = PhoneNumberVerificationCodeSerializer(data=data)
-        if serializer.is_valid(raise_exception=True):
-            phone_number = serializer.validated_data.get('phone_number', None)
-            users = User.objects.filter(phone_number__exact=phone_number)
-            if users.count() <= 0:
-                raise NotFound(serialize_error('4008'))
+        serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_number = serializer.validated_data.get('phone_number', None)
 
-            user = users.first()
-            serializer = AccountSerializer(instance=user, data=data)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        user = find_user_in_website(
+            user_data={"phone_number": phone_number}, website=request.data.get("website"))
+
+        if not user:
+            raise ParseError(serialize_error('4115'))
+
+        new_password = request.data.get("password")
+        user.get_user_website(website=request.data.get(
+            "website")).set_password(new_password=new_password)
+
+        return Response(status=status.HTTP_200_OK)

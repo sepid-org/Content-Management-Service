@@ -2,14 +2,14 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
-from apps.accounts.serializers import MerchandiseSerializer
+from apps.accounts.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
 
 class ProgramSerializer(serializers.ModelSerializer):
-    merchandise = MerchandiseSerializer(required=False)
+    merchandise = MerchandiseSerializer(required=False, read_only=True)
     program_contact_info = ProgramContactInfoSerializer(required=False)
     is_manager = serializers.SerializerMethodField()
 
@@ -28,6 +28,7 @@ class ProgramSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         instance = super(ProgramSerializer, self).create(
             {'creator': creator, 'website': website, **validated_data})
+        instance.admins.add(creator)
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name', 'unnamed_program')
             serializer = MerchandiseSerializer(data=merchandise)
@@ -106,4 +107,5 @@ class ProgramSerializer(serializers.ModelSerializer):
         model = Program
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'merchandise',
-                            'is_approved', 'registration_form']
+                            'is_approved', 'registration_form', 'program_contact_info']
+        

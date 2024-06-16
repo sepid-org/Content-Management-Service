@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.models import Studentship
-from apps.accounts.serializers import StudentshipSerializer, InstituteSerializer
+from apps.accounts.serializers.serializers import StudentshipSerializer, InstituteSerializer
 
 logger = logging.getLogger(__name__)
 

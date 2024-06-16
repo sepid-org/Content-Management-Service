@@ -1,9 +1,11 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ParseError
+from django.contrib.auth.hashers import make_password, check_password
 
-from apps.accounts.serializers import AccountSerializer, MyTokenObtainPairSerializer
-from apps.accounts.models import User
+from apps.accounts.serializers.serializers import AccountSerializer, PhoneNumberVerificationCodeSerializer
+from apps.accounts.models import User, UserWebsite
+from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
 from apps.fsm.serializers.answer_sheet_serializers import MyRegistrationReceiptSerializer
@@ -13,23 +15,68 @@ def generate_tokens_for_user(user):
     """
     Generate access and refresh tokens for the given user
     """
-    serializer = MyTokenObtainPairSerializer()
+    serializer = CustomTokenObtainSerializer()
     token_data = serializer.get_token(user)
-    access_token = token_data.access_token
-    refresh_token = token_data
+    access_token = token_data.get('access')
+    refresh_token = token_data.get('refresh')
     return access_token, refresh_token
 
 
-def find_user(data):
-    phone_number = data.get('phone_number', -1)
-    email = data.get('email', -1)
-    username = data.get('username', phone_number or email)
+def standardize_phone_number(phone_number):
+    # todo: convert input phone_number string to standard form
+    return phone_number
+
+
+def find_user(user_data):
+    # Consciously sat as -1. They should not be None:
+    phone_number = user_data.get('phone_number', -1)
+    phone_number = standardize_phone_number(phone_number)
+    email = user_data.get('email', -1)
+    username = user_data.get('username', -1)
+
     try:
-        return User.objects.get(Q(username=username) |
+        return User.objects.get(Q(username=(username or phone_number or email)) |
                                 Q(phone_number=phone_number) |
                                 Q(email=email))
     except:
         return None
+
+
+def find_user_in_website(user_data, website):
+    if not website:
+        raise ParseError(serialize_error('4116'))
+
+    user = find_user(user_data=user_data)
+
+    if user and user.get_user_website(website=website):
+        return user
+    else:
+        return None
+
+
+def create_or_get_user(user_data, website):
+    user = find_user(user_data=user_data)
+
+    if user and user.get_user_website(website=website):
+        return user
+
+    if not user:
+        serializer = AccountSerializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+    UserWebsite.objects.create(
+        user=user, website=website, password=make_password(user_data.get("password")))
+
+    return user
+
+
+def can_user_login(user, password, website):
+    user_website = user.get_user_website(website=website)
+    if user_website:
+        return check_password(password, user_website.password)
+    else:
+        return False
 
 
 def find_registration_receipt(user, registration_form):
@@ -37,31 +84,20 @@ def find_registration_receipt(user, registration_form):
 
 
 def update_or_create_user_account(**user_data):
-    # hande name
+    # handle name
     if not user_data.get('first_name') and not user_data.get('last_name') and user_data.get('full_name'):
         full_name_parts = user_data['full_name'].split(' ')
         user_data['first_name'] = full_name_parts[0]
         user_data['last_name'] = ' '.join(full_name_parts[1:])
 
-    serializer = AccountSerializer(data=user_data)
-    serializer.is_valid(raise_exception=True)
-    validated_data = serializer.validated_data
+    user = find_user(user_data=user_data)
 
-    user_account = None
-    if validated_data.get('username'):
-        user_account = User.objects.filter(
-            username=validated_data.get('username')).first()
-    elif validated_data.get('phone_number'):
-        user_account = User.objects.filter(
-            phone_number=validated_data.get('phone_number')).first()
-    elif validated_data.get('national_code'):
-        user_account = User.objects.filter(
-            national_code=validated_data.get('national_code')).first()
-
-    if user_account:
+    if user:
         # if user exists, dont change his/her account
-        return user_account
+        return user
     else:
+        serializer = AccountSerializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
         return serializer.save()
 
 
