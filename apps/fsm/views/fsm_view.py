@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 
 from apps.accounts.serializers.serializers import AccountSerializer
-from apps.accounts.utils import find_user
+from apps.accounts.utils import find_user_in_website
 from apps.fsm.pagination import StandardPagination
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
@@ -165,7 +165,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         fsm = self.get_object()
         account_serializer = AccountSerializer(data=request.data)
         account_serializer.is_valid(raise_exception=True)
-        new_mentor = find_user(
+        new_mentor = find_user_in_website(
             user_data={**account_serializer.validated_data}, website=request.data.get("website"))
         fsm.mentors.add(new_mentor)
         register_user_in_program(new_mentor, fsm.program)
@@ -177,7 +177,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         fsm = self.get_object()
         serializer = AccountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        removed_mentor = find_user(
+        removed_mentor = find_user_in_website(
             user_data={**serializer.validated_data}, website=request.data.get("website"))
         if removed_mentor == fsm.creator:
             raise ParseError(serialize_error('5006'))

@@ -27,7 +27,7 @@ def standardize_phone_number(phone_number):
     return phone_number
 
 
-def _find_user(user_data):
+def find_user(user_data):
     # Consciously sat as -1. They should not be None:
     phone_number = user_data.get('phone_number', -1)
     phone_number = standardize_phone_number(phone_number)
@@ -42,11 +42,11 @@ def _find_user(user_data):
         return None
 
 
-def find_user(user_data, website):
+def find_user_in_website(user_data, website):
     if not website:
         raise ParseError(serialize_error('4116'))
 
-    user = _find_user(user_data=user_data)
+    user = find_user(user_data=user_data)
 
     if user and user.get_user_website(website=website):
         return user
@@ -55,7 +55,7 @@ def find_user(user_data, website):
 
 
 def create_or_get_user(user_data, website):
-    user = _find_user(user_data=user_data)
+    user = find_user(user_data=user_data)
 
     if user and user.get_user_website(website=website):
         return user
@@ -84,31 +84,20 @@ def find_registration_receipt(user, registration_form):
 
 
 def update_or_create_user_account(**user_data):
-    # hande name
+    # handle name
     if not user_data.get('first_name') and not user_data.get('last_name') and user_data.get('full_name'):
         full_name_parts = user_data['full_name'].split(' ')
         user_data['first_name'] = full_name_parts[0]
         user_data['last_name'] = ' '.join(full_name_parts[1:])
 
-    serializer = AccountSerializer(data=user_data)
-    serializer.is_valid(raise_exception=True)
-    validated_data = serializer.validated_data
+    user = find_user(user_data=user_data)
 
-    user_account = None
-    if validated_data.get('username'):
-        user_account = User.objects.filter(
-            username=validated_data.get('username')).first()
-    elif validated_data.get('phone_number'):
-        user_account = User.objects.filter(
-            phone_number=validated_data.get('phone_number')).first()
-    elif validated_data.get('national_code'):
-        user_account = User.objects.filter(
-            national_code=validated_data.get('national_code')).first()
-
-    if user_account:
+    if user:
         # if user exists, dont change his/her account
-        return user_account
+        return user
     else:
+        serializer = AccountSerializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
         return serializer.save()
 
 

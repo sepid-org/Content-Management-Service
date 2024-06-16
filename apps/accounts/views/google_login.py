@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.serializers.serializers import AccountSerializer
-from apps.accounts.utils import create_or_get_user, find_user, generate_tokens_for_user
+from apps.accounts.utils import create_or_get_user, find_user_in_website, generate_tokens_for_user
 
 
 class GoogleLogin(TokenObtainPairView):

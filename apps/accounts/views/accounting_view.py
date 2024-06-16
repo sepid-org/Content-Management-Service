@@ -14,7 +14,7 @@ from apps.accounts.models import VerificationCode, User
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.serializers import PhoneNumberSerializer, UserSerializer, PhoneNumberVerificationCodeSerializer, AccountSerializer
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
-from apps.accounts.utils import can_user_login, create_or_get_user, find_user
+from apps.accounts.utils import can_user_login, create_or_get_user, find_user_in_website
 from errors.error_codes import serialize_error
 from errors.exceptions import ServiceUnavailable
 
@@ -98,8 +98,8 @@ class UserViewSet(ModelViewSet):
         # validate phone number with verification code:
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = find_user(user_data=request.data,
-                         website=request.data.get("website"))
+        user = find_user_in_website(user_data=request.data,
+                                    website=request.data.get("website"))
         if user:
             raise ParseError(serialize_error('4117'))
 
@@ -120,7 +120,7 @@ def change_phone_number(request):
     serializer.is_valid(raise_exception=True)
     new_phone_number = serializer.validated_data.get('phone_number', None)
 
-    if find_user(user_data={'phone_number': new_phone_number}, website=request.data.get("website")):
+    if find_user_in_website(user_data={'phone_number': new_phone_number}, website=request.data.get("website")):
         raise ParseError(serialize_error('6002'))
     user = request.user
     user.phone_number = new_phone_number
@@ -138,7 +138,7 @@ class Login(TokenObtainPairView):
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
         website = request.data.get("website")
-        user = find_user(user_data=request.data, website=website)
+        user = find_user_in_website(user_data=request.data, website=website)
 
         if not user:
             raise ParseError(serialize_error('4115'))
@@ -167,7 +167,7 @@ class ChangePassword(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         phone_number = serializer.validated_data.get('phone_number', None)
 
-        user = find_user(
+        user = find_user_in_website(
             user_data={"phone_number": phone_number}, website=request.data.get("website"))
 
         new_password = request.data.get("password")
