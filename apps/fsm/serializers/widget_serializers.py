@@ -72,15 +72,6 @@ class WidgetSerializer(serializers.ModelSerializer):
                 matcher = re.search(r'\d+', url)
                 player_id = matcher.group()
                 user = Player.objects.filter(id=player_id).first().user
-
-            if user and isinstance(instance.paper, State):
-                teammates = Team.objects.get_teammates_from_widget(
-                    user, instance)
-                latest_answer = instance.answers.filter(
-                    submitted_by__in=teammates, is_final_answer=True).last()
-                if latest_answer:
-                    representation['last_submitted_answer'] = AnswerPolymorphicSerializer(
-                        instance=latest_answer).to_representation(latest_answer)
         return representation
 
 

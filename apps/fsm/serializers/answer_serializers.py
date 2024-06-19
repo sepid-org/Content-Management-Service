@@ -136,9 +136,6 @@ class FileAnswerSerializer(AnswerSerializer):
         upload_file_answer.save()
         return upload_file_answer
 
-    def to_representation(self, instance):
-        return UploadFileAnswerSerializer(context=self.context).to_representation(instance)
-
 
 class UploadFileAnswerSerializer(AnswerSerializer):
     file_name = serializers.CharField(

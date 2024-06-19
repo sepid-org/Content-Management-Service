@@ -16,10 +16,14 @@ from apps.scoring.views.apply_scores_on_user import apply_cost, apply_reward
 from proxies.assess_answer_service.main import assess_answer
 
 
+def get_question(question_id: int):
+    return Widget.objects.get(id=question_id)
+
+
 class AnswerViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes([MultiPartParser])
-    queryset = Widget.objects.all()
+    queryset = Answer.objects.all()
     serializer_class = WidgetPolymorphicSerializer
     my_tags = ['answers']
 
@@ -36,18 +40,17 @@ class AnswerViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
-        context.update({'editable': True})
         context.update(
             {'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
-    @action(detail=True, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
+    @action(detail=False, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
             permission_classes=[CanAnswerWidget])
     @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
         # check if user has already answered this question correctly
-        question = self.get_object()
+        question = get_question(request.data.get("question_id"))
         user = request.user
         if question.correct_answer:
             user_correctly_answered_problems = Answer.objects.filter(
@@ -68,12 +71,12 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         correctness_percentage = -1
         comment = ''
-        if question.be_corrected:
+        if question.correct_answer:
             apply_cost(
                 question.cost, request.user, 'کسر هزینه بابت تصحیح پاسخ', f'بابت تصحیح پاسخ سوال {question.id} از شما امتیاز کسر شد')
 
             correctness_percentage, comment = assess_answer(
-                self.get_object(), given_answer_object)
+                question=question, given_answer=given_answer_object)
 
             if correctness_percentage == 100:
                 given_answer_object.is_correct = True
@@ -87,17 +90,19 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
-    @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget, ])
-    def clear_widget_answer(self, request, *args, **kwargs):
-        self.get_object().unfinalize_older_answers(request.user)
+    @action(detail=False, methods=['post'], permission_classes=[CanAnswerWidget, ])
+    def clear_question_answer(self, request, *args, **kwargs):
+        question = get_question(request.data.get("question_id"))
+        question.unfinalize_older_answers(request.user)
         return Response(status=status.HTTP_200_OK)
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
     @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget, ])
     def answers(self, request, *args, **kwargs):
+        question = get_question(request.data.get("question_id"))
         teammates = Team.objects.get_teammates_from_widget(
-            user=request.user, widget=self.get_object())
-        older_answers = PROBLEM_ANSWER_MAPPING[self.get_object().widget_type].objects.filter(problem=self.get_object(),
-                                                                                             submitted_by__in=teammates)
+            user=request.user, widget=question)
+        older_answers = PROBLEM_ANSWER_MAPPING[question.widget_type].objects.filter(
+            problem=question, submitted_by__in=teammates)
         return Response(data=AnswerPolymorphicSerializer(older_answers, many=True).data, status=status.HTTP_200_OK)
