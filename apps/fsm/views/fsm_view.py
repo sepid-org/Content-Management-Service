@@ -20,12 +20,13 @@ from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSi
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer, PlayerStateSerializer
 from apps.fsm.serializers.widget_serializers import MockWidgetSerializer
 from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
-from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program
+from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
 
 
 class FSMViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = FSM.objects.filter(is_deleted=False).order_by('-order_in_program')
+    queryset = FSM.objects.filter(
+        is_deleted=False).order_by('-order_in_program')
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_fields = ['website', 'program']
@@ -90,10 +91,8 @@ class FSMViewSet(viewsets.ModelViewSet):
                                           context=self.get_serializer_context())
             serializer.is_valid(raise_exception=True)
             player = serializer.save()
-            serializer = PlayerHistorySerializer(data={'player': player.id, 'state': player.current_state.id,
-                                                       'start_time': player.last_visit}, context=self.get_serializer_context())
-            serializer.is_valid(raise_exception=True)
-            player_history = serializer.save()
+            transit_player_in_fsm(
+                player=player, source_state=None, target_state=fsm.first_state, edge=None)
 
         else:
             # if any state has been deleted and player has no current state:
