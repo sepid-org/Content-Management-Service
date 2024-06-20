@@ -90,8 +90,6 @@ def create_user_account_if_not_exist(website, **user_data):
         user_data['first_name'] = full_name_parts[0]
         user_data['last_name'] = ' '.join(full_name_parts[1:])
 
-    print("QQQQQQQQQQQQ", user_data)
-
     user = find_user(user_data=user_data)
 
     if user:
