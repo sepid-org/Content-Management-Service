@@ -63,14 +63,13 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
                                                                   **validated_data})
 
     def validate(self, attrs):
-        attrs = super(RegistrationReceiptSerializer, self).validate(attrs)
         user = self.context.get('user', None)
         answer_sheet_of = self.context.get('answer_sheet_of', None)
 
-        if user is not None and answer_sheet_of is not None:
+        if not user and not answer_sheet_of:
             if len(RegistrationReceipt.objects.filter(answer_sheet_of=answer_sheet_of, user=user)) > 0:
                 raise ParseError(serialize_error('4028'))
-        return attrs
+        return super(RegistrationReceiptSerializer, self).validate(attrs)
 
 
 # TODO: fix class name
