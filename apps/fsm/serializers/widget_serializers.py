@@ -250,7 +250,7 @@ class MultiChoiceProblemSerializer(WidgetSerializer):
     class Meta:
         model = MultiChoiceProblem
         fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
-                  'required', 'max_choices', 'choices', 'hints', 'cost', 'reward', 'be_corrected']
+                  'required', 'maximum_choices_could_be_chosen', 'choices', 'hints', 'cost', 'reward', 'be_corrected']
         read_only_fields = ['id', 'creator']
 
     def create(self, validated_data):

@@ -868,7 +868,7 @@ class MultiChoiceProblem(Problem):
         correct_answer_object.save()
         return correct_answer_object
 
-    max_choices = models.IntegerField(
+    maximum_choices_could_be_chosen = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
 
 

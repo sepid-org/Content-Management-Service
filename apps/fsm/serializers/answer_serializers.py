@@ -94,7 +94,7 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
         attrs = super(MultiChoiceAnswerSerializer, self).validate(attrs)
         choices = attrs.get('choices', [])
         problem = attrs.get('problem')
-        multi_choice_answer_validator(choices, problem.max_choices)
+        multi_choice_answer_validator(choices, problem.maximum_choices_could_be_chosen)
         return attrs
 
 
