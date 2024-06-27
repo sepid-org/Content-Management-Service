@@ -19,11 +19,11 @@ def assess_answer(question, given_answer):
         },
         'correct_answer': {
             'answer_type': question.correct_answer.answer_type,
-            'text': correct_answer.string_answer,
+            'string': correct_answer.string_answer,
         },
         'given_answer': {
             'answer_type': given_answer.answer_type,
-            'text': given_answer.string_answer,
+            'string': given_answer.string_answer,
         }
     }
     correctness_percentage = -1

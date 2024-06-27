@@ -1,3 +1,4 @@
+import json
 import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
@@ -968,7 +969,7 @@ class MultiChoiceAnswer(Answer):
 
     @property
     def string_answer(self):
-        return [choice.__str__() for choice in self.choices.all()]
+        return json.dumps([choice.id for choice in self.choices.all()])
 
     def correction_status(self):
         correct_answer = self.problem.correct_answer
