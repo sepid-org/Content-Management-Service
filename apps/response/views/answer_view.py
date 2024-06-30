@@ -70,7 +70,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
         given_answer_object = serializer.save()
 
         correctness_percentage = -1
-        comment = ''
+        comment = 'not assessed'
         if question.correct_answer:
             apply_cost(
                 question.cost, request.user, 'کسر هزینه بابت تصحیح پاسخ', f'بابت تصحیح پاسخ سوال {question.id} از شما امتیاز کسر شد')
