@@ -1,6 +1,6 @@
 # documentation: https://github.com/kavenegar/kavenegar-python
 
-from kavenegar import *
+from kavenegar import KavenegarAPI
 
 from proxies.sms_system.sms_service_interface import SMSService
 
