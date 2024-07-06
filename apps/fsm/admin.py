@@ -441,8 +441,8 @@ class SmallAnswerCustomAdmin(admin.ModelAdmin):
 @admin.register(Article)
 class ArticleCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'publisher',
-                    'all_tags', 'is_draft', 'is_private']
-    list_filter = ['is_draft', 'is_private', 'publisher']
+                    'all_tags', 'is_draft']
+    list_filter = ['is_draft', 'publisher']
 
     def all_tags(self, obj):
         return ','.join(m.name for m in obj.tags.all())

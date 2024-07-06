@@ -22,7 +22,7 @@ class ProgramViewSet(ModelViewSet):
     serializer_class = ProgramSerializer
     queryset = Program.objects.filter(is_deleted=False)
     my_tags = ['program']
-    filterset_fields = ['website', 'is_private']
+    filterset_fields = ['website']
     pagination_class = StandardPagination
 
     def get_serializer_context(self):

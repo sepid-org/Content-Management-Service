@@ -154,7 +154,6 @@ class Program(models.Model):
     team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
-    is_private = models.BooleanField(default=False)
     show_scores = models.BooleanField(default=False)
     site_help_paper_id = models.IntegerField(blank=True, null=True)
     FAQs_paper_id = models.IntegerField(blank=True, null=True)
@@ -448,7 +447,6 @@ class Article(Paper):
     is_draft = models.BooleanField(default=True)
     publisher = models.ForeignKey('accounts.EducationalInstitute', related_name='articles', on_delete=models.SET_NULL,
                                   null=True, blank=True)
-    is_private = models.BooleanField(default=False)
 
 ############ FORM / RECEIPT ############
 
