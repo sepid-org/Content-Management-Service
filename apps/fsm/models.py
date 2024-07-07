@@ -135,8 +135,7 @@ class Program(models.Model):
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
                                        null=True, blank=True)
-    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.SET_NULL,
-                                             null=True, blank=True)
+    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
     holder = models.ForeignKey('accounts.EducationalInstitute', related_name='programs', on_delete=models.SET_NULL,
