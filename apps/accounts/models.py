@@ -45,6 +45,13 @@ class User(AbstractUser):
         except:
             return None
 
+    def get_receipt(self, form):
+        from apps.fsm.models import RegistrationReceipt
+        try:
+            return RegistrationReceipt.objects.get(user=self, answer_sheet_of=form)
+        except:
+            return None
+
     @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'

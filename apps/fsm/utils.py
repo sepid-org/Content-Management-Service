@@ -139,3 +139,11 @@ def register_user_in_program(user: User, program: Program):
             answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
             status=RegistrationReceipt.RegistrationStatus.Accepted,
             is_participating=True)
+
+
+def get_user_permission(receipt: RegistrationReceipt) -> dict:
+    user = receipt.user
+    if user in receipt.answer_sheet_of.program.modifiers:
+        return True
+    return False
+    # todo

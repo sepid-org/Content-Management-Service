@@ -8,6 +8,24 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
 
+class ProgramSummarySerializer(serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        representation = super(ProgramSummarySerializer,
+                               self).to_representation(instance)
+        representation['participants_count'] = len(instance.participants)
+        representation['registration_since'] = instance.registration_form.since
+        representation['registration_till'] = instance.registration_form.till
+        representation['audience_type'] = instance.registration_form.audience_type
+        representation['is_free'] = bool(instance.merchandise)
+        return representation
+
+    class Meta:
+        model = Program
+        fields = ['id', 'cover_page', 'name', 'description',
+                  'program_type', 'is_visible', 'is_active']
+
+
 class ProgramSerializer(serializers.ModelSerializer):
     merchandise = MerchandiseSerializer(required=False, read_only=True)
     program_contact_info = ProgramContactInfoSerializer(required=False)
@@ -108,4 +126,3 @@ class ProgramSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'merchandise',
                             'is_approved', 'registration_form', 'program_contact_info']
-        

@@ -6,7 +6,7 @@ from apps.fsm.models import Program
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.permissions import ProgramAdminPermission
 
-from apps.fsm.serializers.program_serializers import ProgramSerializer
+from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
 
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
@@ -14,7 +14,7 @@ from rest_framework.response import Response
 
 from apps.accounts.serializers.serializers import AccountSerializer
 from apps.accounts.utils import find_user_in_website
-from apps.fsm.utils import register_user_in_program
+from apps.fsm.utils import get_user_permission, register_user_in_program
 from errors.error_codes import serialize_error
 
 
@@ -24,6 +24,11 @@ class ProgramViewSet(ModelViewSet):
     my_tags = ['program']
     filterset_fields = ['website']
     pagination_class = StandardPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProgramSummarySerializer
+        return ProgramSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -57,7 +62,7 @@ class ProgramViewSet(ModelViewSet):
         register_user_in_program(new_admin, program)
         return Response()
 
-    @ action(detail=True, methods=['post'], serializer_class=AccountSerializer)
+    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
     def remove_admin(self, request, pk=None):
         program = self.get_object()
         serializer = AccountSerializer(data=request.data)
@@ -70,10 +75,30 @@ class ProgramViewSet(ModelViewSet):
             program.admins.remove(removed_admin)
         return Response()
 
-    @ action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'])
     def soft_remove_program(self, request, pk=None):
         program = self.get_object()
         program.is_deleted = True
         program.deleted_at = timezone.now()
         program.save()
         return Response()
+
+    @action(detail=True, methods=['get'])
+    def permission(self, request, pk=None):
+        user = self.request.user
+        program = self.get_object()
+        receipt = user.get_receipt(form=program.registration_form)
+        print(receipt)
+        return Response("todo")
+
+    @action(detail=False, methods=['get'])
+    def permissions(self, request):
+        user = self.request.user
+        website = request.GET.get('website')
+        programs = self.get_queryset().filter(website=website)
+        permissions = []
+        for program in programs:
+            receipt = user.get_receipt(form=program.registration_form)
+            if receipt:
+                permissions.append(get_user_permission(receipt))
+        return Response("todo")
