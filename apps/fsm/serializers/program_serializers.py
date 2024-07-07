@@ -17,13 +17,14 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
         representation['registration_since'] = instance.registration_form.since
         representation['registration_till'] = instance.registration_form.till
         representation['audience_type'] = instance.registration_form.audience_type
+
         representation['is_free'] = bool(instance.merchandise)
         return representation
 
     class Meta:
         model = Program
         fields = ['id', 'cover_page', 'name', 'description',
-                  'program_type', 'is_visible', 'is_active']
+                  'program_type', 'is_visible', 'is_active', 'team_size']
 
 
 class ProgramSerializer(serializers.ModelSerializer):
