@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.accounts.views.accounting_view import SendVerificationCode, UserViewSet, Login, ChangePassword, change_phone_number
+from apps.accounts.views.check_authentication import CheckAuthenticationView
 from apps.accounts.views.google_login import GoogleLogin
 from apps.accounts.views.studentship_view import StudentshipViewSet
 from apps.accounts.views.institute_view import InstituteViewSet
@@ -17,6 +18,7 @@ urlpatterns = [
     path('accounts/change_pass/', ChangePassword.as_view(), name="change_pass"),
     path("accounts/login-with-google/", GoogleLogin.as_view(), name="login-with-google"),
     path("accounts/change-phone-number/", change_phone_number, name="change-phone-number"),
+    path('accounts/check-authentication/', CheckAuthenticationView.as_view(), name='check_authentication'),
 
     # path('registration-info/', RegistrationInfo.as_view(), name="registration_info"),
     # path('pay/', PayView.as_view(), name="pay"),

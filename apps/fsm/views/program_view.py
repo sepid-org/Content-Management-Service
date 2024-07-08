@@ -16,6 +16,7 @@ from apps.accounts.serializers.serializers import AccountSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.utils import get_user_permission, register_user_in_program
 from errors.error_codes import serialize_error
+from utilities.safe_auth import SafeTokenAuthentication
 
 
 class ProgramViewSet(ModelViewSet):
@@ -24,6 +25,15 @@ class ProgramViewSet(ModelViewSet):
     my_tags = ['program']
     filterset_fields = ['website']
     pagination_class = StandardPagination
+
+    def initialize_request(self, request, *args, **kwargs):
+        self.action = self.action_map.get(request.method.lower())
+        return super().initialize_request(request, *args, **kwargs)
+
+    def get_authenticators(self):
+        if self.action in ['retrieve', 'list']:
+            return [SafeTokenAuthentication()]
+        return super().get_authenticators()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -36,7 +46,7 @@ class ProgramViewSet(ModelViewSet):
         return context
 
     def get_permissions(self):
-        if self.action == 'retrieve' or self.action == 'list':
+        if self.action in ['retrieve', 'list']:
             permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [ProgramAdminPermission]
