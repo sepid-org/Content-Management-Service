@@ -83,22 +83,22 @@ class ProgramViewSet(ModelViewSet):
         program.save()
         return Response()
 
-    @action(detail=True, methods=['get'])
-    def permission(self, request, pk=None):
-        user = self.request.user
-        program = self.get_object()
-        receipt = user.get_receipt(form=program.registration_form)
-        print(receipt)
-        return Response("todo")
+    # @action(detail=True, methods=['get'])
+    # def permission(self, request, pk=None):
+    #     user = self.request.user
+    #     program = self.get_object()
+    #     receipt = user.get_receipt(form=program.registration_form)
+    #     print(receipt)
+    #     return Response("todo")
 
-    @action(detail=False, methods=['get'])
-    def permissions(self, request):
-        user = self.request.user
-        website = request.GET.get('website')
-        programs = self.get_queryset().filter(website=website)
-        permissions = []
-        for program in programs:
-            receipt = user.get_receipt(form=program.registration_form)
-            if receipt:
-                permissions.append(get_user_permission(receipt))
-        return Response("todo")
+    # @action(detail=False, methods=['get'])
+    # def permissions(self, request):
+    #     user = self.request.user
+    #     website = request.GET.get('website')
+    #     programs = self.get_queryset().filter(website=website)
+    #     permissions = []
+    #     for program in programs:
+    #         receipt = user.get_receipt(form=program.registration_form)
+    #         if receipt:
+    #             permissions.append(get_user_permission(receipt))
+    #     return Response("todo")
