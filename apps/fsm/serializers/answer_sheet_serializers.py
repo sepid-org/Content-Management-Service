@@ -46,7 +46,6 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
     academic_studentship = serializers.SerializerMethodField()
 
     def get_school_studentship(self, obj):
-        print("@@@@@@@@@", obj)
         return StudentshipSerializer(obj.user.school_studentship).data
 
     def get_academic_studentship(self, obj):
