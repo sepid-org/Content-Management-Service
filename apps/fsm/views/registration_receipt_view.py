@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from errors.error_codes import serialize_error
-from apps.fsm.models import RegistrationReceipt
+from apps.fsm.models import RegistrationForm, RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationStatusSerializer
 from apps.fsm.serializers.certificate_serializer import create_certificate
@@ -114,3 +114,55 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
             raise NotFound(serialize_error('4095'))
         return Response(RegistrationReceiptSerializer(context=self.get_serializer_context()).to_representation(receipt),
                         status=status.HTTP_200_OK)
+
+
+    @action(detail=False, methods=['get'])
+    def my_receipt(self, request, pk=None):
+        form_id = request.GET.get('form')
+        user = request.user
+        receipt = None
+        try:
+            receipt = user.registration_receipts.get(answer_sheet_of__id=form_id)
+            return Response(RegistrationReceiptSerializer(receipt).data)
+        except:
+            return Response({})
+
+
+
+
+# class ProgramPermissionSerializer(serializers.ModelSerializer):
+#     is_manager = serializers.SerializerMethodField()
+
+#     def get_is_manager(self, obj):
+#         user = self.context.get('user', None)
+#         if user in obj.modifiers:
+#             return True
+#         return False
+
+#     def to_representation(self, instance):
+#         representation = super(
+#             ProgramSerializer, self).to_representation(instance)
+#         user = self.context.get('request', None).user
+#         receipt = None
+#         try:
+#             receipt = RegistrationReceipt.objects.get(user=user, answer_sheet_of=instance.registration_form)
+#         except:
+#             pass
+#         if receipt:
+#             representation['user_registration_status'] = instance.registration_form.check_time() if instance.registration_form.check_time() != 'ok' else receipt.status
+#             representation['is_paid'] = receipt.is_paid
+#             representation['is_user_participating'] = receipt.is_participating
+#             representation['registration_receipt'] = receipt.id
+#             representation['team'] = receipt.team.id
+#         else:
+#             representation['user_registration_status'] = instance.registration_form.get_user_permission_status(
+#                 user)
+#             representation['is_paid'] = False
+#             representation['is_user_participating'] = False
+#             representation['registration_receipt'] = None
+#             representation['team'] = 'TeamNotCreatedYet'
+#         return representation
+
+#     class Meta:
+#         model = Program
+#         fields = '__all__'

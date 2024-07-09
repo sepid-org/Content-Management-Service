@@ -22,7 +22,7 @@ router.register(r'program', ProgramViewSet, basename='programs')
 router.register(r'fsm', FSMViewSet, basename='fsms')
 router.register(r'article', ArticleViewSet, basename='articles')
 
-router.register(r'registration', RegistrationViewSet, basename='registration_form')
+router.register(r'form', RegistrationViewSet, basename='registration_form')
 router.register(r'registration_form_admin', RegistrationFormAdminViewSet,
                 basename='registration_admin_form')
 router.register(r'certificate_templates',

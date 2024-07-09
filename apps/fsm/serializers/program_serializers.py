@@ -87,39 +87,13 @@ class ProgramSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super(
             ProgramSerializer, self).to_representation(instance)
-        user = self.context.get('request', None).user
-        receipt = RegistrationReceipt.objects.filter(user=user, answer_sheet_of=instance.registration_form).last(
-        ) if not isinstance(user, AnonymousUser) else None
+        registration_form = instance.registration_form
         representation['participants_count'] = len(instance.participants)
-        if instance.registration_form:
-            representation['has_certificate'] = instance.registration_form.has_certificate
-            representation['certificates_ready'] = instance.registration_form.certificates_ready
-            representation['registration_since'] = instance.registration_form.since
-            representation['registration_till'] = instance.registration_form.till
-            representation['audience_type'] = instance.registration_form.audience_type
-        if receipt:
-            representation[
-                'user_registration_status'] = instance.registration_form.check_time() if instance.registration_form.check_time() != 'ok' else receipt.status
-            representation['is_paid'] = receipt.is_paid
-            representation['is_user_participating'] = receipt.is_participating
-            representation['registration_receipt'] = receipt.id
-        else:
-            representation['user_registration_status'] = instance.registration_form.get_user_permission_status(
-                user) if instance.registration_form else None
-            representation['is_paid'] = False
-            representation['is_user_participating'] = False
-            representation['registration_receipt'] = None
-        if receipt and receipt.is_participating and instance.program_type == Program.ProgramType.Team:
-            if receipt.team:
-                representation['team'] = receipt.team.id
-                if receipt.team.team_head:
-                    representation['team_head_name'] = receipt.team.team_head.user.full_name
-                    representation['is_team_head'] = receipt.team.team_head.id == receipt.id
-            else:
-                representation['team'] = 'TeamNotCreatedYet'
-                representation['team_head_name'] = None
-                representation['is_team_head'] = False
-
+        representation['has_certificate'] = registration_form.has_certificate
+        representation['certificates_ready'] = registration_form.certificates_ready
+        representation['registration_since'] = registration_form.since
+        representation['registration_till'] = registration_form.till
+        representation['audience_type'] = registration_form.audience_type
         return representation
 
     class Meta:

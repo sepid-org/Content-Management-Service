@@ -14,7 +14,7 @@ from rest_framework.response import Response
 
 from apps.accounts.serializers.serializers import AccountSerializer
 from apps.accounts.utils import find_user_in_website
-from apps.fsm.utils import get_user_permission, register_user_in_program
+from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
 from utilities.safe_auth import SafeTokenAuthentication
 
@@ -51,10 +51,6 @@ class ProgramViewSet(ModelViewSet):
         else:
             permission_classes = [ProgramAdminPermission]
         return [permission() for permission in permission_classes]
-
-    # @method_decorator(cache_page(60 * 1,  key_prefix="program"))
-    def list(self, request, *args, **kwargs):
-        return super().list(self, request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def get_admins(self, request, pk):
