@@ -45,16 +45,13 @@ class UploadFileAnswerAdmin(admin.ModelAdmin):
 
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
     model = PlayerStateHistory
-    readonly_fields = ('arrival_time',)
-    list_display = ['player', 'state', 'arrival_time', 'departure_time',
-                    'transited_edge', 'is_edge_transited_in_reverse', 'delta_time', 'is_processed', 'is_processed2']
-    list_filter = ['arrival_time', 'departure_time',
-                   'state__fsm', 'state', 'transited_edge', 'is_processed', 'is_processed2']
+    list_display = ['player', 'state', 'delta_time']
+    list_filter = ['arrival__time', 'departure__time', 'state__fsm']
     raw_id_fields = ('player', 'state', 'arrival', 'departure')
 
     def delta_time(self, obj):
-        if (obj.departure_time and obj.arrival_time):
-            return obj.departure_time - obj.arrival_time
+        if (obj.departure and obj.arrival):
+            return obj.departure.time - obj.arrival.time
         return "-"
 
 
@@ -62,9 +59,11 @@ class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
 class PlayerTransitionAdmin(admin.ModelAdmin):
     model = PlayerTransition
     readonly_fields = ('time',)
-    list_display = ['player', 'source_state', 'target_state', 'time', 'transited_edge']
+    list_display = ['player', 'source_state',
+                    'target_state', 'time', 'transited_edge']
     list_filter = []
-    raw_id_fields = ('player', 'source_state', 'target_state', 'transited_edge')
+    raw_id_fields = ('player', 'source_state',
+                     'target_state', 'transited_edge')
 
 
 class TextWidgetAdmin(admin.ModelAdmin):
@@ -442,8 +441,8 @@ class SmallAnswerCustomAdmin(admin.ModelAdmin):
 @admin.register(Article)
 class ArticleCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'publisher',
-                    'all_tags', 'is_draft', 'is_private']
-    list_filter = ['is_draft', 'is_private', 'publisher']
+                    'all_tags', 'is_draft']
+    list_filter = ['is_draft', 'publisher']
 
     def all_tags(self, obj):
         return ','.join(m.name for m in obj.tags.all())

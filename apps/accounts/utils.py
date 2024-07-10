@@ -83,7 +83,7 @@ def find_registration_receipt(user, registration_form):
     return RegistrationReceipt.objects.filter(user=user, answer_sheet_of=registration_form).first()
 
 
-def update_or_create_user_account(**user_data):
+def create_user_account_if_not_exist(website, **user_data):
     # handle name
     if not user_data.get('first_name') and not user_data.get('last_name') and user_data.get('full_name'):
         full_name_parts = user_data['full_name'].split(' ')
@@ -93,12 +93,10 @@ def update_or_create_user_account(**user_data):
     user = find_user(user_data=user_data)
 
     if user:
-        # if user exists, dont change his/her account
         return user
-    else:
-        serializer = AccountSerializer(data=user_data)
-        serializer.is_valid(raise_exception=True)
-        return serializer.save()
+
+    user = create_or_get_user(user_data=user_data, website=website)
+    return user
 
 
 def update_or_create_registration_receipt(user: User, registration_form: RegistrationForm):

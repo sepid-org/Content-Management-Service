@@ -72,15 +72,6 @@ class WidgetSerializer(serializers.ModelSerializer):
                 matcher = re.search(r'\d+', url)
                 player_id = matcher.group()
                 user = Player.objects.filter(id=player_id).first().user
-
-            if user and isinstance(instance.paper, State):
-                teammates = Team.objects.get_teammates_from_widget(
-                    user, instance)
-                latest_answer = instance.answers.filter(
-                    submitted_by__in=teammates, is_final_answer=True).last()
-                if latest_answer:
-                    representation['last_submitted_answer'] = AnswerPolymorphicSerializer(
-                        instance=latest_answer).to_representation(latest_answer)
         return representation
 
 
@@ -259,7 +250,7 @@ class MultiChoiceProblemSerializer(WidgetSerializer):
     class Meta:
         model = MultiChoiceProblem
         fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
-                  'required', 'max_choices', 'choices', 'hints', 'cost', 'reward', 'be_corrected']
+                  'required', 'maximum_choices_could_be_chosen', 'choices', 'hints', 'cost', 'reward', 'be_corrected']
         read_only_fields = ['id', 'creator']
 
     def create(self, validated_data):

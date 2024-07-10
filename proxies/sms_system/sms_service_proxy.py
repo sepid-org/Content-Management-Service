@@ -1,7 +1,7 @@
 from proxies.sms_system.sms_service_interface import SMSService
 
 
-class SMSServiceFacade(SMSService):
+class SMSServiceProxy(SMSService):
     provider: SMSService = None
 
     def __init__(self, provider: str) -> None:

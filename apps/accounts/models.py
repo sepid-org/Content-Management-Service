@@ -11,7 +11,7 @@ from polymorphic.models import PolymorphicModel
 from apps.accounts.validators import percentage_validator
 from manage_content_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
-from proxies.sms_system.sms_service_facade import SMSServiceFacade
+from proxies.sms_system.sms_service_proxy import SMSServiceProxy
 
 
 class User(AbstractUser):
@@ -37,10 +37,18 @@ class User(AbstractUser):
     province = models.CharField(max_length=50, null=True, blank=True)
     city = models.CharField(max_length=50, null=True, blank=True)
     postal_code = models.CharField(max_length=10, null=True, blank=True)
+    is_artificial = models.BooleanField(default=False)
 
     def get_user_website(self, website):
         try:
             return self.user_websites.get(website=website)
+        except:
+            return None
+
+    def get_receipt(self, form):
+        from apps.fsm.models import RegistrationReceipt
+        try:
+            return RegistrationReceipt.objects.get(user=self, answer_sheet_of=form)
         except:
             return None
 
@@ -386,8 +394,8 @@ class VerificationCode(models.Model):
     objects = VerificationCodeManager()
 
     def notify(self, verification_type, party_display_name='سپید'):
-        sms_service_facade = SMSServiceFacade(provider='kavenegar')
-        sms_service_facade.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
+        sms_service_proxy = SMSServiceProxy(provider='kavenegar')
+        sms_service_proxy.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'

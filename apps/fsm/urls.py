@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from apps.fsm.views.paper_view import PaperViewSet
@@ -18,15 +18,11 @@ from .views.player_view import *
 
 router = DefaultRouter()
 
-urlpatterns = [
-    path("test/" , say_hello)
-]
-
 router.register(r'program', ProgramViewSet, basename='programs')
 router.register(r'fsm', FSMViewSet, basename='fsms')
 router.register(r'article', ArticleViewSet, basename='articles')
 
-router.register(r'registration', RegistrationViewSet, basename='registration_form')
+router.register(r'form', RegistrationViewSet, basename='registration_form')
 router.register(r'registration_form_admin', RegistrationFormAdminViewSet,
                 basename='registration_admin_form')
 router.register(r'certificate_templates',
@@ -45,4 +41,8 @@ router.register(r'widget-hint', WidgetHintViewSet, basename='widget-hints')
 router.register(r'widget', WidgetViewSet, basename='widgets')
 router.register(r'player', PlayerViewSet, basename='players')
 router.register(r'answers', AnswerViewSet, basename='answers')
-urlpatterns += router.urls
+
+urlpatterns = [
+    path("test/", say_hello),
+    path('', include(router.urls)),
+]

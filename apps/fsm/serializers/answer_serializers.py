@@ -94,7 +94,7 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
         attrs = super(MultiChoiceAnswerSerializer, self).validate(attrs)
         choices = attrs.get('choices', [])
         problem = attrs.get('problem')
-        multi_choice_answer_validator(choices, problem.max_choices)
+        multi_choice_answer_validator(choices, problem.maximum_choices_could_be_chosen)
         return attrs
 
 
@@ -135,9 +135,6 @@ class FileAnswerSerializer(AnswerSerializer):
             upload_file_answer.answer_sheet = answer_sheet
         upload_file_answer.save()
         return upload_file_answer
-
-    def to_representation(self, instance):
-        return UploadFileAnswerSerializer(context=self.context).to_representation(instance)
 
 
 class UploadFileAnswerSerializer(AnswerSerializer):

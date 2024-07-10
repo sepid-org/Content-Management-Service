@@ -1,3 +1,4 @@
+import json
 import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
@@ -134,8 +135,7 @@ class Program(models.Model):
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
                                        null=True, blank=True)
-    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.SET_NULL,
-                                             null=True, blank=True)
+    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
     holder = models.ForeignKey('accounts.EducationalInstitute', related_name='programs', on_delete=models.SET_NULL,
@@ -153,7 +153,6 @@ class Program(models.Model):
     team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
-    is_private = models.BooleanField(default=False)
     show_scores = models.BooleanField(default=False)
     site_help_paper_id = models.IntegerField(blank=True, null=True)
     FAQs_paper_id = models.IntegerField(blank=True, null=True)
@@ -246,7 +245,6 @@ class FSM(models.Model):
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-
 
     objects = FSMManager()
 
@@ -400,14 +398,14 @@ class Edge(models.Model):
 
 class PlayerTransition(models.Model):
     player = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name='player_transitions', null=True, blank=True)
+        Player, on_delete=models.SET_NULL, null=True, related_name='player_transitions')
     source_state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='player_departure_transitions', null=True)
+        State, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
     target_state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='player_arrival_transitions', null=True)
+        State, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
     time = models.DateTimeField(null=True)
-    transited_edge = models.ForeignKey(Edge, related_name='player_transitions', null=True, blank=True,
-                                       on_delete=models.SET_NULL)
+    transited_edge = models.ForeignKey(
+        Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
 
     def is_edge_transited_in_reverse(self):
         return True  # todo: fix
@@ -415,24 +413,16 @@ class PlayerTransition(models.Model):
 
 class PlayerStateHistory(models.Model):
     player = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name='player_state_histories')
+        Player, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='player_state_histories', null=True, blank=True)
+        State, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     arrival = models.ForeignKey(
         PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_target_state_history')
     departure = models.ForeignKey(
         PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_source_state_history')
-    arrival_time = models.DateTimeField(auto_now_add=True)
-    departure_time = models.DateTimeField(null=True)
-    transited_edge = models.ForeignKey(Edge, related_name='player_histories', null=True, blank=True,
-                                       on_delete=models.SET_NULL)
-    is_edge_transited_in_reverse = models.BooleanField(null=True, blank=True)
-
-    is_processed = models.BooleanField(default=False)
-    is_processed2 = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.player.id}-{self.state.name if self.state else ""}'
+        return f'{self.player} - {self.state.name if self.state else "DELETED"}'
 
 
 ################ ARTICLE #################
@@ -456,7 +446,6 @@ class Article(Paper):
     is_draft = models.BooleanField(default=True)
     publisher = models.ForeignKey('accounts.EducationalInstitute', related_name='articles', on_delete=models.SET_NULL,
                                   null=True, blank=True)
-    is_private = models.BooleanField(default=False)
 
 ############ FORM / RECEIPT ############
 
@@ -877,7 +866,7 @@ class MultiChoiceProblem(Problem):
         correct_answer_object.save()
         return correct_answer_object
 
-    max_choices = models.IntegerField(
+    maximum_choices_could_be_chosen = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
 
 
@@ -977,7 +966,7 @@ class MultiChoiceAnswer(Answer):
 
     @property
     def string_answer(self):
-        return [choice.__str__() for choice in self.choices.all()]
+        return json.dumps([choice.id for choice in self.choices.all()])
 
     def correction_status(self):
         correct_answer = self.problem.correct_answer

@@ -14,7 +14,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from apps.accounts.models import User
 from apps.accounts.serializers.serializers import UserSerializer
-from apps.accounts.utils import update_or_create_team, update_or_create_user_account, update_or_create_registration_receipt, create_team
+from apps.accounts.utils import update_or_create_team, create_user_account_if_not_exist, update_or_create_registration_receipt, create_team
 from errors.error_codes import serialize_error
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationPerCitySerializer
 from apps.fsm.serializers.paper_serializers import RegistrationFormSerializer, ChangeWidgetOrderSerializer
@@ -189,15 +189,20 @@ class RegistrationFormAdminViewSet(GenericViewSet):
             request.FILES['file'], dtype=str).replace(np.nan, None)
 
         def long_task():
+            website = request.data.get('website')
+
             for index, participant in participants_list_file.iterrows():
                 # remove None fields
-                participant = {key: value for key,
-                               value in participant.items() if value}
+                participant = {
+                    'is_artificial': True,
+                    **{key: value for key,
+                       value in participant.items() if value}
+                }
 
                 try:
                     registration_form = self.get_object()
-                    participant_user_account = update_or_create_user_account(
-                        **participant)
+                    participant_user_account = create_user_account_if_not_exist(
+                        **participant, website=website)
                     receipt = update_or_create_registration_receipt(
                         participant_user_account, registration_form)
                     update_or_create_team(
@@ -213,7 +218,9 @@ class RegistrationFormAdminViewSet(GenericViewSet):
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def register_individual_participant(self, request, pk=None):
-        user = update_or_create_user_account(**request.data)
+        website = request.data.get('website')
+        user = create_user_account_if_not_exist(
+            website=website, **request.data)
         registration_form = self.get_object()
         receipt = update_or_create_registration_receipt(
             user, registration_form)
