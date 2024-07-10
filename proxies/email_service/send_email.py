@@ -22,4 +22,4 @@ class EmailServiceCollector():
 
     def send_greeting_email(self, name: None):
         self.body = {"name": name, "type": 1}
-        self._send()
+        print(self._send())
