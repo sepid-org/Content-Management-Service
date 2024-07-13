@@ -40,7 +40,6 @@ urlpatterns = [
     path('api/scoring/', include('apps.scoring.urls')),
     path('api/response/', include('apps.response.urls')),
     path('test/hi/', say_hello),
-    path('email/' , include('messenger.urls')),
     # https://pypi.org/project/django-link-shortener/
     path('s/', include('shortener.urls')),
 ]
