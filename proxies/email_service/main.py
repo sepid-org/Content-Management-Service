@@ -8,7 +8,8 @@ url = get_environment_var(
 
 
 class EmailServiceProxy(Singleton):
-    def __init__(self):
+    def __init__(self, website):
+        self.website = website
         self.email = []
         self.subject = None
         self.body = {}
@@ -39,8 +40,11 @@ class EmailServiceProxy(Singleton):
         self.template = 'news'
         self._send()
 
-    def send_greeting_email(self, email: str, name: str, subject='خوش آمدید!'):
+    def send_greeting_email(self, email: str, name: str):
         self.email = [email]
+        # todo: fetch website name from MWS
+        website_name = 'کاموا'
+        subject = f'به آکادمی {website_name} خوش آمدید!',
         self.subject = subject
         self.body = {'name': name}
         self.template = 'greeting'

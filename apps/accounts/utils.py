@@ -9,7 +9,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
 from apps.fsm.serializers.answer_sheet_serializers import MyRegistrationReceiptSerializer
 from proxies.email_service.main import EmailServiceProxy
-from proxies.instant_messaging.notification_service_proxy import NotificationServiceProxy
+from proxies.instant_messaging_service.main import InstantMessagingServiceProxy
 
 
 def generate_tokens_for_user(user):
@@ -71,15 +71,14 @@ def create_or_get_user(user_data, website):
 
     # send greeting email
     if user.email:
-        email_service_proxy = EmailServiceProxy()
+        email_service_proxy = EmailServiceProxy(website=website)
         email_service_proxy.send_greeting_email(
             email=user.email,
             name=user.full_name,
-            subject=f'به آکادمی خوش آمدید!',
         )
-    notification_service_proxy = NotificationServiceProxy(website='academy')
-    notification_service_proxy.send_notification(
-        receiver=user.id, message='به آکادمی خوش آمدید!')
+    # send greeting notification
+    notification_service_proxy = InstantMessagingServiceProxy(website=website)
+    notification_service_proxy.send_notification(recipient=str(user.id), message='به آکادمی خود خوش آمدید!')
 
     return user
 
