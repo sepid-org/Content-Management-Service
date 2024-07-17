@@ -1,9 +1,8 @@
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ParseError
 from django.contrib.auth.hashers import make_password, check_password
 
-from apps.accounts.serializers.serializers import AccountSerializer, PhoneNumberVerificationCodeSerializer
+from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.models import User, UserWebsite
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
@@ -63,7 +62,7 @@ def create_or_get_user(user_data, website):
         return user
 
     if not user:
-        serializer = AccountSerializer(data=user_data)
+        serializer = UserSerializer(data=user_data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 

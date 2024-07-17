@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.models import VerificationCode, User
 from apps.accounts.permissions import IsHimself
-from apps.accounts.serializers.serializers import PhoneNumberSerializer, UserSerializer, PhoneNumberVerificationCodeSerializer, AccountSerializer
+from apps.accounts.serializers.user_serializer import PhoneNumberSerializer, PhoneNumberVerificationCodeSerializer, UserSerializer
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from apps.accounts.utils import can_user_login, create_or_get_user, find_user_in_website
 from errors.error_codes import serialize_error
@@ -88,7 +88,7 @@ class UserViewSet(ModelViewSet):
         else:
             return User.objects.filter(id=user.id)
 
-    @swagger_auto_schema(responses={201: AccountSerializer,
+    @swagger_auto_schema(responses={201: UserSerializer,
                                     400: "error code 4002 for len(code) < 5, 4003 for invalid code, "
                                          "4004 for previously submitted users & 4005 for expired code",
                                     })
@@ -109,7 +109,7 @@ class UserViewSet(ModelViewSet):
         token_serializer = CustomTokenObtainSerializer(
             data={'username': user.username})
         if token_serializer.is_valid(raise_exception=True):
-            return Response({'account': AccountSerializer(user).data, **token_serializer.validated_data},
+            return Response({'account': UserSerializer(user).data, **token_serializer.validated_data},
                             status=status.HTTP_201_CREATED)
 
 
@@ -125,7 +125,7 @@ def change_phone_number(request):
     user = request.user
     user.phone_number = new_phone_number
     user.save()
-    return Response(AccountSerializer(user).data, status=status.HTTP_200_OK)
+    return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
 class Login(TokenObtainPairView):
@@ -133,7 +133,7 @@ class Login(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
 
     @swagger_auto_schema(tags=['accounts'],
-                         responses={201: AccountSerializer,
+                         responses={201: UserSerializer,
                                     400: "error code 4007 for not enough credentials",
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
@@ -149,7 +149,7 @@ class Login(TokenObtainPairView):
         token_serializer = self.get_serializer(
             data={"username": user.username})
         token_serializer.is_valid(raise_exception=True)
-        return Response({'account': AccountSerializer(user).data, **token_serializer.validated_data},
+        return Response({'account': UserSerializer(user).data, **token_serializer.validated_data},
                         status=status.HTTP_200_OK)
 
 
@@ -158,7 +158,7 @@ class ChangePassword(GenericAPIView):
     serializer_class = PhoneNumberVerificationCodeSerializer
 
     @swagger_auto_schema(tags=['accounts'],
-                         responses={200: AccountSerializer,
+                         responses={200: UserSerializer,
                                     400: "error code 4002 for len(code) < 5, 4003 for invalid & 4005 for expired code",
                                     })
     @transaction.atomic

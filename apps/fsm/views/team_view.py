@@ -11,7 +11,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.accounts.serializers.serializers import PhoneNumberSerializer
+from apps.accounts.serializers.user_serializer import PhoneNumberSerializer
 from apps.accounts.utils import find_user_in_website
 from errors.error_codes import serialize_error
 from apps.fsm import permissions as customPermissions

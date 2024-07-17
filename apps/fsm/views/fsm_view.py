@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
 
-from apps.accounts.serializers.serializers import AccountSerializer
+from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.pagination import StandardPagination
 from errors.error_codes import serialize_error
@@ -151,18 +151,18 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response(data=EdgeSerializer(edges, context=self.get_serializer_context(), many=True).data,
                         status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: AccountSerializer(many=True)}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: UserSerializer(many=True)}, tags=['mentor'])
     @transaction.atomic
     @action(detail=True, methods=['get'])
     def get_mentors(self, request, pk):
         mentors = self.get_object().mentors
-        return Response(data=AccountSerializer(mentors, many=True).data)
+        return Response(data=UserSerializer(mentors, many=True).data)
 
     @swagger_auto_schema(responses={200: FSMSerializer}, tags=['mentor'])
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[FSMMentorPermission, ])
+    @action(detail=True, methods=['post'], serializer_class=UserSerializer, permission_classes=[FSMMentorPermission, ])
     def add_mentor(self, request, pk=None):
         fsm = self.get_object()
-        account_serializer = AccountSerializer(data=request.data)
+        account_serializer = UserSerializer(data=request.data)
         account_serializer.is_valid(raise_exception=True)
         new_mentor = find_user_in_website(
             user_data={**account_serializer.validated_data}, website=request.data.get("website"))
@@ -171,10 +171,10 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response()
 
     @swagger_auto_schema(responses={200: FSMSerializer}, tags=['mentor'])
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer, permission_classes=[FSMMentorPermission, ])
+    @action(detail=True, methods=['post'], serializer_class=UserSerializer, permission_classes=[FSMMentorPermission, ])
     def remove_mentor(self, request, pk=None):
         fsm = self.get_object()
-        serializer = AccountSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_mentor = find_user_in_website(
             user_data={**serializer.validated_data}, website=request.data.get("website"))

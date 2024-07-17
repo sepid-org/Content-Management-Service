@@ -2,11 +2,10 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 
-from apps.accounts.serializers.serializers import StudentshipSerializer
+from apps.accounts.serializers.user_serializer import UserSerializer, StudentshipSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, Problem
 from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer
-from apps.accounts.serializers.serializers import UserSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):

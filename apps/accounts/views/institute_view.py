@@ -11,7 +11,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.models import EducationalInstitute
 from apps.accounts.permissions import IsInstituteOwner, IsInstituteAdmin
-from apps.accounts.serializers.serializers import InstituteSerializer, AccountSerializer
+from apps.accounts.serializers.user_serializer import UserSerializer
+from apps.accounts.serializers.serializers import InstituteSerializer
 from apps.accounts.utils import find_user_in_website
 from errors.error_codes import serialize_error
 
@@ -22,7 +23,7 @@ class InstituteViewSet(ModelViewSet):
     queryset = EducationalInstitute.objects.all()
     serializer_class = InstituteSerializer
     serializer_action_classes = {
-        'add_admin': AccountSerializer
+        'add_admin': UserSerializer
     }
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['city']
@@ -70,7 +71,7 @@ class InstituteViewSet(ModelViewSet):
     def add_admin(self, request, pk=None):
         institute = self.get_object()
         if institute.is_approved:
-            serializer = AccountSerializer(many=False, data=request.data)
+            serializer = UserSerializer(many=False, data=request.data)
             serializer.is_valid(raise_exception=True)
             new_admin = find_user_in_website(
                 user_data={**serializer.validated_data}, website=request.data.get("website"))

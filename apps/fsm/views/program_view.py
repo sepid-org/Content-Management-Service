@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
-from apps.accounts.serializers.serializers import AccountSerializer
+from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
@@ -55,12 +55,12 @@ class ProgramViewSet(ModelViewSet):
     @action(detail=True, methods=['get'])
     def get_admins(self, request, pk):
         admins = self.get_object().admins
-        return Response(data=AccountSerializer(admins, many=True).data)
+        return Response(data=UserSerializer(admins, many=True).data)
 
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
+    @action(detail=True, methods=['post'], serializer_class=UserSerializer)
     def add_admin(self, request, pk=None):
         program = self.get_object()
-        user_serializer = AccountSerializer(data=request.data)
+        user_serializer = UserSerializer(data=request.data)
         user_serializer.is_valid(raise_exception=True)
         new_admin = find_user_in_website(
             user_data={**user_serializer.validated_data}, website=request.data.get("website"))
@@ -68,10 +68,10 @@ class ProgramViewSet(ModelViewSet):
         register_user_in_program(new_admin, program)
         return Response()
 
-    @action(detail=True, methods=['post'], serializer_class=AccountSerializer)
+    @action(detail=True, methods=['post'], serializer_class=UserSerializer)
     def remove_admin(self, request, pk=None):
         program = self.get_object()
-        serializer = AccountSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_admin = find_user_in_website(
             user_data={**serializer.validated_data}, website=request.data.get("website"))
