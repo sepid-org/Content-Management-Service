@@ -395,7 +395,12 @@ class VerificationCode(models.Model):
 
     def notify(self, verification_type, party_display_name='سپید'):
         sms_service_proxy = SMSServiceProxy(provider='kavenegar')
-        sms_service_proxy.send_otp(self.phone_number, verification_type, token=party_display_name, token2=str(self.code))
+        sms_service_proxy.send_otp(
+            receptor_phone_number=self.phone_number,
+            action=verification_type,
+            token=party_display_name,
+            token2=str(self.code)
+        )
 
     def __str__(self):
         return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'

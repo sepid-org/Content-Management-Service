@@ -41,8 +41,7 @@ class SendVerificationCode(GenericAPIView):
                 phone_number=phone_number)
             try:
                 verification_code.notify(
-                    verification_type=serializer.validated_data.get(
-                        'code_type', None),
+                    verification_type=serializer.validated_data.get('code_type', None),
                     party_display_name=party_display_name,
                 )
             except:
