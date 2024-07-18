@@ -41,20 +41,20 @@ class ProgramSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         merchandise = validated_data.pop('merchandise', None)
         website = validated_data.pop('website')
-        registration_form_instance = RegistrationForm.objects.create(
+        registration_form = RegistrationForm.objects.create(
             **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
 
         creator = self.context.get('user', None)
         instance = super(ProgramSerializer, self).create(
-            {'creator': creator, 'website': website, **validated_data})
+            {'creator': creator, 'website': website, 'registration_form': registration_form, **validated_data})
         instance.admins.add(creator)
         if merchandise and merchandise.get('name', None) is None:
-            merchandise['name'] = validated_data.get('name', 'unnamed_program')
+            merchandise['name'] = validated_data.get('name')
             serializer = MerchandiseSerializer(data=merchandise)
-            if serializer.is_valid(raise_exception=True):
-                merchandise_instance = serializer.save()
-                instance.merchandise = merchandise_instance
-        instance.registration_form = registration_form_instance
+            serializer.is_valid(raise_exception=True)
+            merchandise_instance = serializer.save()
+            instance.merchandise = merchandise_instance
+        instance.registration_form = registration_form
         instance.save()
         return instance
 

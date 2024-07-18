@@ -124,54 +124,56 @@ class RegistrationViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=RegistrationReceiptSerializer)
     def register(self, request, pk=None):
-        context = self.get_serializer_context()
-        context['answer_sheet_of'] = self.get_object()
-        serializer = RegistrationReceiptSerializer(
-            data={'answer_sheet_type': 'RegistrationReceipt', **request.data}, context=context)
-        if serializer.is_valid(raise_exception=True):
-            register_permission_status = self.get_object(
-            ).get_user_permission_status(context.get('request', None).user)
-            if register_permission_status == RegistrationForm.RegisterPermissionStatus.DeadlineMissed:
-                raise ParseError(serialize_error('4036'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotStarted:
-                raise ParseError(serialize_error('4100'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataIncomplete:
-                raise PermissionDenied(serialize_error('4057'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotPermitted:
-                raise PermissionDenied(serialize_error('4032'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
-                raise ParseError(serialize_error('4033'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
-                raise ParseError(serialize_error('4034'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:
-                raise ParseError(serialize_error('4109'))
-            elif register_permission_status == RegistrationForm.RegisterPermissionStatus.Permitted:
-                serializer.validated_data['answer_sheet_of'] = self.get_object(
-                )
-                registration_receipt = serializer.save()
+        registration_form = self.get_object()
+        serializer = RegistrationReceiptSerializer(data={
+            'answer_sheet_type': 'RegistrationReceipt',
+            **request.data,
+        }, context={'user': request.user})
+        serializer.is_valid(raise_exception=True)
 
-                form = registration_receipt.answer_sheet_of
-                program = form.program
-                # TODO - handle fsm sign up
-                if program:
-                    if program.maximum_participant is None or len(program.participants) < program.maximum_participant:
-                        if form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
-                            registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                            if not program.merchandise:
-                                registration_receipt.is_participating = True
-                            registration_receipt.save()
-                        elif form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
-                            if registration_receipt.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
-                                registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                                if not program.merchandise:
-                                    registration_receipt.is_participating = True
-                                registration_receipt.save()
-                    else:
-                        registration_receipt.status = RegistrationReceipt.RegistrationStatus.Rejected
+        register_permission_status = self.get_object(
+        ).get_user_permission_status(request.user)
+        if register_permission_status == RegistrationForm.RegisterPermissionStatus.DeadlineMissed:
+            raise ParseError(serialize_error('4036'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotStarted:
+            raise ParseError(serialize_error('4100'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataIncomplete:
+            raise PermissionDenied(serialize_error('4057'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotPermitted:
+            raise PermissionDenied(serialize_error('4032'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
+            raise ParseError(serialize_error('4033'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
+            raise ParseError(serialize_error('4034'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:
+            raise ParseError(serialize_error('4109'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.Permitted:
+            # its ok
+            pass
+
+        serializer.validated_data['answer_sheet_of'] = registration_form
+        registration_receipt = serializer.save()
+
+        program = registration_form.program
+        if program:
+            if program.maximum_participant is None or len(program.participants) < program.maximum_participant:
+                if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
+                    registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
+                    if not program.merchandise:
+                        registration_receipt.is_participating = True
+                    registration_receipt.save()
+                elif registration_form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
+                    if registration_receipt.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
+                        registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
+                        if not program.merchandise:
+                            registration_receipt.is_participating = True
                         registration_receipt.save()
-                        raise ParseError(serialize_error('4035'))
+            else:
+                registration_receipt.status = RegistrationReceipt.RegistrationStatus.Rejected
+                registration_receipt.save()
+                raise ParseError(serialize_error('4035'))
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RegistrationFormAdminViewSet(GenericViewSet):

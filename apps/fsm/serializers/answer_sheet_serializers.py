@@ -11,18 +11,21 @@ from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer
 class AnswerSheetSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
-        answers = validated_data.pop(
-            'answers') if 'answers' in validated_data.keys() else []
-        instance = super(AnswerSheetSerializer, self).create(validated_data)
-        context = self.context
-        context['answer_sheet'] = instance
-        for a in answers:
-            serializer = AnswerPolymorphicSerializer(data=a, context=context)
-            if serializer.is_valid(raise_exception=True):
-                serializer.validated_data['answer_sheet'] = instance
-                serializer.save()
+        answers = self.initial_data.get('answers', [])
+        registration_receipt = super().create({
+            'user': self.context.get('user'),
+            **validated_data
+        })
 
-        return instance
+        for answer in answers:
+            serializer = AnswerPolymorphicSerializer(data={
+                'answer_sheet': registration_receipt.id,
+                **answer
+            }, context=self.context)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+        return registration_receipt
 
     def validate(self, attrs):
         answers = attrs.get('answers', [])
@@ -39,10 +42,13 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
 
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
-    answers = AnswerPolymorphicSerializer(many=True, required=False)
     user = UserSerializer(required=False)
+    answers = serializers.SerializerMethodField()
     school_studentship = serializers.SerializerMethodField()
     academic_studentship = serializers.SerializerMethodField()
+
+    def get_answers(self, obj):
+        return AnswerPolymorphicSerializer(obj.answers, many=True).data
 
     def get_school_studentship(self, obj):
         return StudentshipSerializer(obj.user.school_studentship).data
@@ -57,10 +63,6 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
         read_only_fields = ['id', 'user', 'status', 'answer_sheet_of',
                             'is_participating', 'team', 'certificate']
 
-    def create(self, validated_data):
-        return super(RegistrationReceiptSerializer, self).create({'user': self.context.get('user', None),
-                                                                  **validated_data})
-
     def validate(self, attrs):
         user = self.context.get('user', None)
         answer_sheet_of = self.context.get('answer_sheet_of', None)
@@ -68,7 +70,7 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
         if not user and not answer_sheet_of:
             if len(RegistrationReceipt.objects.filter(answer_sheet_of=answer_sheet_of, user=user)) > 0:
                 raise ParseError(serialize_error('4028'))
-        return super(RegistrationReceiptSerializer, self).validate(attrs)
+        return super().validate(attrs)
 
 
 # TODO: fix class name

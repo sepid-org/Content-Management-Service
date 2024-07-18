@@ -12,6 +12,8 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context.get('user', None)
+        answer_sheet = self.context.get('answer_sheet', None)
+        print("@@@@@@@@@@", answer_sheet)
         validated_data.get('problem').unfinalize_older_answers(user)
         return super().create({'submitted_by': user, **validated_data})
 
@@ -94,60 +96,19 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
         attrs = super(MultiChoiceAnswerSerializer, self).validate(attrs)
         choices = attrs.get('choices', [])
         problem = attrs.get('problem')
-        multi_choice_answer_validator(choices, problem.maximum_choices_could_be_chosen)
+        multi_choice_answer_validator(
+            choices, problem.maximum_choices_could_be_chosen)
         return attrs
 
 
-class FileAnswerSerializer(AnswerSerializer):
-    upload_file_answer = serializers.PrimaryKeyRelatedField(
-        queryset=UploadFileAnswer.objects.all(), required=True)
-
-    class Meta:
-        model = UploadFileAnswer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'answer_file', 'upload_file_answer']
-        read_only_fields = ['id', 'submitted_by',
-                            'created_at', 'is_correct', 'answer_file']
-        write_only_fields = ['upload_file_answer']
-
-    def validate_upload_file_answer(self, upload_file_answer):
-        if upload_file_answer.submitted_by != self.context.get('user', None):
-            raise ParseError(serialize_error('4049'))
-        return upload_file_answer
-
-    def validate(self, attrs):
-        upload_file_answer = attrs.get('upload_file_answer', None)
-        problem = attrs.get('problem', None)
-        if problem:
-            if upload_file_answer.problem and problem != upload_file_answer.problem:
-                raise ParseError(serialize_error('4047'))
-        else:
-            attrs['problem'] = upload_file_answer.problem
-        return super(FileAnswerSerializer, self).validate(attrs)
-
-    def create(self, validated_data):
-        problem = validated_data.get('problem', None)
-        upload_file_answer = validated_data.pop('upload_file_answer', None)
-        answer_sheet = validated_data.get('answer_sheet', None)
-        if problem and not upload_file_answer.problem:
-            upload_file_answer.problem = problem
-        if answer_sheet and not upload_file_answer.answer_sheet:
-            upload_file_answer.answer_sheet = answer_sheet
-        upload_file_answer.save()
-        return upload_file_answer
-
-
 class UploadFileAnswerSerializer(AnswerSerializer):
-    file_name = serializers.CharField(
-        max_length=50, required=False, write_only=True)
 
     class Meta:
         model = UploadFileAnswer
         fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'answer_file', 'file_name']
+                  'problem', 'answer_file']
         read_only_fields = ['id', 'answer_type',
                             'submitted_by', 'created_at', 'is_correct']
-        write_only_fields = ['file_name']
 
     def validate(self, attrs):
         problem = attrs.get('problem', None)
@@ -157,15 +118,6 @@ class UploadFileAnswerSerializer(AnswerSerializer):
                         (problem.paper.till and datetime.now(problem.paper.till.tzinfo) > problem.paper.till):
                     raise ParseError(serialize_error('4104'))
         return attrs
-
-    def create(self, validated_data):
-        answer_file = validated_data.get('answer_file', None)
-        file_name, file_extension = os.path.splitext(answer_file.name)
-        file_name = validated_data.pop('file_name', file_name)
-        user = self.context.get('user', None)
-        problem = validated_data.get('problem', None)
-        answer_file.name = f'{file_name}_P{problem.id}_U{user.username}_T{datetime.now()}{file_extension}'
-        return super(UploadFileAnswerSerializer, self).create({'answer_type': 'UploadFileAnswer', **validated_data})
 
     def to_representation(self, instance):
         representation = super(UploadFileAnswerSerializer,
@@ -191,7 +143,7 @@ class AnswerPolymorphicSerializer(PolymorphicSerializer):
         SmallAnswer: SmallAnswerSerializer,
         BigAnswer: BigAnswerSerializer,
         MultiChoiceAnswer: MultiChoiceAnswerSerializer,
-        UploadFileAnswer: FileAnswerSerializer,
+        UploadFileAnswer: UploadFileAnswerSerializer,
     }
 
     resource_type_field_name = 'answer_type'
