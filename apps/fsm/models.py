@@ -982,8 +982,8 @@ class MultiChoiceAnswer(Answer):
 class UploadFileAnswer(Answer):
     problem = models.ForeignKey('fsm.UploadFileProblem', null=True, blank=True, on_delete=models.PROTECT,
                                 related_name='answers')
-    answer_file = models.FileField(
-        upload_to='answers', max_length=4000, blank=False)
+    answer_file = models.FileField(upload_to='answers', max_length=4000, blank=False)
+    answer_file2 = models.URLField(blank=True)
 
     @property
     def string_answer(self):
