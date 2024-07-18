@@ -1,5 +1,3 @@
-import logging
-
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -15,8 +13,6 @@ from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.serializers.serializers import InstituteSerializer
 from apps.accounts.utils import find_user_in_website
 from errors.error_codes import serialize_error
-
-logger = logging.getLogger(__name__)
 
 
 class InstituteViewSet(ModelViewSet):

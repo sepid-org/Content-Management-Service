@@ -157,14 +157,12 @@ class StudentshipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'is_document_verified', ]
 
 
-# TODO - think about the AIC problem of data leak when retrieving list of profiles
-class ProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
     school_studentship = StudentshipSerializer(read_only=True)
     academic_studentship = StudentshipSerializer(read_only=True)
 
     def to_representation(self, instance):
-        representation = super(
-            ProfileSerializer, self).to_representation(instance)
+        representation = super().to_representation(instance)
         representation.pop('password')
         return representation
 
@@ -173,3 +171,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'school_studentship',
                             'academic_studentship', 'username', 'phone_number', 'password']
+
+
+class UserProfileSummarySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'bio', 'profile_picture']
+        read_only_fields = ['id', 'first_name',
+                            'last_name', 'bio', 'profile_picture']
