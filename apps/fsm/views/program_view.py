@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from apps.fsm.models import Program
-from apps.fsm.pagination import StandardPagination
+from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
 
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
@@ -24,7 +24,8 @@ class ProgramViewSet(ModelViewSet):
     queryset = Program.objects.filter(is_deleted=False)
     my_tags = ['program']
     filterset_fields = ['website']
-    pagination_class = StandardPagination
+    pagination_class = ProgramsPagination
+
 
     def initialize_request(self, request, *args, **kwargs):
         self.action = self.action_map.get(request.method.lower())

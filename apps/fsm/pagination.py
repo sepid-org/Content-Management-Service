@@ -16,5 +16,9 @@ class RegistrationReceiptSetPagination(PageNumberPagination):
     max_page_size = 1000
 
 
+class ProgramsPagination(PageNumberPagination):
+    page_size = 18
+
+
 class StandardPagination(PageNumberPagination):
     page_size = 12
