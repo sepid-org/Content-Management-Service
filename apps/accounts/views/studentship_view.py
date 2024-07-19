@@ -4,7 +4,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
-from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -17,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 # todo - everyone can edit anyone's studentships
 class StudentshipViewSet(ModelViewSet):
-    parser_classes = [MultiPartParser, ]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = StudentshipSerializer
     queryset = Studentship.objects.all()
