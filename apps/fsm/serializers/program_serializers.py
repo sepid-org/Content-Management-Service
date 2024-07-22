@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
+from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
 
@@ -45,18 +46,18 @@ class ProgramSerializer(serializers.ModelSerializer):
             **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
 
         creator = self.context.get('user', None)
-        instance = super(ProgramSerializer, self).create(
+        program = super(ProgramSerializer, self).create(
             {'creator': creator, 'website': website, 'registration_form': registration_form, **validated_data})
-        instance.admins.add(creator)
+        add_admin_to_program(creator, program)
         if merchandise and merchandise.get('name', None) is None:
             merchandise['name'] = validated_data.get('name')
             serializer = MerchandiseSerializer(data=merchandise)
             serializer.is_valid(raise_exception=True)
             merchandise_instance = serializer.save()
-            instance.merchandise = merchandise_instance
-        instance.registration_form = registration_form
-        instance.save()
-        return instance
+            program.merchandise = merchandise_instance
+        program.registration_form = registration_form
+        program.save()
+        return program
 
     def update(self, instance, validated_data):
         program_contact_info = validated_data.pop('program_contact_info', None)

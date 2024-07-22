@@ -2,6 +2,7 @@ from rest_framework import permissions
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from apps.accounts.models import User
 from apps.fsm.models import Program
 from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
@@ -14,7 +15,7 @@ from rest_framework.response import Response
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
-from apps.fsm.utils import register_user_in_program
+from apps.fsm.utils import add_admin_to_program, register_user_in_program
 from errors.error_codes import serialize_error
 from utilities.safe_auth import SafeTokenAuthentication
 
@@ -25,7 +26,6 @@ class ProgramViewSet(ModelViewSet):
     my_tags = ['program']
     filterset_fields = ['website']
     pagination_class = ProgramsPagination
-
 
     def initialize_request(self, request, *args, **kwargs):
         self.action = self.action_map.get(request.method.lower())
@@ -63,10 +63,11 @@ class ProgramViewSet(ModelViewSet):
         program = self.get_object()
         user_serializer = UserSerializer(data=request.data)
         user_serializer.is_valid(raise_exception=True)
-        new_admin = find_user_in_website(
-            user_data={**user_serializer.validated_data}, website=request.data.get("website"))
-        program.admins.add(new_admin)
-        register_user_in_program(new_admin, program)
+        user = find_user_in_website(
+            user_data=user_serializer.validated_data, website=request.data.get("website"))
+        if user is None:
+            raise ParseError(serialize_error('4115'))
+        add_admin_to_program(user, program)
         return Response()
 
     @action(detail=True, methods=['post'], serializer_class=UserSerializer)

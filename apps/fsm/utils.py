@@ -147,3 +147,8 @@ def get_user_permission(receipt: RegistrationReceipt) -> dict:
         return True
     return False
     # todo
+
+
+def add_admin_to_program(user: User, program: Program):
+    program.admins.add(user)
+    register_user_in_program(user, program)
