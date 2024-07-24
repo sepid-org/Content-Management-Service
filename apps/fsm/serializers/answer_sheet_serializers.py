@@ -43,12 +43,8 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
     user = UserSerializer(required=False)
-    answers = serializers.SerializerMethodField()
     school_studentship = serializers.SerializerMethodField()
     academic_studentship = serializers.SerializerMethodField()
-
-    def get_answers(self, obj):
-        return AnswerPolymorphicSerializer(obj.answers, many=True).data
 
     def get_school_studentship(self, obj):
         return StudentshipSerializer(obj.user.school_studentship).data
@@ -58,7 +54,7 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
 
     class Meta:
         model = RegistrationReceipt
-        fields = ['id', 'user', 'answer_sheet_of', 'answers', 'status', 'is_participating', 'team',
+        fields = ['id', 'user', 'answer_sheet_of', 'status', 'is_participating', 'team',
                   'certificate', 'school_studentship', 'academic_studentship']
         read_only_fields = ['id', 'user', 'status', 'answer_sheet_of',
                             'is_participating', 'team', 'certificate']
