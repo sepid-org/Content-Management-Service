@@ -106,3 +106,17 @@ class AnswerViewSet(viewsets.ModelViewSet):
         older_answers = PROBLEM_ANSWER_MAPPING[question.widget_type].objects.filter(
             problem=question, submitted_by__in=teammates)
         return Response(data=AnswerPolymorphicSerializer(older_answers, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def question_answers(self, request, *args, **kwargs):
+        question_id = request.GET.get('widget')
+        question = get_question(question_id=question_id)
+        # todo
+        return Response()
+
+    @action(detail=False, methods=['get'])
+    def answer_sheet_answers(self, request, *args, **kwargs):
+        answer_sheet_id = request.GET.get('answer_sheet')
+        answer_sheet = AnswerSheet.objects.get(id=answer_sheet_id)
+        answers = answer_sheet.answers
+        return Response(AnswerPolymorphicSerializer(answers, many=True).data)
