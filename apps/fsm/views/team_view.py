@@ -137,9 +137,9 @@ class TeamViewSet(viewsets.ModelViewSet):
     def register_and_join(self, request, pk=None):  # todo: change name
         team = self.get_object()
         user = find_user_in_website(user_data={**request.data}, website=request.data.get("website"))
-        if len(RegistrationReceipt.objects.filter(answer_sheet_of=team.registration_form, user=user)) == 0:
+        if len(RegistrationReceipt.objects.filter(form=team.registration_form, user=user)) == 0:
             receipt = RegistrationReceipt.objects.create(
-                answer_sheet_of=team.registration_form,
+                form=team.registration_form,
                 user=user,
                 answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
                 status=RegistrationReceipt.RegistrationStatus.Accepted,
@@ -147,7 +147,7 @@ class TeamViewSet(viewsets.ModelViewSet):
                 team=team)
         else:
             receipt = RegistrationReceipt.objects.filter(
-                answer_sheet_of=team.registration_form, user=user).first()
+                form=team.registration_form, user=user).first()
             if hasattr(receipt, 'headed_team'):
                 previous_team = getattr(receipt, 'headed_team')
                 previous_team.team_head = None
@@ -197,7 +197,7 @@ class InvitationViewSet(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixin
         if serializer.is_valid(raise_exception=True):
             invitee = invitation.invitee
             receipt = RegistrationReceipt.objects.filter(user=request.user, is_participating=True,
-                                                         answer_sheet_of=invitation.team.registration_form).first()
+                                                         form=invitation.team.registration_form).first()
             if receipt.team:
                 raise PermissionDenied(serialize_error('4053'))
             invitation_status = serializer.validated_data.get(

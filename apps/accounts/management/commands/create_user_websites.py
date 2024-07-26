@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for registration_receipt in RegistrationReceipt.objects.all():
-            website = registration_receipt.answer_sheet_of.program.website
+            website = registration_receipt.form.program.website
             user = registration_receipt.user
             try:
                 UserWebsite.objects.create(

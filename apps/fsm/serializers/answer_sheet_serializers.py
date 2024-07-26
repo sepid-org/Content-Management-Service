@@ -30,7 +30,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         answers = attrs.get('answers', [])
         problems = [a.get('problem', None) for a in answers]
-        paper = self.context.get('answer_sheet_of', None)
+        paper = self.context.get('form', None)
         if paper is not None:
             for w in paper.widgets.all():
                 if isinstance(w, Problem):
@@ -54,17 +54,17 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
 
     class Meta:
         model = RegistrationReceipt
-        fields = ['id', 'user', 'answer_sheet_of', 'status', 'is_participating', 'team',
+        fields = ['id', 'user', 'form', 'status', 'is_participating', 'team',
                   'certificate', 'school_studentship', 'academic_studentship']
-        read_only_fields = ['id', 'user', 'status', 'answer_sheet_of',
+        read_only_fields = ['id', 'user', 'status', 'form',
                             'is_participating', 'team', 'certificate']
 
     def validate(self, attrs):
         user = self.context.get('user', None)
-        answer_sheet_of = self.context.get('answer_sheet_of', None)
+        form = self.context.get('form', None)
 
-        if not user and not answer_sheet_of:
-            if len(RegistrationReceipt.objects.filter(answer_sheet_of=answer_sheet_of, user=user)) > 0:
+        if not user and not form:
+            if len(RegistrationReceipt.objects.filter(form=form, user=user)) > 0:
                 raise ParseError(serialize_error('4028'))
         return super().validate(attrs)
 
@@ -74,7 +74,7 @@ class MyRegistrationReceiptSerializer(AnswerSheetSerializer):
     class Meta:
         model = RegistrationReceipt
         fields = ['id', 'user', 'answer_sheet_type',
-                  'answer_sheet_of', 'status', 'is_participating']
+                  'form', 'status', 'is_participating']
         read_only_fields = ['id']
 
 

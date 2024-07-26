@@ -116,9 +116,9 @@ class Command(BaseCommand):
                         )
                     else:
                         academic_studentship = AcademicStudentship.objects.filter(user=user).first()
-                    if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=user)) <= 0:
+                    if len(RegistrationReceipt.objects.filter(form=registration_form, user=user)) <= 0:
                         receipts.append(RegistrationReceipt.objects.create(
-                            answer_sheet_of=registration_form,
+                            form=registration_form,
                             answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
                             user=user,
                             status=RegistrationReceipt.RegistrationStatus.Accepted,
@@ -126,7 +126,7 @@ class Command(BaseCommand):
                         ))
                     else:
                         receipts.append(RegistrationReceipt.objects.filter(
-                            answer_sheet_of=registration_form, user=user).first())
+                            form=registration_form, user=user).first())
                     self.stdout.write(self.style.SUCCESS(f'Successfully created user {user.username}'))
                 if len(Team.objects.filter(name=data['team_code'])) <= 0:
                     team = Team.objects.create(name=data['team_code'],

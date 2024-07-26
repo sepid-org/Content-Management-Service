@@ -140,7 +140,7 @@ register_test_case_response = {
     "id": 12,
     "user": 2,
     "answer_sheet_type": "RegistrationReceipt",
-    "answer_sheet_of": 62,
+    "form": 62,
     "answers": [
         {
             "id": 123,

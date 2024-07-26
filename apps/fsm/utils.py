@@ -57,7 +57,7 @@ def get_receipt(user, fsm) -> RegistrationReceipt:
     if fsm.registration_form and fsm.program.registration_form:
         raise ParseError(serialize_error('4077'))
     registration_form = fsm.registration_form or fsm.program.registration_form
-    return RegistrationReceipt.objects.filter(user=user, answer_sheet_of=registration_form,
+    return RegistrationReceipt.objects.filter(user=user, form=registration_form,
                                               is_participating=True).first()
 
 
@@ -132,9 +132,9 @@ def get_player_backward_edge(player: Player) -> Edge:
 
 def register_user_in_program(user: User, program: Program):
     registration_form = program.registration_form
-    if len(RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=user)) == 0:
+    if len(RegistrationReceipt.objects.filter(form=registration_form, user=user)) == 0:
         RegistrationReceipt.objects.create(
-            answer_sheet_of=registration_form,
+            form=registration_form,
             user=user,
             answer_sheet_type=AnswerSheet.AnswerSheetType.RegistrationReceipt,
             status=RegistrationReceipt.RegistrationStatus.Accepted,
@@ -143,7 +143,7 @@ def register_user_in_program(user: User, program: Program):
 
 def get_user_permission(receipt: RegistrationReceipt) -> dict:
     user = receipt.user
-    if user in receipt.answer_sheet_of.program.modifiers:
+    if user in receipt.form.program.modifiers:
         return True
     return False
     # todo

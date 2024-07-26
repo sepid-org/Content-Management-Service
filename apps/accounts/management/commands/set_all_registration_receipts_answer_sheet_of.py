@@ -7,13 +7,13 @@ from apps.fsm.models import RegistrationReceipt
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        for registration_receipt in RegistrationReceipt.objects.filter(answer_sheet_of=None):
+        for registration_receipt in RegistrationReceipt.objects.filter(form=None):
             program = None
             for player in registration_receipt.players.all():
                 program = player.fsm.program
             if program:
                 try:
-                    registration_receipt.answer_sheet_of = program.registration_form
+                    registration_receipt.form = program.registration_form
                     registration_receipt.save()
                 except:
                     registration_receipt.delete()

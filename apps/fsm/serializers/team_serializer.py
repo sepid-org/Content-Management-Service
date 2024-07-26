@@ -21,7 +21,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             if username is None:
                 raise ParseError(serialize_error('4063'))
             else:
-                invitee = RegistrationReceipt.objects.filter(answer_sheet_of=team.registration_form,
+                invitee = RegistrationReceipt.objects.filter(form=team.registration_form,
                                                              user__username__exact=username).first()
                 if invitee is None:
                     raise ParseError(serialize_error('4065'))
@@ -29,7 +29,7 @@ class InvitationSerializer(serializers.ModelSerializer):
 
         if len(team.members.all()) >= team.registration_form.program_or_fsm.team_size:
             raise PermissionDenied(serialize_error('4059'))
-        if invitee.answer_sheet_of != team.registration_form:
+        if invitee.form != team.registration_form:
             raise ParseError(serialize_error('4052'))
         if not invitee.is_participating:
             raise PermissionDenied(serialize_error('4055'))

@@ -48,7 +48,7 @@ class User(AbstractUser):
     def get_receipt(self, form):
         from apps.fsm.models import RegistrationReceipt
         try:
-            return RegistrationReceipt.objects.get(user=self, answer_sheet_of=form)
+            return RegistrationReceipt.objects.get(user=self, form=form)
         except:
             return None
 

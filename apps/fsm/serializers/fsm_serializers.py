@@ -99,7 +99,7 @@ class FSMSerializer(serializers.ModelSerializer):
             representation['registration_till'] = instance.registration_form.till
             representation['audience_type'] = instance.registration_form.audience_type
             receipt = RegistrationReceipt.objects.filter(
-                user=user, answer_sheet_of=instance.registration_form).last()
+                user=user, form=instance.registration_form).last()
             if receipt:
                 representation[
                     'user_registration_status'] = instance.registration_form.check_time() if instance.registration_form.check_time() != 'ok' else receipt.status

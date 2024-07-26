@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from errors.error_codes import serialize_error
-from apps.fsm.models import RegistrationForm, RegistrationReceipt
+from apps.fsm.models import RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationStatusSerializer
 from apps.fsm.serializers.certificate_serializer import create_certificate
@@ -58,7 +58,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     @transaction.atomic
     def validate(self, request, pk=None):
         receipt = self.get_object()
-        if self.request.user not in receipt.answer_sheet_of.program_or_fsm.modifiers:
+        if self.request.user not in receipt.form.program_or_fsm.modifiers:
             raise PermissionDenied(serialize_error('4061'))
         # if not self.request.user.school_studentship.is_document_verified:
         #     raise PermissionDenied(serialize_error('4062'))
@@ -69,8 +69,8 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                 'status', RegistrationReceipt.RegistrationStatus.Waiting)
 
             if registration_status == RegistrationReceipt.RegistrationStatus.Accepted:
-                merchandise = receipt.answer_sheet_of.program_or_fsm.merchandise
-                if receipt.answer_sheet_of is not None and (merchandise is None or merchandise.price == 0):
+                merchandise = receipt.form.program_or_fsm.merchandise
+                if receipt.form is not None and (merchandise is None or merchandise.price == 0):
                     receipt.is_participating = True
             else:
                 receipt.is_participating = False
@@ -88,7 +88,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                     action=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
                     # todo: get real academy name from mps
                     token='کاموا',
-                    token2=receipt.answer_sheet_of.program_or_fsm.name
+                    token2=receipt.form.program_or_fsm.name
                 )
 
             return Response(
@@ -100,11 +100,11 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     @action(detail=True, methods=['get'])
     def get_certificate(self, request, pk=None):
         receipt = self.get_object()
-        if not receipt.answer_sheet_of.has_certificate or not receipt.answer_sheet_of.certificates_ready:
+        if not receipt.form.has_certificate or not receipt.form.certificates_ready:
             raise ParseError(serialize_error('4098'))
         if receipt.certificate:
             receipt.certificate.storage.delete(receipt.certificate.name)
-        certificate_templates = receipt.answer_sheet_of.certificate_templates.all()
+        certificate_templates = receipt.form.certificate_templates.all()
         # filter templates accordingly to user performance
         if len(certificate_templates) > 0:
             receipt.certificate = create_certificate(
@@ -115,19 +115,17 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
         return Response(RegistrationReceiptSerializer(context=self.get_serializer_context()).to_representation(receipt),
                         status=status.HTTP_200_OK)
 
-
     @action(detail=False, methods=['get'])
     def my_receipt(self, request, pk=None):
         form_id = request.GET.get('form')
         user = request.user
         receipt = None
         try:
-            receipt = user.registration_receipts.get(answer_sheet_of__id=form_id)
+            receipt = user.registration_receipts.get(
+                answer_sheet_of__id=form_id)
             return Response(RegistrationReceiptSerializer(receipt).data)
         except:
             return Response({})
-
-
 
 
 # class ProgramPermissionSerializer(serializers.ModelSerializer):
@@ -145,7 +143,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
 #         user = self.context.get('request', None).user
 #         receipt = None
 #         try:
-#             receipt = RegistrationReceipt.objects.get(user=user, answer_sheet_of=instance.registration_form)
+#             receipt = RegistrationReceipt.objects.get(user=user, form=instance.registration_form)
 #         except:
 #             pass
 #         if receipt:

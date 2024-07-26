@@ -480,7 +480,7 @@ class RegistrationReceipt(AnswerSheet):
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     # should be in every answer sheet child
-    answer_sheet_of = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
+    form = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
                                         on_delete=models.SET_NULL)
     user = models.ForeignKey(
         'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
@@ -498,17 +498,17 @@ class RegistrationReceipt(AnswerSheet):
 
     @property
     def purchases(self):
-        if self.answer_sheet_of.program_or_fsm.merchandise:
-            return self.answer_sheet_of.program_or_fsm.merchandise.purchases.filter(user=self.user)
+        if self.form.program_or_fsm.merchandise:
+            return self.form.program_or_fsm.merchandise.purchases.filter(user=self.user)
         return Purchase.objects.none()
 
     @property
     def is_paid(self):
         return len(self.purchases.filter(
-            status=Purchase.Status.Success)) > 0 if self.answer_sheet_of.program_or_fsm.merchandise else True
+            status=Purchase.Status.Success)) > 0 if self.form.program_or_fsm.merchandise else True
 
     class Meta:
-        unique_together = ('answer_sheet_of', 'user')
+        unique_together = ('form', 'user')
 
     def correction_status(self):
         for a in self.answers.all():
@@ -592,7 +592,7 @@ class RegistrationForm(Paper):
         if time_check_result != 'ok':
             return time_check_result
 
-        # if exec(self.answer_sheet_of.conditions):
+        # if exec(self.form.conditions):
         #     return True
         # TODO - handle for academic studentship too
 

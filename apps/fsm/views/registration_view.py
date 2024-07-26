@@ -76,7 +76,7 @@ class RegistrationViewSet(ModelViewSet):
     @swagger_auto_schema(responses={200: RegistrationPerCitySerializer})
     @action(detail=True, methods=['get'])
     def registration_count_per_city(self, request, pk=None):
-        results = RegistrationReceipt.objects.filter(answer_sheet_of=self.get_object()).annotate(
+        results = RegistrationReceipt.objects.filter(form=self.get_object()).annotate(
             city=F('user__city')).values('city').annotate(registration_count=Count('id'))
         return Response(RegistrationPerCitySerializer(results, many=True).data, status=status.HTTP_200_OK)
 
@@ -86,7 +86,7 @@ class RegistrationViewSet(ModelViewSet):
         user = self.request.user
         registration_form = self.get_object()
 
-        self_receipts = RegistrationReceipt.objects.filter(user=user, answer_sheet_of=registration_form,
+        self_receipts = RegistrationReceipt.objects.filter(user=user, form=registration_form,
                                                            is_participating=True)
         if len(self_receipts) < 1:
             raise ParseError(serialize_error('4050'))
@@ -106,7 +106,7 @@ class RegistrationViewSet(ModelViewSet):
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def my_invitations(self, request, pk=None):
         receipt = RegistrationReceipt.objects.filter(user=request.user, is_participating=True,
-                                                     answer_sheet_of=self.get_object()).first()
+                                                     form=self.get_object()).first()
         invitations = Invitation.objects.filter(
             invitee=receipt, team__registration_form=self.get_object(), status=Invitation.InvitationStatus.Waiting)
         return Response(data=InvitationSerializer(invitations, many=True).data, status=status.HTTP_200_OK)
@@ -151,7 +151,7 @@ class RegistrationViewSet(ModelViewSet):
             # its ok
             pass
 
-        serializer.validated_data['answer_sheet_of'] = registration_form
+        serializer.validated_data['form'] = registration_form
         registration_receipt = serializer.save()
 
         program = registration_form.program

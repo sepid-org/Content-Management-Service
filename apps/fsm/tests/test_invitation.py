@@ -15,8 +15,8 @@ class InvitationTest(APITestCase):
         AcademicStudentship.objects.create(user=b), SchoolStudentship.objects.create(user=b)
         form = RegistrationForm.objects.create()
         Program.objects.create(registration_form=form, name='program', program_type='Team', is_approved=True)
-        r_a = RegistrationReceipt.objects.create(answer_sheet_of=form, user=a, status='Accepted', is_participating=True)
-        r_b = RegistrationReceipt.objects.create(answer_sheet_of=form, user=b, status='Accepted', is_participating=True)
+        r_a = RegistrationReceipt.objects.create(form=form, user=a, status='Accepted', is_participating=True)
+        r_b = RegistrationReceipt.objects.create(form=form, user=b, status='Accepted', is_participating=True)
 
     def test_invite(self):
         program = Program.objects.filter(name='program').first()

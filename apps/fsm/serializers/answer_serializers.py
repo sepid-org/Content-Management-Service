@@ -30,9 +30,9 @@ class AnswerSerializer(serializers.ModelSerializer):
         problem = attrs.get('problem', None)
         answer_sheet = self.context.get('answer_sheet', None)
         if answer_sheet is not None and problem is not None and problem.paper is not None:
-            if answer_sheet.answer_sheet_of != problem.paper:
+            if answer_sheet.form != problem.paper:
                 raise ParseError(serialize_error('4027', {'problem.paper': problem.paper,
-                                                          'original paper': answer_sheet.answer_sheet_of},
+                                                          'original paper': answer_sheet.form},
                                                  is_field_error=False))
         return attrs
 

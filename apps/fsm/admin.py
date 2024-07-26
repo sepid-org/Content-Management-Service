@@ -122,7 +122,7 @@ def download_csv(modeladmin, request, queryset):
     writer = csv.writer(f)
     a_receipt = queryset[0]
     problems = []
-    for widget in a_receipt.answer_sheet_of.widgets.all():
+    for widget in a_receipt.form.widgets.all():
         print(widget.widget_type)
         if 'problem' in widget.widget_type.lower():
             problem = widget
@@ -148,9 +148,9 @@ def download_csv(modeladmin, request, queryset):
 
 
 class RegistrationReceiptsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'name', 'answer_sheet_of',
+    list_display = ['user', 'name', 'form',
                     'status', 'is_participating', 'team']
-    list_filter = ['answer_sheet_of', 'status', 'is_participating']
+    list_filter = ['form', 'status', 'is_participating']
     actions = [delete_registration_receipts, download_csv]
 
     def name(self, obj):

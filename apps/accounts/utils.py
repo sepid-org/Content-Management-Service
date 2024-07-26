@@ -92,7 +92,7 @@ def can_user_login(user, password, website):
 
 
 def find_registration_receipt(user, registration_form):
-    return RegistrationReceipt.objects.filter(user=user, answer_sheet_of=registration_form).first()
+    return RegistrationReceipt.objects.filter(user=user, form=registration_form).first()
 
 
 def create_user_account_if_not_exist(website, **user_data):
@@ -113,7 +113,7 @@ def create_user_account_if_not_exist(website, **user_data):
 
 def update_or_create_registration_receipt(user: User, registration_form: RegistrationForm):
     serializer = MyRegistrationReceiptSerializer(data={
-        'answer_sheet_of': registration_form.id,
+        'form': registration_form.id,
         'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
         'user': user.id,
         'status': RegistrationReceipt.RegistrationStatus.Accepted,
@@ -122,7 +122,7 @@ def update_or_create_registration_receipt(user: User, registration_form: Registr
     serializer.is_valid(raise_exception=True)
     validated_data = serializer.validated_data
     receipt = RegistrationReceipt.objects.filter(
-        user=user, answer_sheet_of=registration_form).first()
+        user=user, form=registration_form).first()
     if receipt:
         return serializer.update(receipt, validated_data)
     else:

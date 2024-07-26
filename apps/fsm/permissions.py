@@ -51,8 +51,8 @@ class IsRegistrationReceiptOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         result = False
         result |= obj.user == request.user
-        if obj.answer_sheet_of.program:
-            result |= ProgramAdminPermission().has_object_permission(request, view, obj.answer_sheet_of.program)
+        if obj.form.program:
+            result |= ProgramAdminPermission().has_object_permission(request, view, obj.form.program)
         return result
 
 
@@ -63,7 +63,7 @@ class IsReceiptsFormModifier(permissions.BasePermission):
     message = 'You are not this registration receipt\'s registration form modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.answer_sheet_of.program_or_fsm.modifiers
+        return request.user in obj.form.program_or_fsm.modifiers
 
 
 class IsArticleModifier(permissions.BasePermission):
@@ -205,16 +205,16 @@ class HasActiveRegistration(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Program):
-            return len(RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.registration_form,
+            return len(RegistrationReceipt.objects.filter(user=request.user, form=obj.registration_form,
                                                           is_participating=True)) > 0
         elif isinstance(obj, FSM):
             if obj.program:
                 return len(
-                    RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.program.registration_form,
+                    RegistrationReceipt.objects.filter(user=request.user, form=obj.program.registration_form,
                                                        is_participating=True)) > 0
             else:
                 return len(
-                    RegistrationReceipt.objects.filter(user=request.user, answer_sheet_of=obj.registration_form,
+                    RegistrationReceipt.objects.filter(user=request.user, form=obj.registration_form,
                                                        is_participating=True))
 
 
@@ -227,7 +227,7 @@ class CanAnswerWidget(permissions.BasePermission):
         if isinstance(obj, Problem):
             if isinstance(obj.paper, State):
                 registration_form = obj.paper.fsm.registration_form or obj.paper.fsm.program.registration_form
-                receipt = RegistrationReceipt.objects.filter(answer_sheet_of=registration_form, user=request.user,
+                receipt = RegistrationReceipt.objects.filter(form=registration_form, user=request.user,
                                                              is_participating=True).first()
                 if receipt is not None:
                     if len(receipt.players.filter(fsm=obj.paper.fsm, current_state=obj.paper)) < 1:
