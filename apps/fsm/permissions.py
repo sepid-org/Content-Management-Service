@@ -46,10 +46,14 @@ class IsRegistrationReceiptOwner(permissions.BasePermission):
     """
     Permission for registration receipt owner to get
     """
-    message = 'You are not this registration receipt\'s owner'
+    message = 'You are not the owner of this form'
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        result = False
+        result |= obj.user == request.user
+        if obj.answer_sheet_of.program:
+            result |= ProgramAdminPermission().has_object_permission(request, view, obj.answer_sheet_of.program)
+        return result
 
 
 class IsReceiptsFormModifier(permissions.BasePermission):
