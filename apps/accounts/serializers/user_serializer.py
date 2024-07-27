@@ -145,16 +145,11 @@ class StudentshipSerializer(serializers.ModelSerializer):
                 raise ParseError(serialize_error('4015'))
         return attrs
 
-    def to_representation(self, instance):
-        representation = super(StudentshipSerializer,
-                               self).to_representation(instance)
-        del representation['polymorphic_ctype']
-        return representation
-
     class Meta:
         model = Studentship
-        fields = '__all__'
-        read_only_fields = ['id', 'is_document_verified', ]
+        fields = ['id', 'studentship_type', 'school', 'grade',
+                  'degree', 'major', 'university', 'university_major']
+        read_only_fields = ['id', 'is_document_verified']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
