@@ -479,9 +479,7 @@ class RegistrationReceipt(AnswerSheet):
         Other = "Other"
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    # should be in every answer sheet child
-    form = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
-                             on_delete=models.SET_NULL)
+    form = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', on_delete=models.PROTECT)
     user = models.ForeignKey(
         'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
