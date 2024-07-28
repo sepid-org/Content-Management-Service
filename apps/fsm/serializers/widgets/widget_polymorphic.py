@@ -1,9 +1,11 @@
 from rest_polymorphic.serializers import PolymorphicSerializer
-from apps.fsm.serializers.widget_serializers import DetailBoxWidgetSerializer, TextWidgetSerializer, ImageSerializer, VideoSerializer, AudioSerializer, AparatSerializer, \
-    IframeSerializer, SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
-from apps.fsm.models import DetailBoxWidget, Player, Iframe, Video, Image, TextWidget, Problem, SmallAnswerProblem, SmallAnswer, BigAnswer, \
-    MultiChoiceProblem, Choice, MultiChoiceAnswer, UploadFileProblem, BigAnswerProblem, UploadFileAnswer, State, Hint, \
-    Paper, Widget, Team, Aparat, Audio
+
+from apps.fsm.models import DetailBoxWidget, Iframe, Video, Image, TextWidget, SmallAnswerProblem, MultiChoiceProblem, UploadFileProblem, BigAnswerProblem, Aparat, Audio
+from apps.fsm.serializers.widgets.content_widgets.content_widget_serializers\
+    import AudioSerializer, DetailBoxWidgetSerializer, TextWidgetSerializer, ImageSerializer, VideoSerializer, AparatSerializer, \
+    IframeSerializer
+from apps.fsm.serializers.widgets.question_widgets.question_widget_serializers \
+    import SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
 
 
 class WidgetPolymorphicSerializer(PolymorphicSerializer):
@@ -16,7 +18,7 @@ class WidgetPolymorphicSerializer(PolymorphicSerializer):
         Aparat: AparatSerializer,
         Iframe: IframeSerializer,
         DetailBoxWidget: DetailBoxWidgetSerializer,
-        # Problem,
+        # Question,
         SmallAnswerProblem: SmallAnswerProblemSerializer,
         BigAnswerProblem: BigAnswerProblemSerializer,
         MultiChoiceProblem: MultiChoiceProblemSerializer,

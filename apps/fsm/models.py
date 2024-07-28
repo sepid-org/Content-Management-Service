@@ -674,7 +674,6 @@ class Widget(PolymorphicModel):
         Cost, on_delete=models.CASCADE, null=True, blank=True)
     reward = models.ForeignKey(
         Reward, on_delete=models.CASCADE, null=True, blank=True)
-    be_corrected = models.BooleanField(default=False)
 
     class Meta:
         order_with_respect_to = 'paper'
@@ -806,6 +805,7 @@ class Problem(Widget):
     text = models.TextField()
     is_required = models.BooleanField(default=False)
     solution = models.TextField(null=True, blank=True)
+    be_corrected = models.BooleanField(default=False)
 
     @property
     def correct_answer(self):
@@ -841,6 +841,9 @@ class UploadFileProblem(Problem):
 
 
 class MultiChoiceProblem(Problem):
+    maximum_choices_could_be_chosen = models.IntegerField(
+        validators=[MinValueValidator(0)], default=1)
+
     def clone(self, paper):
         cloned_widget = clone_widget(self, paper)
         cloned_choices = [choice.clone(cloned_widget)
@@ -866,8 +869,6 @@ class MultiChoiceProblem(Problem):
         correct_answer_object.save()
         return correct_answer_object
 
-    maximum_choices_could_be_chosen = models.IntegerField(
-        validators=[MinValueValidator(0)], default=1)
 
 
 class Choice(models.Model):

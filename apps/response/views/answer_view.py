@@ -11,7 +11,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import *
 from apps.fsm.permissions import CanAnswerWidget
 from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer, MockAnswerSerializer
-from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
+from apps.fsm.serializers.widgets.widget_polymorphic import WidgetPolymorphicSerializer
 from apps.scoring.views.apply_scores_on_user import apply_cost, apply_reward
 from proxies.assess_answer_service.main import assess_answer
 

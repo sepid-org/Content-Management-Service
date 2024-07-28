@@ -12,8 +12,6 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context.get('user', None)
-        answer_sheet = self.context.get('answer_sheet', None)
-        print("@@@@@@@@@@", answer_sheet)
         validated_data.get('problem').unfinalize_older_answers(user)
         return super().create({'submitted_by': user, **validated_data})
 
@@ -85,7 +83,7 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
         choices_data = validated_data.pop('choices', [])
         choices_ids = [choice_data['id'] for choice_data in choices_data]
         choices_instances = Choice.objects.filter(id__in=choices_ids)
-        instance = super(MultiChoiceAnswerSerializer, self).create(
+        instance = super().create(
             {'answer_type': 'MultiChoiceAnswer', **validated_data})
         instance.choices.add(*choices_instances)
         instance.save()
@@ -93,7 +91,7 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
         return instance
 
     def validate(self, attrs):
-        attrs = super(MultiChoiceAnswerSerializer, self).validate(attrs)
+        attrs = super().validate(attrs)
         choices = attrs.get('choices', [])
         problem = attrs.get('problem')
         multi_choice_answer_validator(
@@ -139,7 +137,7 @@ class MockAnswerSerializer(serializers.Serializer):
 
 class AnswerPolymorphicSerializer(PolymorphicSerializer):
     model_serializer_mapping = {
-        # Answer: AnswerSerializer,
+        # Answer,
         SmallAnswer: SmallAnswerSerializer,
         BigAnswer: BigAnswerSerializer,
         MultiChoiceAnswer: MultiChoiceAnswerSerializer,

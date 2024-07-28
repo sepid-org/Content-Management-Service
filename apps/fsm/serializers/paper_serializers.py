@@ -7,7 +7,7 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
-from apps.fsm.serializers.widget_polymorphic import WidgetPolymorphicSerializer
+from apps.fsm.serializers.widgets.widget_polymorphic import WidgetPolymorphicSerializer
 
 
 class PaperMinimalSerializer(serializers.ModelSerializer):
