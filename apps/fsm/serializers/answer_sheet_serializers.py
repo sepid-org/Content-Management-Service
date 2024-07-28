@@ -33,10 +33,9 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         paper = self.initial_data.get('form', None)
         if paper is not None:
             for widget in paper.widgets.all():
-                if isinstance(widget, Problem):
-                    if widget.is_required and widget not in problems:
-                        raise ParseError(serialize_error(
-                            '4029', {'problem': widget}))
+                if isinstance(widget, Problem) and widget.is_required and widget.id not in problems:
+                    raise ParseError(serialize_error(
+                        '4029', {'problem': widget}))
         return attrs
 
 
