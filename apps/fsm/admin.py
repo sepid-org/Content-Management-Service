@@ -315,9 +315,9 @@ class AnswerSheetCustomAdmin(admin.ModelAdmin):
 @admin.register(Problem)
 class ProblemCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'paper', 'widget_type',
-                    'creator', 'required']
+                    'creator', 'is_required']
     list_display_links = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name', 'widget_type', 'required']
+    list_filter = ['name', 'widget_type', 'is_required']
     search_fields = ['name']
 
     def download_final_answers_scores(self, request, queryset):

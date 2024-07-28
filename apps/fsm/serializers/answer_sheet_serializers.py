@@ -34,7 +34,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         if paper is not None:
             for w in paper.widgets.all():
                 if isinstance(w, Problem):
-                    if w.required and w not in problems:
+                    if w.is_required and w not in problems:
                         raise ParseError(serialize_error(
                             '4029', {'problem': w}))
 

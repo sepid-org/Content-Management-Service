@@ -481,7 +481,7 @@ class RegistrationReceipt(AnswerSheet):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     # should be in every answer sheet child
     form = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', null=True, blank=True,
-                                        on_delete=models.SET_NULL)
+                             on_delete=models.SET_NULL)
     user = models.ForeignKey(
         'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
@@ -804,7 +804,7 @@ class Image(Widget):
 
 class Problem(Widget):
     text = models.TextField()
-    required = models.BooleanField(default=False)
+    is_required = models.BooleanField(default=False)
     solution = models.TextField(null=True, blank=True)
 
     @property
