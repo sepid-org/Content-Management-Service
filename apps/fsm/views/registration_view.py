@@ -125,10 +125,15 @@ class RegistrationViewSet(ModelViewSet):
     @action(detail=True, methods=['post'], serializer_class=RegistrationReceiptSerializer)
     def register(self, request, pk=None):
         registration_form = self.get_object()
-        serializer = RegistrationReceiptSerializer(data={
-            'answer_sheet_type': 'RegistrationReceipt',
-            **request.data,
-        }, context={'user': request.user})
+        serializer = RegistrationReceiptSerializer(
+            data={
+                'answer_sheet_type': 'RegistrationReceipt',
+                'form': registration_form,
+                **request.data,
+            },
+            context={
+                'user': request.user,
+            })
         serializer.is_valid(raise_exception=True)
 
         register_permission_status = self.get_object(
@@ -151,7 +156,6 @@ class RegistrationViewSet(ModelViewSet):
             # its ok
             pass
 
-        serializer.validated_data['form'] = registration_form
         registration_receipt = serializer.save()
 
         program = registration_form.program
