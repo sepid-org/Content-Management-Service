@@ -14,6 +14,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         answers = self.initial_data.get('answers', [])
         registration_receipt = super().create({
             'user': self.context.get('user'),
+            'form': self.context.get('form'),
             **validated_data
         })
 
@@ -30,7 +31,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         answers = self.initial_data.get('answers', [])
         problems = [answer.get('problem', None) for answer in answers]
-        paper = self.initial_data.get('form', None)
+        paper = self.context.get('form', None)
         if paper is not None:
             for widget in paper.widgets.all():
                 if isinstance(widget, Problem) and widget.is_required and widget.id not in problems:
@@ -59,7 +60,7 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
 
     def validate(self, attrs):
         user = self.context.get('user', None)
-        form = self.initial_data.get('form', None)
+        form = self.context.get('form', None)
 
         if not user and not form:
             if len(RegistrationReceipt.objects.filter(form=form, user=user)) > 0:

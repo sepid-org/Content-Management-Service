@@ -455,7 +455,6 @@ class AnswerSheet(PolymorphicModel):
         RegistrationReceipt = "RegistrationReceipt"
         StateAnswerSheet = "StateAnswerSheet"
 
-    # form = models.ForeignKey(Form, null=True, default=None, on_delete=models.SET_NULL, related_name='answer_sheets')
     answer_sheet_type = models.CharField(
         max_length=25, blank=False, choices=AnswerSheetType.choices)
 

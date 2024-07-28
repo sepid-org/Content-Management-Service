@@ -128,10 +128,10 @@ class RegistrationViewSet(ModelViewSet):
         serializer = RegistrationReceiptSerializer(
             data={
                 'answer_sheet_type': 'RegistrationReceipt',
-                'form': registration_form,
                 **request.data,
             },
             context={
+                'form': registration_form,
                 'user': request.user,
             })
         serializer.is_valid(raise_exception=True)
