@@ -1,3 +1,7 @@
 from django.db import models
 
-# Create your models here.
+
+class Excel_Export_Date(models.Model):
+    Date = models.DateField(auto_now=True)
+    name = models.CharField(max_length=256)
+
