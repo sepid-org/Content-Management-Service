@@ -3,6 +3,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from django.apps import apps
+from rest_framework.decorators import api_view
+from apps.file_storage.models import File
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import csv
 
 
@@ -41,12 +47,15 @@ def export_csv(request):
 
 
 
-# 1- send program id and give a excel of user that register this program
-#1- done
-# 2-send form
+
+
+
 
 import requests
 
+
+
+from apps.file_storage.serializers.file_serializer import FileSerializer
 def create_session():
     url = "https://metabase.sepid.org/api/session"
     headers = {
@@ -65,9 +74,7 @@ def create_session():
         response.raise_for_status()
 
 session_data = create_session()
-print(session_data)
 
-import requests
 
 
 def get_current_user(session_token):
@@ -114,15 +121,12 @@ def get_current_user(session_token):
     else:
         response.raise_for_status()
 
-session_token = session_data.get("id")
-current_user = get_current_user(session_token)
-print(current_user)
 
 import requests
 def export_excel(form_id):
-    url = "https://metabase.sepid.org/api/dataset/json"
+    url = "https://metabase.sepid.org/api/dataset/xlsx"
     headers = {
-        "X-Metabase-Session": session_token,
+        "X-Metabase-Session": session_data.get("id"),
         "Content-Type": "application/x-www-form-urlencoded"
     }
     query='{"source-table":60,"filter":["and",["=",["field",448,null],true],["=",["field",444,null],"Accepted"],'+f'["=",["field",779,null],{form_id}]]'+',"joins":[{"fields":[["field",142,{"join-alias":"Accounts User - User"}],["field",156,{"join-alias":"Accounts User - User"}],["field",158,{"join-alias":"Accounts User - User"}],["field",144,{"join-alias":"Accounts User - User"}],["field",159,{"join-alias":"Accounts User - User"}],["field",151,{"join-alias":"Accounts User - User"}],["field",146,{"join-alias":"Accounts User - User"}],["field",147,{"join-alias":"Accounts User - User"}]],"source-table":32,"condition":["=",["field",443,null],["field",151,{"join-alias":"Accounts User - User"}]],"alias":"Accounts User - User"}]},"type":"query","middleware":{"js-int-to-string?":true,"add-default-userland-constraints?":true}}'
@@ -132,11 +136,28 @@ def export_excel(form_id):
     response = requests.post(url, headers=headers, data=data)
 
     if response.status_code == 200:
-        with open('output.json', 'wb') as f:
+        with open('output.xlsx', 'wb') as f:
             f.write(response.content)
-        print("CSV file saved successfully.")
+
+
+        file = SimpleUploadedFile("test.xlsx", b"file_content")
+        new_file = FileSerializer(data={"file":file})
+        new_file.is_valid(raise_exception=True)
+        new_file.save()
+        print(new_file.data)
+        print("File created successfully:")
+        return response.content
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
 
-export_excel(form_id=307)
+
+
+
+
+
+@api_view(["post"])
+def get_excel(request):
+    id = request.data.get('form_id')
+    file_content =export_excel(form_id=id)
+    return HttpResponse("success")
