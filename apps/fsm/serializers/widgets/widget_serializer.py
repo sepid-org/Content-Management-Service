@@ -21,8 +21,9 @@ class WidgetSerializer(serializers.ModelSerializer):
     widget_type = serializers.ChoiceField(
         choices=Widget.WidgetTypes.choices, required=True)
     hints = serializers.SerializerMethodField()
-    cost = CostSerializer(required=False)
-    reward = RewardSerializer(required=False)
+    cost = CostSerializer(required=False, allow_null=True)
+    reward = RewardSerializer(required=False, allow_null=True)
+    
 
     def get_hints(self, obj):
         from apps.fsm.serializers.paper_serializers import WidgetHintSerializer
