@@ -69,13 +69,14 @@ def create_or_get_user(user_data, website):
     UserWebsite.objects.create(
         user=user, website=website, password=make_password(user_data.get("password")))
 
-    # send greeting email
-    if user.email:
-        email_service_proxy = EmailServiceProxy(website=website)
-        email_service_proxy.send_greeting_email(
-            email=user.email,
-            name=user.full_name,
-        )
+    # # send greeting email
+    # if user.email:
+    #     email_service_proxy = EmailServiceProxy(website=website)
+    #     email_service_proxy.send_greeting_email(
+    #         email=user.email,
+    #         name=user.full_name,
+    #     )
+    
     # send greeting notification
     notification_service_proxy = InstantMessagingServiceProxy(website=website)
     notification_service_proxy.send_notification(recipient=str(user.id), message='به آکادمی خود خوش آمدید!')
