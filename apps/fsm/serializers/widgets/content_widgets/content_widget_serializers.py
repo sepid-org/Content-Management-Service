@@ -55,7 +55,7 @@ class ImageSerializer(ContentWidgetSerializer):
     def create(self, validated_data):
         return super(ImageSerializer, self).create({'widget_type': Widget.WidgetTypes.Image, **validated_data})
 
-    class Meta(ContentWidgetSerializer):
+    class Meta(ContentWidgetSerializer.Meta):
         model = Image
         fields = ContentWidgetSerializer.Meta.fields + ['link']
 
@@ -90,7 +90,7 @@ class DetailBoxWidgetSerializer(ContentWidgetSerializer):
             **validated_data,
         })
 
-    class Meta(ContentWidgetSerializer):
+    class Meta(ContentWidgetSerializer.Meta):
         model = DetailBoxWidget
         fields = ContentWidgetSerializer.Meta.fields + ['title', 'details']
         read_only_fields = ContentWidgetSerializer.Meta.read_only_fields + \
