@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from apps.accounts.models import VerificationCode, User
+from apps.accounts.models import UserWebsiteLogin, VerificationCode, User
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.user_serializer import PhoneNumberSerializer, PhoneNumberVerificationCodeSerializer, UserSerializer
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
@@ -41,7 +41,8 @@ class SendVerificationCode(GenericAPIView):
                 phone_number=phone_number)
             try:
                 verification_code.notify(
-                    verification_type=serializer.validated_data.get('code_type', None),
+                    verification_type=serializer.validated_data.get(
+                        'code_type', None),
                     party_display_name=party_display_name,
                 )
             except:
@@ -147,7 +148,10 @@ class Login(TokenObtainPairView):
 
         token_serializer = self.get_serializer(
             data={"username": user.username})
+
         token_serializer.is_valid(raise_exception=True)
+        UserWebsiteLogin.objects.create(
+            **{"user_website": user.get_user_website(website=website)})
         return Response({'account': UserSerializer(user).data, **token_serializer.validated_data},
                         status=status.HTTP_200_OK)
 

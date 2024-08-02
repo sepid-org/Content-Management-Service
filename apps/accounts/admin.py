@@ -4,7 +4,7 @@ from re import search
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
-from .models import Purchase, DiscountCode, User, UserWebsite, VerificationCode, \
+from .models import Purchase, DiscountCode, User, UserWebsite, VerificationCode, UserWebsiteLogin, \
     University, EducationalInstitute, School, SchoolStudentship, AcademicStudentship, Merchandise, Voucher
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,13 @@ class UserWebsiteAdmin(admin.ModelAdmin):
     model = UserWebsite
     list_display = ['user', 'website']
     list_filter = ['website']
+
+
+@admin.register(UserWebsiteLogin)
+class UserWebsiteLoginsCustomAdmin(admin.ModelAdmin):
+    list_display = ['user_website', 'datetime']
+    list_filter = ['user_website__website']
+    search_fields = ['user_website__user', 'user_website__website']
 
 
 class CustomUserAdmin(admin.ModelAdmin):

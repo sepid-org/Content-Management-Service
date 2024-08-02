@@ -3,8 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.fsm.views.paper_view import PaperViewSet
 
-from .views.answer_view import UploadAnswerViewSet, AnswerViewSet
-from .views.article_view import ArticleViewSet, say_hello
+from .views.article_view import ArticleViewSet
 from .views.program_view import ProgramViewSet
 from .views.fsm_view import *
 from .views.edge_view import *
@@ -31,8 +30,6 @@ router.register(r'fonts', FontViewSet, basename='fonts')
 router.register(r'receipts', RegistrationReceiptViewSet, basename='receipts')
 router.register(r'team', TeamViewSet, basename='teams')
 router.register(r'invitations', InvitationViewSet, basename='invitations')
-router.register(r'upload_answer', UploadAnswerViewSet,
-                basename='upload_answer')
 router.register(r'state', StateViewSet, basename='states')
 router.register(r'paper', PaperViewSet, basename='papers')
 router.register(r'edge', EdgeViewSet, basename='edges')
@@ -40,9 +37,7 @@ router.register(r'hint', HintViewSet, basename='hints')
 router.register(r'widget-hint', WidgetHintViewSet, basename='widget-hints')
 router.register(r'widget', WidgetViewSet, basename='widgets')
 router.register(r'player', PlayerViewSet, basename='players')
-router.register(r'answers', AnswerViewSet, basename='answers')
 
 urlpatterns = [
-    path("test/", say_hello),
     path('', include(router.urls)),
 ]

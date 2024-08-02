@@ -19,7 +19,7 @@ from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerial
 from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSimpleSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer, PlayerStateSerializer
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic import WidgetPolymorphicSerializer
+from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
 
 

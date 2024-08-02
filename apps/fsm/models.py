@@ -135,7 +135,8 @@ class Program(models.Model):
 
     merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
                                        null=True, blank=True)
-    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
+    registration_form = models.OneToOneField(
+        'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
     holder = models.ForeignKey('accounts.EducationalInstitute', related_name='programs', on_delete=models.SET_NULL,
@@ -172,10 +173,12 @@ class Program(models.Model):
         return modifiers
 
     @property
-    def participants(self):
-        if self.registration_form:
-            return self.registration_form.registration_receipts.filter(is_participating=True)
-        return RegistrationReceipt.objects.none()
+    def initial_participants(self):
+        return self.registration_form.registration_receipts.filter()
+
+    @property
+    def final_participants(self):
+        return self.registration_form.registration_receipts.filter(is_participating=True)
 
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None
@@ -478,7 +481,8 @@ class RegistrationReceipt(AnswerSheet):
         Other = "Other"
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    form = models.ForeignKey('fsm.RegistrationForm', related_name='registration_receipts', on_delete=models.PROTECT)
+    form = models.ForeignKey(
+        'fsm.RegistrationForm', related_name='registration_receipts', on_delete=models.PROTECT)
     user = models.ForeignKey(
         'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
@@ -555,10 +559,6 @@ class RegistrationForm(Paper):
     max_grade = models.IntegerField(
         default=12, validators=[MaxValueValidator(12), MinValueValidator(0)])
 
-    # TODO - add filter for audience type
-
-    conditions = models.TextField(null=True, blank=True)
-
     accepting_status = models.CharField(
         max_length=15, default='AutoAccept', choices=AcceptingStatus.choices)
     gender_partition_status = models.CharField(max_length=25, default='BothPartitioned',
@@ -588,10 +588,6 @@ class RegistrationForm(Paper):
         time_check_result = self.check_time()
         if time_check_result != 'ok':
             return time_check_result
-
-        # if exec(self.form.conditions):
-        #     return True
-        # TODO - handle for academic studentship too
 
         gender_check_result = self.check_gender(user)
         if gender_check_result != 'ok':
@@ -849,7 +845,7 @@ class MultiChoiceProblem(Problem):
 
     @property
     def correct_answer(self):
-        from apps.fsm.serializers.answer_serializers import MultiChoiceAnswerSerializer
+        from apps.response.serializers.answers.answer_serializers import MultiChoiceAnswerSerializer
         correct_answer_object = self.answers.filter(is_correct=True).first()
         correct_choices = self.choices.all().filter(is_correct=True)
 
@@ -865,7 +861,6 @@ class MultiChoiceProblem(Problem):
         correct_answer_object.choices.set(correct_choices)
         correct_answer_object.save()
         return correct_answer_object
-
 
 
 class Choice(models.Model):

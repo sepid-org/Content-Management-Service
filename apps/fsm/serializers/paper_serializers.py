@@ -7,7 +7,7 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic import WidgetPolymorphicSerializer
+from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 
 
 class PaperMinimalSerializer(serializers.ModelSerializer):
@@ -66,19 +66,6 @@ class RegistrationFormSerializer(PaperSerializer):
 
         return instance
 
-    def validate(self, attrs):
-        program = attrs.get('program', None)
-        fsm = attrs.get('fsm', None)
-        if program is not None and fsm is not None:
-            raise ParseError(serialize_error('4022'))
-        if program is not None and program.registration_form is not None:
-            raise ParseError(serialize_error('4023'))
-        if fsm is not None and fsm.registration_form is not None:
-            raise ParseError(serialize_error('4024'))
-        if fsm is None and program is None:
-            raise ParseError(serialize_error('4025'))
-        return attrs
-
     def validate_program(self, program):
         if program is not None and self.context.get('user', None) not in program.modifiers:
             raise PermissionDenied(serialize_error('4026'))
@@ -92,9 +79,9 @@ class RegistrationFormSerializer(PaperSerializer):
     class Meta:
         model = RegistrationForm
         ref_name = 'registration_form'
-        fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam', 'conditions',
+        fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam',
                   'program', 'fsm', 'paper_type', 'creator', 'accepting_status', 'certificate_templates',
-                  'has_certificate', 'certificates_ready', 'audience_type']
+                  'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
         read_only_fields = ['id', 'creator']
 
 

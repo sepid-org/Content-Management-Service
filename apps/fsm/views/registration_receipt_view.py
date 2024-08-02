@@ -80,16 +80,17 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
             receipt.status = registration_status
             receipt.save()
 
-            # todo: fix academy name
-            if older_status != receipt.status:
-                sms_service_proxy = SMSServiceProxy(provider='kavenegar')
-                sms_service_proxy.send_otp(
-                    receptor_phone_number=receipt.user.phone_number,
-                    action=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
-                    # todo: get real academy name from mps
-                    token='کاموا',
-                    token2=receipt.form.program_or_fsm.name
-                )
+            # todo: fix sending sms on registration receipt status change
+            # # todo: fix academy name
+            # if older_status != receipt.status:
+            #     sms_service_proxy = SMSServiceProxy(provider='kavenegar')
+            #     sms_service_proxy.send_otp(
+            #         receptor_phone_number=receipt.user.phone_number,
+            #         action=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
+            #         # todo: get real academy name from mps
+            #         token='کاموا',
+            #         token2=receipt.form.program_or_fsm.name
+            #     )
 
             return Response(
                 RegistrationReceiptSerializer(

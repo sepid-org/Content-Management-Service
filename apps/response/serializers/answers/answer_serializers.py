@@ -1,10 +1,8 @@
-import os
 from datetime import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
-from rest_polymorphic.serializers import PolymorphicSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import SmallAnswer, BigAnswer, MultiChoiceAnswer, UploadFileAnswer, Choice
+from apps.fsm.models import Answer, SmallAnswer, BigAnswer, MultiChoiceAnswer, UploadFileAnswer, Choice
 from apps.fsm.serializers.validators import multi_choice_answer_validator
 
 
@@ -34,27 +32,29 @@ class AnswerSerializer(serializers.ModelSerializer):
                                                  is_field_error=False))
         return attrs
 
+    class Meta:
+        model = Answer
+        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
+                  'problem']
+        read_only_fields = ['id', 'submitted_by', 'answer_type', 'created_at']
+
 
 class SmallAnswerSerializer(AnswerSerializer):
     def create(self, validated_data):
         return super().create({'answer_type': 'SmallAnswer', **validated_data})
 
-    class Meta:
+    class Meta(AnswerSerializer.Meta):
         model = SmallAnswer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'text']
-        read_only_fields = ['id', 'submitted_by', 'created_at']
+        fields = AnswerSerializer.Meta.fields + ['text']
 
 
 class BigAnswerSerializer(AnswerSerializer):
     def create(self, validated_data):
         return super().create({'answer_type': 'BigAnswer', **validated_data})
 
-    class Meta:
+    class Meta(AnswerSerializer.Meta):
         model = BigAnswer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'text']
-        read_only_fields = ['id', 'submitted_by', 'created_at', 'is_correct']
+        fields = AnswerSerializer.Meta.fields + ['text']
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -73,11 +73,9 @@ class ChoiceSerializer(serializers.ModelSerializer):
 class MultiChoiceAnswerSerializer(AnswerSerializer):
     choices = ChoiceSerializer(many=True, required=False)
 
-    class Meta:
+    class Meta(AnswerSerializer.Meta):
         model = MultiChoiceAnswer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'choices']
-        read_only_fields = ['id', 'submitted_by', 'created_at']
+        fields = AnswerSerializer.Meta.fields + ['choices']
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices', [])
@@ -101,12 +99,9 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
 
 class UploadFileAnswerSerializer(AnswerSerializer):
 
-    class Meta:
+    class Meta(AnswerSerializer.Meta):
         model = UploadFileAnswer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem', 'answer_file']
-        read_only_fields = ['id', 'answer_type',
-                            'submitted_by', 'created_at', 'is_correct']
+        fields = AnswerSerializer.Meta.fields + ['answer_file']
 
     def validate(self, attrs):
         problem = attrs.get('problem', None)
@@ -127,21 +122,3 @@ class UploadFileAnswerSerializer(AnswerSerializer):
                 representation['answer_file'] = domain + answer_file
         return representation
 
-
-class MockAnswerSerializer(serializers.Serializer):
-    SmallAnswerSerializer = SmallAnswerSerializer(required=False)
-    BigAnswerSerializer = BigAnswerSerializer(required=False)
-    MultiChoiceAnswerSerializer = MultiChoiceAnswerSerializer(required=False)
-    UploadFileAnswerSerializer = UploadFileAnswerSerializer(required=False)
-
-
-class AnswerPolymorphicSerializer(PolymorphicSerializer):
-    model_serializer_mapping = {
-        # Answer,
-        SmallAnswer: SmallAnswerSerializer,
-        BigAnswer: BigAnswerSerializer,
-        MultiChoiceAnswer: MultiChoiceAnswerSerializer,
-        UploadFileAnswer: UploadFileAnswerSerializer,
-    }
-
-    resource_type_field_name = 'answer_type'

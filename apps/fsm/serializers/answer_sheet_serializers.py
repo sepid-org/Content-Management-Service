@@ -4,8 +4,8 @@ from rest_framework.exceptions import ParseError
 
 from apps.accounts.serializers.user_serializer import UserSerializer, StudentshipSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import RegistrationReceipt, Problem
-from apps.fsm.serializers.answer_serializers import AnswerPolymorphicSerializer
+from apps.fsm.models import AnswerSheet, RegistrationReceipt, Problem
+from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):
@@ -50,6 +50,13 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
 
     def get_academic_studentship(self, obj):
         return StudentshipSerializer(obj.user.academic_studentship).data
+
+    def create(self, validated_data):
+        registration_receipt = super().create({
+            'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
+            **validated_data
+        })
+        return registration_receipt
 
     class Meta:
         model = RegistrationReceipt

@@ -79,6 +79,11 @@ class UserWebsite(models.Model):
         return f'{self.user} | {self.website}'
 
 
+class UserWebsiteLogin(models.Model):
+    datetime = models.DateTimeField(auto_now=True)
+    user_website = models.ForeignKey(to=UserWebsite, on_delete=models.CASCADE)
+
+
 class InstituteManager(PolymorphicManager):
     @transaction.atomic
     def create(self, **args):

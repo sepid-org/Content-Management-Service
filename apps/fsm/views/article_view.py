@@ -1,27 +1,14 @@
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
-from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.utils.decorators import method_decorator
-from django.http import JsonResponse
 
 from apps.fsm.models import Article
 from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.paper_serializers import ArticleSerializer, ChangeWidgetOrderSerializer
 from apps.fsm.utils import SafeTokenAuthentication
-
-
-@cache_page(60 * 1,  key_prefix="site1")
-def say_hello(request):
-    articles = Article.objects.all()
-    data = []
-    for i in articles:
-        data.append(i.name)
-    print(articles)
-    return JsonResponse({"message": data})
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
