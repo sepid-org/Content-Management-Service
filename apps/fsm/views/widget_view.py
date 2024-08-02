@@ -8,7 +8,7 @@ from django.db import transaction
 
 from apps.fsm.models import *
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic import WidgetPolymorphicSerializer
+from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 
 
 class WidgetViewSet(viewsets.ModelViewSet):

@@ -8,7 +8,8 @@ from rest_framework.viewsets import GenericViewSet
 from apps.fsm.filtersets import AnswerFilterSet
 from apps.fsm.models import Answer, UploadFileAnswer
 from apps.fsm.permissions import IsAnswerModifier, MentorCorrectionPermission
-from apps.fsm.serializers.answer_serializers import UploadFileAnswerSerializer, AnswerPolymorphicSerializer
+from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.response.serializers.answers.answer_serializers import UploadFileAnswerSerializer
 
 
 class UploadAnswerViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin):

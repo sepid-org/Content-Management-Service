@@ -843,7 +843,7 @@ class MultiChoiceProblem(Problem):
 
     @property
     def correct_answer(self):
-        from apps.fsm.serializers.answer_serializers import MultiChoiceAnswerSerializer
+        from apps.response.serializers.answers.answer_serializers import MultiChoiceAnswerSerializer
         correct_answer_object = self.answers.filter(is_correct=True).first()
         correct_choices = self.choices.all().filter(is_correct=True)
 
