@@ -173,10 +173,12 @@ class Program(models.Model):
         return modifiers
 
     @property
-    def participants(self):
-        if self.registration_form:
-            return self.registration_form.registration_receipts.filter(is_participating=True)
-        return RegistrationReceipt.objects.none()
+    def initial_participants(self):
+        return self.registration_form.registration_receipts.filter()
+
+    @property
+    def final_participants(self):
+        return self.registration_form.registration_receipts.filter(is_participating=True)
 
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None

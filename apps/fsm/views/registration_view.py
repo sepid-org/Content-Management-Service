@@ -160,7 +160,7 @@ class RegistrationViewSet(ModelViewSet):
 
         program = registration_form.program
         if program:
-            if program.maximum_participant is None or len(program.participants) < program.maximum_participant:
+            if program.maximum_participant is None or len(program.final_participants) < program.maximum_participant:
                 if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
                     registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
                     if not program.merchandise:
