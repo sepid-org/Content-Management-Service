@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from django.apps import apps
+from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from apps.file_storage.models import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -96,7 +97,7 @@ def get_user_answer(session_token,form_id , user_id):
         new_file.save()
         print(new_file.data)
         print("File created successfully:")
-        return response.content
+        return new_file.data
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
@@ -161,7 +162,7 @@ def export_excel(form_id):
     response = requests.post(url, headers=headers, data=data)
 
     if response.status_code == 200:
-        with open('output.xlsx', 'wb') as f:
+        with open('test.xlsx', 'wb') as f:
             f.write(response.content)
 
 
@@ -171,7 +172,7 @@ def export_excel(form_id):
         new_file.save()
         print(new_file.data)
         print("File created successfully:")
-        return response.content
+        return new_file.data
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
@@ -191,7 +192,7 @@ def get_all_user_answer(form_id):
     response = requests.post(url, headers=headers, data=data)
 
     if response.status_code == 200:
-        with open('output.xlsx', 'wb') as f:
+        with open('test.xlsx', 'wb') as f:
             f.write(response.content)
 
         file = SimpleUploadedFile("test.xlsx", b"file_content")
@@ -200,7 +201,7 @@ def get_all_user_answer(form_id):
         new_file.save()
         print(new_file.data)
         print("File created successfully:")
-        return response.content
+        return new_file.data
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
@@ -209,15 +210,17 @@ def get_all_user_answer(form_id):
 @api_view(["post"])
 def get_user_excel(request):
     id = request.data.get('form_id')
+    print(id)
     file_content =export_excel(form_id=id)
-    return HttpResponse("success")
+    print(file_content)
+    return Response(file_content)
 
 
 
 @api_view(["post"])
 def get_answer_excel(request):
     id = request.data.get('form_id')
-    file_content =export_excel(form_id=id)
-    return HttpResponse("success")
+    file_content =get_all_user_answer(form_id=id)
+    return Response(file_content)
 
 
