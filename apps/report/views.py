@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.serializers import serialize
 from django.apps import apps
+from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from apps.file_storage.models import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -75,6 +76,31 @@ def create_session():
 
 session_data = create_session()
 
+def get_user_answer(session_token,form_id , user_id):
+    url = "https://metabase.sepid.org/api/dataset/xlsx"
+    headers = {
+        "X-Metabase-Session": session_data.get("id"),
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "query":'{"database":2,"type":"query","query":{"source-table":60,"joins":[{"source-table":35,"condition":["=",["field",446,null],["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}]],"alias":"Fsm+Answersheet+-+Answersheet+Ptr"},{"fields":[["field",264,{"join-alias":"Fsm+Answer"}]],"source-table":106,"condition":["=",["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}],["field",269,{"join-alias":"Fsm+Answer"}]],"alias":"Fsm+Answer"},{"fields":[["field",290,{"join-alias":"Fsm+Biganswer"}]],"source-table":46,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",288,{"join-alias":"Fsm+Biganswer"}]],"alias":"Fsm+Biganswer"},{"fields":[["field",451,{"join-alias":"Fsm+Smallanswer"}]],"source-table":96,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",449,{"join-alias":"Fsm+Smallanswer"}]],"alias":"Fsm+Smallanswer"},{"fields":[["field",142,{"join-alias":"Accounts+User+-+User"}],["field",156,{"join-alias":"Accounts+User+-+User"}],["field",151,{"join-alias":"Accounts+User+-+User"}]],"source-table":32,"condition":["=",["field",443,null],["field",151,{"join-alias":"Accounts+User+-+User"}]],"alias":"Accounts+User+-+User"}],"filter":["and",["=",["field",779,null],'+f'{form_id}'+'],["=",["field",443,null],"'+f'{user_id}'+'"]]},"middleware":{"js-int-to-string?":true,"add-default-userland-constraints?":true}}'
+    }
+    response = requests.post(url, headers=headers, data=data)
+
+    if response.status_code == 200:
+        with open('output.xlsx', 'wb') as f:
+            f.write(response.content)
+
+        file = SimpleUploadedFile("test.xlsx", b"file_content")
+        new_file = FileSerializer(data={"file": file})
+        new_file.is_valid(raise_exception=True)
+        new_file.save()
+        print(new_file.data)
+        print("File created successfully:")
+        return new_file.data
+    else:
+        print(f"Failed to retrieve data. Status code: {response.status_code}")
+        print(response.text)
 
 
 def get_current_user(session_token):
@@ -136,7 +162,7 @@ def export_excel(form_id):
     response = requests.post(url, headers=headers, data=data)
 
     if response.status_code == 200:
-        with open('output.xlsx', 'wb') as f:
+        with open('test.xlsx', 'wb') as f:
             f.write(response.content)
 
 
@@ -146,7 +172,7 @@ def export_excel(form_id):
         new_file.save()
         print(new_file.data)
         print("File created successfully:")
-        return response.content
+        return new_file.data
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
@@ -154,10 +180,47 @@ def export_excel(form_id):
 
 
 
+def get_all_user_answer(form_id):
+    url = "https://metabase.sepid.org/api/dataset/xlsx"
+    headers = {
+        "X-Metabase-Session": session_data.get("id"),
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "query":'{"query":{"source-table":60,"joins":[{"fields":"none","source-table":35,"condition":["=",["field",446,null],["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}]],"alias":"Fsm+Answersheet+-+Answersheet+Ptr"},{"fields":"none","source-table":106,"condition":["=",["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}],["field",269,{"join-alias":"Fsm+Answer"}]],"alias":"Fsm+Answer"},{"fields":"none","source-table":96,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",449,{"join-alias":"Fsm+Smallanswer"}]],"alias":"Fsm+Smallanswer"},{"fields":"none","source-table":46,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",288,{"join-alias":"Fsm+Biganswer"}]],"alias":"Fsm+Biganswer","strategy":"left-join"},{"fields":"none","source-table":27,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",368,{"join-alias":"Fsm+Multichoiceanswer"}]],"alias":"Fsm+Multichoiceanswer"},{"fields":"none","source-table":107,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",466,{"join-alias":"Fsm+Uploadfileanswer"}]],"alias":"Fsm+Uploadfileanswer"}],"filter":["=",["field",779,null],'+f'{form_id}'+'],"expressions":{"answer":["concat",["field",451,{"join-alias":"Fsm+Smallanswer"}],["field",290,{"join-alias":"Fsm+Biganswer"}],["field",466,{"join-alias":"Fsm+Uploadfileanswer"}]],"name":["concat",["field",142,{"source-field":443}],"+",["field",156,{"source-field":443}]]},"fields":[["field",446,null],["expression","answer",null],["expression","name"]]},"type":"query","database":2,"middleware":{"js-int-to-string?":true,"add-default-userland-constraints?":true}}'
+    }
+    response = requests.post(url, headers=headers, data=data)
+
+    if response.status_code == 200:
+        with open('test.xlsx', 'wb') as f:
+            f.write(response.content)
+
+        file = SimpleUploadedFile("test.xlsx", b"file_content")
+        new_file = FileSerializer(data={"file": file})
+        new_file.is_valid(raise_exception=True)
+        new_file.save()
+        print(new_file.data)
+        print("File created successfully:")
+        return new_file.data
+    else:
+        print(f"Failed to retrieve data. Status code: {response.status_code}")
+        print(response.text)
 
 
 @api_view(["post"])
-def get_excel(request):
+def get_user_excel(request):
     id = request.data.get('form_id')
+    print(id)
     file_content =export_excel(form_id=id)
-    return HttpResponse("success")
+    print(file_content)
+    return Response(file_content)
+
+
+
+@api_view(["post"])
+def get_answer_excel(request):
+    id = request.data.get('form_id')
+    file_content =get_all_user_answer(form_id=id)
+    return Response(file_content)
+
+
