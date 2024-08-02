@@ -25,7 +25,7 @@ class User(AbstractUser):
         max_length=15, blank=True, null=True, unique=True)
     # national code should not be unique, due it's not validated
     national_code = models.CharField(max_length=10, null=True, blank=True)
-    profile_picture2 = models.URLField(blank=True, null=True, max_length=2000)
+    profile_picture = models.URLField(blank=True, null=True, max_length=2000)
     bio = models.CharField(max_length=300, blank=True, null=True)
     gender = models.CharField(max_length=10, null=True,
                               blank=True, choices=Gender.choices)
