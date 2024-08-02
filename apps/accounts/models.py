@@ -27,7 +27,7 @@ class User(AbstractUser):
     national_code = models.CharField(max_length=10, null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to='profile_pictures/', blank=True, null=True)
-    profile_picture2 = models.URLField(blank=True, null=True)
+    profile_picture2 = models.URLField(blank=True, null=True, max_length=2000)
     bio = models.CharField(max_length=300, blank=True, null=True)
     gender = models.CharField(max_length=10, null=True,
                               blank=True, choices=Gender.choices)
