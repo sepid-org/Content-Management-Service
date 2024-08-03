@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
 
+from apps.accounts.serializers.institute_serializer import InstituteInfoSummarySerializer, InstituteSerializer
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_LENGTH
@@ -152,6 +153,25 @@ class StudentshipSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'is_document_verified']
 
 
+class SchoolStudentshipReadOnlySerializer(serializers.ModelSerializer):
+    school = InstituteSerializer(required=False, allow_null=True)
+
+    class Meta:
+        model = SchoolStudentship
+        fields = ['id', 'studentship_type', 'school', 'grade', 'major']
+        read_only_fields = fields
+
+
+class AcademicStudentshipReadOnlySerializer(serializers.ModelSerializer):
+    university = InstituteSerializer(required=False, allow_null=True)
+
+    class Meta:
+        model = AcademicStudentship
+        fields = ['id', 'studentship_type',
+                  'university', 'degree', 'university_major']
+        read_only_fields = fields
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     school_studentship = StudentshipSerializer(read_only=True)
     academic_studentship = StudentshipSerializer(read_only=True)
@@ -168,10 +188,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
                             'academic_studentship', 'username', 'phone_number', 'password']
 
 
-class UserProfileSummarySerializer(serializers.ModelSerializer):
+class UserPublicInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'bio', 'profile_picture']
-        read_only_fields = ['id', 'first_name',
-                            'last_name', 'bio', 'profile_picture']
+        read_only_fields = fields
+
+
+class UserRegistrationReceiptInfoSerializer(UserPublicInfoSerializer):
+
+    class Meta(UserPublicInfoSerializer.Meta):
+        model = User
+        fields = UserPublicInfoSerializer.Meta.fields + \
+            ['phone_number', 'email', 'province', 'city', 'gender']

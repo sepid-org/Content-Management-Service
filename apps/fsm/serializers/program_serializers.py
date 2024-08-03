@@ -6,7 +6,7 @@ from apps.accounts.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
-from apps.fsm.models import Program, RegistrationForm, RegistrationReceipt
+from apps.fsm.models import Program, RegistrationForm
 
 
 class ProgramSummarySerializer(serializers.ModelSerializer):

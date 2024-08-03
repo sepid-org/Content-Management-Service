@@ -10,7 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import EducationalInstitute
 from apps.accounts.permissions import IsInstituteOwner, IsInstituteAdmin
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.serializers.serializers import InstituteSerializer
+from apps.accounts.serializers.institute_serializer import InstituteSerializer
 from apps.accounts.utils import find_user_in_website
 from errors.error_codes import serialize_error
 

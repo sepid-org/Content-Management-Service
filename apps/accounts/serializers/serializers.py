@@ -5,44 +5,8 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
 
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
-from ..models import User, EducationalInstitute, School, University, Merchandise, DiscountCode, Purchase
-from ..validators import phone_number_validator, price_validator
-
-
-class InstituteSerializer(serializers.ModelSerializer):
-    principal_name = serializers.CharField(max_length=30, required=False)
-    principal_phone = serializers.CharField(
-        max_length=15, validators=[phone_number_validator], required=False)
-    phone_number = serializers.CharField(max_length=15, validators=[
-                                         phone_number_validator], required=False)
-    school_type = serializers.ChoiceField(
-        choices=School.SchoolType.choices, required=False)
-    gender_type = serializers.ChoiceField(
-        choices=School.Gender.choices, required=False)
-
-    is_approved = serializers.BooleanField(read_only=True)
-    creator = serializers.PrimaryKeyRelatedField(
-        many=False, required=False, read_only=True)
-    owner = serializers.PrimaryKeyRelatedField(
-        many=False, required=False, read_only=True)
-    admins = serializers.PrimaryKeyRelatedField(
-        many=True, required=False, read_only=True)
-
-    def create(self, validated_data):
-        institute_type = validated_data.get('institute_type', None)
-        if institute_type == 'School':
-            return School.objects.create(**validated_data)
-        elif institute_type == 'University':
-            return University.objects.create(**validated_data)
-        else:
-            return super().create(validated_data)
-
-    class Meta:
-        model = EducationalInstitute
-        fields = ['id', 'name', 'institute_type', 'school_type', 'gender_type', 'address', 'province', 'city', 'postal_code',
-                  'phone_number', 'contact_info', 'description', 'principal_name', 'principal_phone', 'is_approved',
-                  'created_at', 'owner', 'admins', 'date_added', 'creator']
-        read_only_fields = ['id', 'date_added']
+from ..models import User, Merchandise, DiscountCode, Purchase
+from ..validators import price_validator
 
 
 class MerchandiseSerializer(serializers.ModelSerializer):
