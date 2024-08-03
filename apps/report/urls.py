@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import export, export_csv
+from .views import get_form_respondents_info, get_form_respondents_answers
 
 urlpatterns = [
-    path('export_json/', export, name='export_json'),
-    path('export_csv/', export_csv, name='export_csv'),
+    path('form-respondents-info/', get_form_respondents_info,
+         name='form_respondents_info'),
+    path('form-respondents-answers/',
+         get_form_respondents_answers, name='form_respondents_answers'),
 ]
