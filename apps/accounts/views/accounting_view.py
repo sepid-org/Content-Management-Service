@@ -14,7 +14,7 @@ from apps.accounts.models import UserWebsiteLogin, VerificationCode, User
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.user_serializer import PhoneNumberSerializer, PhoneNumberVerificationCodeSerializer, UserSerializer
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
-from apps.accounts.utils import can_user_login, create_or_get_user, find_user_in_website
+from apps.accounts.utils import can_user_login, create_or_get_user, find_user, find_user_in_website
 from errors.error_codes import serialize_error
 from errors.exceptions import ServiceUnavailable
 
@@ -120,7 +120,7 @@ def change_phone_number(request):
     serializer.is_valid(raise_exception=True)
     new_phone_number = serializer.validated_data.get('phone_number', None)
 
-    if find_user_in_website(user_data={'phone_number': new_phone_number}, website=request.data.get("website")):
+    if find_user(user_data={'phone_number': new_phone_number}):
         raise ParseError(serialize_error('6002'))
     user = request.user
     user.phone_number = new_phone_number
