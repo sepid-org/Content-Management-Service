@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import get_user_excel, get_answer_excel
+from .views import get_form_respondents_info, get_form_respondents_answers
 
 urlpatterns = [
-    path('registration-form-registrants/', get_user_excel,
-         name='registration_form_registrants'),
-    path('registration-form-answers/', get_answer_excel, name='export_csv'),
+    path('form-respondents-info/', get_form_respondents_info,
+         name='form_respondents_info'),
+    path('form-respondents-answers/',
+         get_form_respondents_answers, name='form_respondents_answers'),
 ]

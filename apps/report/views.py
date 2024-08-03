@@ -106,7 +106,7 @@ def get_current_user(session_token):
         response.raise_for_status()
 
 
-def export_excel(form_id):
+def get_form_respondents_info_file(form_id):
     headers = {
         "X-Metabase-Session": session_data.get("id"),
         "Content-Type": "application/x-www-form-urlencoded"
@@ -127,7 +127,7 @@ def export_excel(form_id):
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
 
-def get_all_user_answer(form_id):
+def get_form_respondents_answers_file(form_id):
     headers = {
         "X-Metabase-Session": session_data.get("id"),
         "Content-Type": "application/x-www-form-urlencoded"
@@ -150,14 +150,14 @@ def get_all_user_answer(form_id):
 
 
 @api_view(["post"])
-def get_user_excel(request):
-    id = request.data.get('form_id')
-    file_content = export_excel(form_id=id)
+def get_form_respondents_info(request):
+    form_id = request.data.get('form_id')
+    file_content = get_form_respondents_info_file(form_id=form_id)
     return Response(file_content)
 
 
 @api_view(["post"])
-def get_answer_excel(request):
-    id = request.data.get('form_id')
-    file_content = get_all_user_answer(form_id=id)
+def get_form_respondents_answers(request):
+    form_id = request.data.get('form_id')
+    file_content = get_form_respondents_answers_file(form_id=form_id)
     return Response(file_content)
