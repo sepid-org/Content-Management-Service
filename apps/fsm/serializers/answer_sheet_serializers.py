@@ -52,6 +52,11 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
         return AcademicStudentshipReadOnlySerializer(obj.user.academic_studentship).data
 
     def create(self, validated_data):
+        user = self.context.get('user')
+        form = self.context.get('form')
+        if len(RegistrationReceipt.objects.filter(user=user, form=form)) > 0:
+            raise ParseError(serialize_error('6003'))
+
         registration_receipt = super().create({
             'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
             **validated_data
