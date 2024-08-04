@@ -11,7 +11,8 @@ def create_session():
         "password": settings.METABASE_PASSWORD,
     }
 
-    response = requests.post(f'{url}api/session/', headers=headers, json=data)
+    response = requests.post(
+        f'{settings.METABASE_URL}api/session/', headers=headers, json=data)
 
     if response.status_code == 200:
         return response.json()
