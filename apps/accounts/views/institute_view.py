@@ -7,7 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.accounts.models import EducationalInstitute
+from apps.accounts.models import EducationalInstitute, School
 from apps.accounts.permissions import IsInstituteOwner, IsInstituteAdmin
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.serializers.institute_serializer import InstituteSerializer
@@ -31,14 +31,6 @@ class InstituteViewSet(ModelViewSet):
             return self.serializer_action_classes[self.action]
         except (KeyError, AttributeError):
             return super().get_serializer_class()
-
-    def get_queryset(self):
-        queryset = EducationalInstitute.objects.all()
-        city = self.request.query_params.get('city', None)
-        if city:
-            queryset = queryset.filter(city=city)
-
-        return queryset
 
     def get_permissions(self):
         if self.action == 'create' or self.action == 'retrieve' or self.action == 'list':
@@ -75,3 +67,8 @@ class InstituteViewSet(ModelViewSet):
             return Response(InstituteSerializer(institute).data, status=status.HTTP_200_OK)
         else:
             raise PermissionDenied(serialize_error("4010"))
+
+
+class SchoolViewSet(InstituteViewSet):
+    queryset = School.objects.all()
+    filterset_fields = ['city', 'gender_type']
