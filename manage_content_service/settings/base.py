@@ -50,6 +50,7 @@ CUSTOM_APPS = [
     'apps.roadmap.apps.RoadmapConfig',
     'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
+    'apps.sales.apps.SalesConfig',
     # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'apps.file_storage.apps.FileStorageConfig',
 ]
