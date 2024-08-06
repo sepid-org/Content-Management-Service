@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.accounts.models import User
-from apps.accounts.serializers.user_serializer import UserProfileSerializer, UserProfileSummarySerializer
+from apps.accounts.serializers.user_serializer import UserProfileSerializer, UserPublicInfoSerializer
 
 
 class ProfileViewSet(ModelViewSet):
@@ -26,4 +26,4 @@ class ProfileViewSet(ModelViewSet):
     @action(detail=True, methods=['get'])
     def profile_summary(self, request, pk=None):
         user_profile = self.get_object()
-        return Response(UserProfileSummarySerializer(user_profile).data)
+        return Response(UserPublicInfoSerializer(user_profile).data)

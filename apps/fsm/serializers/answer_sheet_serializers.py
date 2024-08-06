@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 
-from apps.accounts.serializers.user_serializer import UserSerializer, StudentshipSerializer
+from apps.accounts.serializers.user_serializer import AcademicStudentshipReadOnlySerializer, SchoolStudentshipReadOnlySerializer, UserRegistrationReceiptInfoSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, RegistrationReceipt, Problem
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
@@ -41,17 +41,22 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
 
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
-    user = UserSerializer(required=False)
+    user = UserRegistrationReceiptInfoSerializer(required=False)
     school_studentship = serializers.SerializerMethodField()
     academic_studentship = serializers.SerializerMethodField()
 
     def get_school_studentship(self, obj):
-        return StudentshipSerializer(obj.user.school_studentship).data
+        return SchoolStudentshipReadOnlySerializer(obj.user.school_studentship).data
 
     def get_academic_studentship(self, obj):
-        return StudentshipSerializer(obj.user.academic_studentship).data
+        return AcademicStudentshipReadOnlySerializer(obj.user.academic_studentship).data
 
     def create(self, validated_data):
+        user = self.context.get('user')
+        form = self.context.get('form')
+        if len(RegistrationReceipt.objects.filter(user=user, form=form)) > 0:
+            raise ParseError(serialize_error('6003'))
+
         registration_receipt = super().create({
             'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
             **validated_data

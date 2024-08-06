@@ -72,7 +72,8 @@ class CustomSchoolAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'province', 'city',
                     'school_type', 'postal_code', 'address']
     actions = [merge_schools]
-    ordering = ['id']
+    search_fields = ['name', 'address']
+
 
 
 def export_selected_objects(model_admin, request, queryset):
