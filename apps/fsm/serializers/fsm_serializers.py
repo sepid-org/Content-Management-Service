@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.fsm.models import Player
 
 from apps.accounts.serializers.user_serializer import MentorSerializer
-from apps.accounts.serializers.serializers import MerchandiseSerializer
+from apps.sales.serializers.serializers import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer

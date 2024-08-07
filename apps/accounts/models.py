@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
-from apps.accounts.validators import percentage_validator
+from apps.sales.validators import percentage_validator
 from manage_content_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
 from proxies.sms_system.sms_service_proxy import SMSServiceProxy

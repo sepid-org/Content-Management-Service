@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
-from apps.accounts.serializers.serializers import MerchandiseSerializer
+from apps.sales.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error

@@ -1,14 +1,15 @@
 from rest_framework.routers import DefaultRouter
-from django.urls import include, path
-from rest_framework import routers
 
-from apps.roadmap.views import get_player_transited_path, get_fsm_roadmap
+from apps.sales.views.payment_view import DiscountCodeViewSet, MerchandiseViewSet, PaymentViewSet
 
 router = DefaultRouter()
 
 urlpatterns = [
-    path('get_player_transited_path/', get_player_transited_path),
-    path('get_fsm_roadmap/', get_fsm_roadmap),
 ]
+
+router.register(r'payment', PaymentViewSet, basename='merchandises')
+router.register(r'discount_code', DiscountCodeViewSet,
+                basename='discount_codes')
+router.register(r'merchandise', MerchandiseViewSet, basename='merchandises')
 
 urlpatterns += router.urls

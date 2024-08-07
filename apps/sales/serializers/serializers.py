@@ -5,8 +5,8 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
 
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
-from ..models import User, Merchandise, DiscountCode, Purchase
-from ..validators import price_validator
+from apps.accounts.models import User, Merchandise, DiscountCode, Purchase
+from apps.sales.validators import price_validator
 
 
 class MerchandiseSerializer(serializers.ModelSerializer):
