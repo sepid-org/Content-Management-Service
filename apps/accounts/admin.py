@@ -75,7 +75,6 @@ class CustomSchoolAdmin(admin.ModelAdmin):
     search_fields = ['name', 'address']
 
 
-
 def export_selected_objects(model_admin, request, queryset):
     selected = queryset.values_list('pk', flat=True)
     ct = ContentType.objects.get_for_model(queryset.model)
@@ -97,6 +96,13 @@ class UniversityCustomAdmin(admin.ModelAdmin):
     search_fields = ['name', 'city']
 
 
+@admin.register(Merchandise)
+class MerchandiseCustomAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'program',
+                    'price', 'discounted_price', 'is_active']
+    list_filter = ['is_active', 'program']
+
+
 admin.site.add_action(export_selected_objects, 'export_selected')
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(School, CustomSchoolAdmin)
@@ -106,6 +112,5 @@ admin.site.register(VerificationCode)
 admin.site.register(Purchase, CustomPurchaseAdmin)
 admin.site.register(SchoolStudentship)
 admin.site.register(AcademicStudentship)
-admin.site.register(Merchandise)
 # admin.site.register(University)
 admin.site.register(Voucher)
