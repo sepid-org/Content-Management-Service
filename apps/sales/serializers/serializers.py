@@ -13,7 +13,7 @@ class MerchandiseSerializer(serializers.ModelSerializer):
     price = serializers.IntegerField(
         required=True, validators=[price_validator])
     discounted_price = serializers.IntegerField(
-        required=False, validators=[price_validator])
+        required=False, validators=[price_validator], allow_null=True)
 
     class Meta:
         model = Merchandise

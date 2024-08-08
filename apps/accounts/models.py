@@ -228,9 +228,9 @@ class Player(models.Model):
 class Merchandise(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50, null=True, blank=True)
-    price = models.IntegerField(default=0)
-    discounted_price = models.IntegerField(default=None, null=True)
+    name = models.CharField(max_length=50)
+    price = models.IntegerField()
+    discounted_price = models.IntegerField(null=True)
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
         to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises', null=True)
