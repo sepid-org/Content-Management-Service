@@ -172,7 +172,7 @@ class Program(models.Model):
 
     @property
     def is_free(self):
-        if len(self.merchandises.all()) == 0:
+        if len(self.merchandises.filter(is_active=True)) == 0:
             return True
         return False
 
