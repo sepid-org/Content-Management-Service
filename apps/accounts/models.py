@@ -233,7 +233,7 @@ class Merchandise(models.Model):
     discounted_price = models.IntegerField(default=None, null=True)
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
-        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandise', null=True)
+        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises', null=True)
 
 
 # class Code(models.Model):
