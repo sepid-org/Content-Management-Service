@@ -19,7 +19,7 @@ from apps.sales.serializers.serializers import DiscountCodeValidationSerializer,
     MerchandiseSerializer
 from errors.error_codes import serialize_error
 from errors.exceptions import InternalServerError
-from apps.fsm.models import RegistrationReceipt
+from apps.fsm.models import Program, RegistrationReceipt
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +156,7 @@ class PaymentViewSet(GenericViewSet):
             return redirect(f'{settings.GET_PAYMENT_CALLBACK_URL(purchase.callback_domain, "failure")}/{purchase.uniq_code}')
 
 
-class MerchandiseViewSet(GenericViewSet, RetrieveModelMixin):
+class MerchandiseViewSet(ModelViewSet):
     my_tags = ['payments']
     serializer_class = MerchandiseSerializer
     queryset = Merchandise.objects.all()
@@ -171,6 +171,7 @@ class MerchandiseViewSet(GenericViewSet, RetrieveModelMixin):
             return super().get_serializer_class()
 
     def get_permissions(self):
+        permission_classes = []
         if self.action == 'discount_codes':
             permission_classes = [IsMerchandiseOwner]
         elif self.action == 'retrieve':
@@ -186,6 +187,21 @@ class MerchandiseViewSet(GenericViewSet, RetrieveModelMixin):
     def discount_codes(self, request, pk=None):
         return Response(DiscountCodeSerializer(DiscountCode.objects.filter(merchandise=self.get_object()), many=True).data,
                         status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    @action(detail=False, methods=['post'])
+    def add_to_program(self, request, pk=None):
+        # create merchandise
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        merchandise = serializer.save()
+        # get program
+        program_id = request.data.get('program_id', None)
+        program = Program.objects.get(id=program_id)
+        # add merchandise to program
+        program.merchandise = merchandise
+        program.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class DiscountCodeViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin, CreateModelMixin, DestroyModelMixin):
