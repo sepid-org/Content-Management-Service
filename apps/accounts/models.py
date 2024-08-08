@@ -232,18 +232,8 @@ class Merchandise(models.Model):
     price = models.IntegerField(default=0)
     discounted_price = models.IntegerField(default=None, null=True)
     is_active = models.BooleanField(default=True)
-
-    @property
-    def program_or_fsm(self):
-        try:
-            if self.program:
-                return self.program
-        except:
-            try:
-                if self.fsm:
-                    return self.fsm
-            except:
-                return None
+    program = models.ForeignKey(
+        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandise', null=True)
 
 
 # class Code(models.Model):

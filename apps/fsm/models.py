@@ -133,8 +133,6 @@ class Program(models.Model):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
-                                       null=True, blank=True)
     registration_form = models.OneToOneField(
         'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
@@ -173,6 +171,12 @@ class Program(models.Model):
         return modifiers
 
     @property
+    def is_free(self):
+        if self.merchandises.length == 0:
+            return True
+        return False
+
+    @property
     def initial_participants(self):
         return self.registration_form.registration_receipts.filter()
 
@@ -182,7 +186,6 @@ class Program(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None
-        self.merchandise.delete() if self.merchandise is not None else None
         return super(Program, self).delete(using, keep_parents)
 
     class Meta:
@@ -224,8 +227,6 @@ class FSM(models.Model):
 
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                                 blank=True)
-    merchandise = models.OneToOneField('accounts.Merchandise', related_name='fsm', on_delete=models.SET_NULL, null=True,
-                                       blank=True)
     registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='fsm', on_delete=models.SET_NULL, null=True,
                                              blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
@@ -499,8 +500,12 @@ class RegistrationReceipt(AnswerSheet):
 
     @property
     def purchases(self):
-        if self.form.program_or_fsm.merchandise:
-            return self.form.program_or_fsm.merchandise.purchases.filter(user=self.user)
+        purchases = []
+        merchandises = self.form.program.merchandises
+        if merchandises:
+            for merchandise in merchandises:
+                purchases.append(*merchandise.purchases.filter(user=self.user))
+            return purchases
         return Purchase.objects.none()
 
     @property

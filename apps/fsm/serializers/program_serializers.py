@@ -1,8 +1,6 @@
-from django.contrib.auth.models import AnonymousUser
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
-from apps.sales.serializers.serializers import MerchandiseSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
@@ -20,7 +18,7 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
         representation['registration_till'] = instance.registration_form.till
         representation['audience_type'] = instance.registration_form.audience_type
 
-        representation['is_free'] = bool(instance.merchandise)
+        representation['is_free'] = instance.is_free
         return representation
 
     class Meta:
@@ -30,7 +28,6 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
 
 class ProgramSerializer(serializers.ModelSerializer):
-    merchandise = MerchandiseSerializer(required=False, read_only=True)
     program_contact_info = ProgramContactInfoSerializer(required=False)
     is_manager = serializers.SerializerMethodField()
 
@@ -41,7 +38,6 @@ class ProgramSerializer(serializers.ModelSerializer):
         return False
 
     def create(self, validated_data):
-        merchandise = validated_data.pop('merchandise', None)
         website = validated_data.pop('website')
         registration_form = RegistrationForm.objects.create(
             **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
@@ -49,13 +45,9 @@ class ProgramSerializer(serializers.ModelSerializer):
         creator = self.context.get('user', None)
         program = super(ProgramSerializer, self).create(
             {'creator': creator, 'website': website, 'registration_form': registration_form, **validated_data})
+
         add_admin_to_program(creator, program)
-        if merchandise and merchandise.get('name', None) is None:
-            merchandise['name'] = validated_data.get('name')
-            serializer = MerchandiseSerializer(data=merchandise)
-            serializer.is_valid(raise_exception=True)
-            merchandise_instance = serializer.save()
-            program.merchandise = merchandise_instance
+
         program.registration_form = registration_form
         program.save()
         return program
@@ -102,5 +94,5 @@ class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = '__all__'
-        read_only_fields = ['id', 'creator', 'merchandise',
-                            'is_approved', 'registration_form', 'program_contact_info']
+        read_only_fields = ['id', 'creator', 'is_approved',
+                            'registration_form', 'program_contact_info']
