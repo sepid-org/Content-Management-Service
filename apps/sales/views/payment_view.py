@@ -8,18 +8,16 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
-from rest_framework.mixins import RetrieveModelMixin, DestroyModelMixin, CreateModelMixin, UpdateModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts import zarinpal
 from apps.accounts.models import Merchandise, Purchase, DiscountCode, User
-from apps.accounts.permissions import IsPurchaseOwner, IsDiscountCodeModifier, IsMerchandiseOwner
-from apps.sales.serializers.serializers import DiscountCodeValidationSerializer, PurchaseSerializer, DiscountCodeSerializer, \
-    MerchandiseSerializer
+from apps.accounts.permissions import IsPurchaseOwner
+from apps.sales.serializers.serializers import DiscountCodeValidationSerializer, PurchaseSerializer
 from errors.error_codes import serialize_error
 from errors.exceptions import InternalServerError
-from apps.fsm.models import Program, RegistrationReceipt
+from apps.fsm.models import RegistrationReceipt
 
 logger = logging.getLogger(__name__)
 

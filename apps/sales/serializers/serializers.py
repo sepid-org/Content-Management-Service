@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
 
+from apps.accounts.serializers.user_serializer import UserPublicInfoSerializer
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
 from apps.accounts.models import User, Merchandise, DiscountCode, Purchase
@@ -17,59 +18,39 @@ class MerchandiseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Merchandise
-        fields = '__all__'
+        fields = ['id', 'name', 'price', 'discounted_price', 'is_active']
         read_only_fields = ['id']
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
+    merchandises = MerchandiseSerializer(many=True, required=False)
+    user = UserPublicInfoSerializer(required=False, allow_null=True)
     username = serializers.CharField(
         max_length=150, required=False, write_only=True)
 
-    def validate(self, attrs):
-        merchandise = attrs.get('merchandise', None)
-        creator = self.context.get('user', None)
-        username = attrs.get('username', None)
-        user = attrs.get('user', None)
-        if creator not in merchandise.program_or_fsm.modifiers:
-            raise PermissionDenied(serialize_error('4066'))
-        if user is None:
-            if username is not None:
-                attrs['user'] = get_object_or_404(User, username=username)
-        return attrs
-
     def create(self, validated_data):
-        validated_data.pop(
-            'username') if 'username' in validated_data.keys() else None
         return DiscountCode.objects.create_discount_code(**validated_data)
-
-    def to_representation(self, instance):
-        representation = super(DiscountCodeSerializer,
-                               self).to_representation(instance)
-        representation['first_name'] = instance.user.first_name if instance.user else None
-        representation['last_name'] = instance.user.last_name if instance.user else None
-        representation['phone_number'] = instance.user.phone_number if instance.user else None
-        return representation
 
     class Meta:
         model = DiscountCode
         fields = ['id', 'code', 'value', 'expiration_date',
-                  'remaining', 'user', 'merchandise', 'username']
+                  'remaining', 'user', 'merchandises', 'username']
         read_only_fields = ['id', 'code']
 
 
 class DiscountCodeValidationSerializer(serializers.ModelSerializer):
-    merchandise = serializers.PrimaryKeyRelatedField(
+    merchandises = serializers.PrimaryKeyRelatedField(
         required=True, queryset=Merchandise.objects.all())
     code = serializers.CharField(
         max_length=DISCOUNT_CODE_LENGTH, required=False)
 
     def validate(self, attrs):
         code = attrs.get('code', None)
-        merchandise = attrs.get('merchandise', None)
+        merchandises = attrs.get('merchandises', None)
 
-        if not merchandise:
+        if not merchandises:
             raise ParseError(serialize_error('4039'))
-        elif not merchandise.is_active:
+        elif not merchandises.first().is_active:
             raise ParseError(serialize_error('4043'))
 
         if code:
@@ -80,8 +61,8 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
                 if discount_code.user != user:
                     raise NotFound(serialize_error('4038'))
 
-            if discount_code.merchandise:
-                if merchandise != discount_code.merchandise:
+            if discount_code.merchandises:
+                if merchandises != discount_code.merchandises:
                     raise ParseError(serialize_error('4040'))
 
             if discount_code.expiration_date and discount_code.expiration_date < datetime.now(

@@ -53,7 +53,7 @@ class IsMerchandiseOwner(permissions.BasePermission):
 class IsDiscountCodeModifier(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.merchandise.program_or_fsm.modifiers
+        return request.user in obj.merchandises.first().program.admins.all()
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):

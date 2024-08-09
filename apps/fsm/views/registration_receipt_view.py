@@ -69,8 +69,8 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
                 'status', RegistrationReceipt.RegistrationStatus.Waiting)
 
             if registration_status == RegistrationReceipt.RegistrationStatus.Accepted:
-                merchandise = receipt.form.program_or_fsm.merchandise
-                if receipt.form is not None and (merchandise is None or merchandise.price == 0):
+                program = receipt.form.program
+                if program.is_free:
                     receipt.is_participating = True
             else:
                 receipt.is_participating = False

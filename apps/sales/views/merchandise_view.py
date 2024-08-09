@@ -38,12 +38,12 @@ class MerchandiseViewSet(ModelViewSet):
 
     @action(detail=True, methods=['get'], serializer_class=DiscountCodeSerializer)
     def discount_codes(self, request, pk=None):
-        return Response(DiscountCodeSerializer(DiscountCode.objects.filter(merchandise=self.get_object()), many=True).data,
+        return Response(DiscountCodeSerializer(DiscountCode.objects.filter(merchandises__in=[self.get_object()]), many=True).data,
                         status=status.HTTP_200_OK)
 
     @transaction.atomic
     @action(detail=False, methods=['GET'])
-    def program(self, request, pk=None):
+    def program_merchandises(self, request, pk=None):
         program_id = request.GET.get('program', None)
         merchandises = Merchandise.objects.filter(program_id=program_id)
         return Response(self.serializer_class(merchandises, many=True).data, status=status.HTTP_200_OK)
