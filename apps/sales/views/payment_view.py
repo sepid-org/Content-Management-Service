@@ -14,7 +14,8 @@ from rest_framework.viewsets import GenericViewSet
 from apps.accounts import zarinpal
 from apps.accounts.models import Merchandise, Purchase, DiscountCode, User
 from apps.accounts.permissions import IsPurchaseOwner
-from apps.sales.serializers.serializers import DiscountCodeValidationSerializer, PurchaseSerializer
+from apps.sales.serializers.discount_code import DiscountCodeValidationSerializer
+from apps.sales.serializers.purchase import PurchaseSerializer
 from errors.error_codes import serialize_error
 from errors.exceptions import InternalServerError
 from apps.fsm.models import RegistrationReceipt

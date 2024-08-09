@@ -1,25 +1,13 @@
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
+from rest_framework.exceptions import NotFound, ParseError
 
 from apps.accounts.serializers.user_serializer import UserPublicInfoSerializer
+from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
-from apps.accounts.models import User, Merchandise, DiscountCode, Purchase
-from apps.sales.validators import price_validator
-
-
-class MerchandiseSerializer(serializers.ModelSerializer):
-    price = serializers.IntegerField(
-        required=True, validators=[price_validator])
-    discounted_price = serializers.IntegerField(
-        required=False, validators=[price_validator], allow_null=True)
-
-    class Meta:
-        model = Merchandise
-        fields = ['id', 'name', 'price', 'discounted_price', 'is_active']
-        read_only_fields = ['id']
+from apps.accounts.models import Merchandise, DiscountCode
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
@@ -82,10 +70,3 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'code': {'validators': []}
         }
-
-
-class PurchaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Purchase
-        fields = '__all__'
-        read_only_fields = ['id']
