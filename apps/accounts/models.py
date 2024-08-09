@@ -265,8 +265,7 @@ class DiscountCode(models.Model):
     remaining = models.IntegerField(default=1)
     user = models.ForeignKey(User, related_name='discount_codes', on_delete=models.CASCADE, null=True, blank=True,
                              default=None)
-    merchandise2 = models.ManyToManyField(
-        to=Merchandise, related_name='discount_codes')
+    merchandises = models.ManyToManyField(to=Merchandise, related_name='discount_codes')
 
     objects = DiscountCodeManager()
 
