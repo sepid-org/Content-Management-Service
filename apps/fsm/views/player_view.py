@@ -15,7 +15,7 @@ from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.models import FSM
 from apps.fsm.serializers.fsm_serializers import KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerStateSerializer
-from apps.fsm.utils import get_a_random_player_from_team, get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
+from apps.fsm.utils import get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
@@ -62,15 +62,14 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
                 raise ParseError(serialize_error('4089'))
             if player.current_state == edge.head:
                 transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
-                player = get_a_random_player_from_team(team, fsm)
-            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_202_ACCEPTED)
 
         elif fsm.fsm_p_type == FSM.FSMPType.Individual:
             if player.current_state == edge.head:
                 player = transit_player_in_fsm(
                     player, edge.head, edge.tail, edge)
-            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
-
+            return Response(status=status.HTTP_202_ACCEPTED)
+        
         else:
             raise InternalServerError('Not implemented Yet😎')
 
@@ -89,8 +88,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
-            player = get_a_random_player_from_team(team, fsm)
-            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_202_ACCEPTED)
 
         else:
             raise InternalServerError('Not implemented Yet😎')

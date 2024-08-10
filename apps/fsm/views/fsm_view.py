@@ -58,10 +58,10 @@ class FSMViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
-    def enter(self, request, pk=None):
+    def enter_fsm(self, request, pk=None):
         password = self.request.data.get('password', None)
         fsm = self.get_object()
-        user = self.request.user
+        user = request.user
         receipt = get_receipt(user, fsm)
         player = get_player(user, fsm)
 
@@ -100,6 +100,15 @@ class FSMViewSet(viewsets.ModelViewSet):
                 player.current_state = fsm.first_state
                 player.save()
 
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
+    @transaction.atomic
+    @action(detail=True, methods=['get'], serializer_class=KeySerializer)
+    def current_user_fsm_player(self, request, pk=None):
+        fsm = self.get_object()
+        user = request.user
+        player = get_player(user, fsm)
         return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])

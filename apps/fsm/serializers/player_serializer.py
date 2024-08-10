@@ -21,7 +21,6 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class PlayerStateSerializer(serializers.ModelSerializer):
-    current_state = StateSerializer()
     team = TeamSerializer()
 
     class Meta:
