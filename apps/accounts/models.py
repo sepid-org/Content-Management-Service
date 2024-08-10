@@ -234,6 +234,9 @@ class Merchandise(models.Model):
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
         to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises', null=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
 
 
 # class Code(models.Model):

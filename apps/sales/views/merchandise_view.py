@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import transaction
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -13,7 +14,7 @@ from apps.sales.serializers.discount_code import DiscountCodeSerializer
 class MerchandiseViewSet(ModelViewSet):
     my_tags = ['payments']
     serializer_class = MerchandiseSerializer
-    queryset = Merchandise.objects.all()
+    queryset = Merchandise.objects.filter(is_deleted=False)
     serializer_action_classes = {
         'discount_codes': DiscountCodeSerializer
     }
@@ -46,5 +47,14 @@ class MerchandiseViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'])
     def program_merchandises(self, request, pk=None):
         program_id = request.GET.get('program', None)
-        merchandises = Merchandise.objects.filter(program_id=program_id)
+        merchandises = self.get_queryset().filter(program_id=program_id)
         return Response(self.serializer_class(merchandises, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def soft_delete(self, request, pk=None):
+        merchandise = self.get_object()
+        merchandise.is_deleted = True
+        merchandise.deleted_at = timezone.now()
+        merchandise.is_active = False
+        merchandise.save()
+        return Response()
