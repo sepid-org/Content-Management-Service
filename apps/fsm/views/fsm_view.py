@@ -216,7 +216,7 @@ class FSMViewSet(viewsets.ModelViewSet):
         return super().list(self, request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
-    def soft_remove_fsm(self, request, pk=None):
+    def soft_delete(self, request, pk=None):
         fsm = self.get_object()
         fsm.is_deleted = True
         fsm.deleted_at = timezone.now()
