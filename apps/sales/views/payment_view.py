@@ -60,63 +60,71 @@ class PaymentViewSet(GenericViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], serializer_class=DiscountCodeValidationSerializer)
     def verify_discount(self, request, pk=None):
+        merchandise_id = request.data.pop('merchandise', None)
+        merchandise = get_object_or_404(Merchandise, id=merchandise_id)
         serializer = DiscountCodeValidationSerializer(
-            data=request.data, context=self.get_serializer_context())
-
-        if serializer.is_valid(raise_exception=True):
-            code = serializer.data.get('code', None)
-            merchandise_id = serializer.data.get('merchandise', None)
-            discount_code = get_object_or_404(DiscountCode, code=code)
-            merchandise = get_object_or_404(Merchandise, id=merchandise_id)
-            new_price = DiscountCode.calculate_discount(
-                discount_code.value, merchandise.price)
-            return Response({'new_price': new_price, **serializer.to_representation(discount_code)},
-                            status=status.HTTP_200_OK)
+            data=request.data,
+            context={
+                'merchandise': merchandise,
+                **self.get_serializer_context(),
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        code = serializer.data.get('code', None)
+        discount_code = get_object_or_404(DiscountCode, code=code)
+        new_price = DiscountCode.calculate_discount(discount_code.value, merchandise.price)
+        return Response({'new_price': new_price, **serializer.to_representation(discount_code)},
+                        status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: PurchaseSerializer})
     @transaction.atomic
     @action(detail=False, methods=['post'], serializer_class=DiscountCodeValidationSerializer)
     def purchase(self, request, pk=None):
+        merchandise_id = request.data.pop('merchandise', None)
+        merchandise = get_object_or_404(Merchandise, id=merchandise_id)
         serializer = DiscountCodeValidationSerializer(
-            data=request.data, context=self.get_serializer_context())
+            data=request.data,
+            context={
+                'merchandise': merchandise,
+                **self.get_serializer_context(),
+            }
+        )
 
-        if serializer.is_valid(raise_exception=True):
-            code = serializer.data.get('code', None)
-            merchandise_id = serializer.data.get('merchandise', None)
-            discount_code = get_object_or_404(
-                DiscountCode, code=code) if code else None
-            merchandise = get_object_or_404(Merchandise, id=merchandise_id)
-            registration_form = merchandise.program_or_fsm.registration_form
-            if not registration_form:
-                raise InternalServerError(serialize_error('5004'))
-            user_registration = registration_form.registration_receipts.filter(
-                user=request.user).last()
-            if user_registration:
-                if user_registration.status == RegistrationReceipt.RegistrationStatus.Accepted:
-                    if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
-                        raise ParseError(serialize_error('4046'))
-                    if discount_code:
-                        price = DiscountCode.calculate_discount(
-                            discount_code.value, merchandise.price)
-                        discount_code.remaining -= 1
-                        discount_code.save()
-                    else:
-                        price = merchandise.price
-
-                    website_domain = urlparse(
-                        request.META['HTTP_ORIGIN']).netloc
-                    purchase = Purchase.objects.create_purchase(merchandise=merchandise, user=self.request.user,
-                                                                amount=price, discount_code=discount_code, callback_domain=website_domain)
-                    callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?id={request.user.id}&uniq_code={purchase.uniq_code}'
-                    response = zarinpal.send_request(amount=price, description=merchandise.name,
-                                                     callback_url=callback_url)
-
-                    return Response({'payment_link': response, **PurchaseSerializer().to_representation(purchase)},
-                                    status=status.HTTP_200_OK)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.data.get('code', None)
+        discount_code = get_object_or_404(
+            DiscountCode, code=code) if code else None
+        registration_form = merchandise.program.registration_form
+        if not registration_form:
+            raise InternalServerError(serialize_error('5004'))
+        user_registration = registration_form.registration_receipts.filter(
+            user=request.user).last()
+        if user_registration:
+            if user_registration.status == RegistrationReceipt.RegistrationStatus.Accepted:
+                if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
+                    raise ParseError(serialize_error('4046'))
+                if discount_code:
+                    price = DiscountCode.calculate_discount(
+                        discount_code.value, merchandise.price)
+                    discount_code.remaining -= 1
+                    discount_code.save()
                 else:
-                    raise ParseError(serialize_error('4045'))
+                    price = merchandise.price
+
+                website_domain = urlparse(
+                    request.META['HTTP_ORIGIN']).netloc
+                purchase = Purchase.objects.create_purchase(merchandise=merchandise, user=self.request.user,
+                                                            amount=price, discount_code=discount_code, callback_domain=website_domain)
+                callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?id={request.user.id}&uniq_code={purchase.uniq_code}'
+                response = zarinpal.send_request(amount=price, description=merchandise.name,
+                                                    callback_url=callback_url)
+
+                return Response({'payment_link': response, **PurchaseSerializer().to_representation(purchase)},
+                                status=status.HTTP_200_OK)
             else:
-                raise ParseError(serialize_error('4044'))
+                raise ParseError(serialize_error('4045'))
+        else:
+            raise ParseError(serialize_error('4044'))
 
     @transaction.atomic
     @action(detail=False, methods=['get'])

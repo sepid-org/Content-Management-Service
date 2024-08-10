@@ -348,7 +348,7 @@ class Purchase(models.Model):
 
     @property
     def registration_receipt(self):
-        return self.merchandise.program_or_fsm.registration_form.registration_receipts.filter(user=self.user).last()
+        return self.merchandise.program.registration_form.registration_receipts.filter(user=self.user).last()
 
     def __str__(self):
         return f'{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}'

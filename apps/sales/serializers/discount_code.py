@@ -27,18 +27,16 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
 
 
 class DiscountCodeValidationSerializer(serializers.ModelSerializer):
-    merchandises = serializers.PrimaryKeyRelatedField(
-        required=True, queryset=Merchandise.objects.all())
     code = serializers.CharField(
-        max_length=DISCOUNT_CODE_LENGTH, required=False)
+        max_length=DISCOUNT_CODE_LENGTH, required=False, allow_null=True)
 
     def validate(self, attrs):
         code = attrs.get('code', None)
-        merchandises = attrs.get('merchandises', None)
+        merchandise = self.context.get('merchandise', None)
 
-        if not merchandises:
+        if not merchandise:
             raise ParseError(serialize_error('4039'))
-        elif not merchandises.first().is_active:
+        elif not merchandise.is_active:
             raise ParseError(serialize_error('4043'))
 
         if code:
@@ -49,9 +47,8 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
                 if discount_code.user != user:
                     raise NotFound(serialize_error('4038'))
 
-            if discount_code.merchandises:
-                if merchandises != discount_code.merchandises:
-                    raise ParseError(serialize_error('4040'))
+            if merchandise not in discount_code.merchandises.all():
+                raise ParseError(serialize_error('4040'))
 
             if discount_code.expiration_date and discount_code.expiration_date < datetime.now(
                     discount_code.expiration_date.tzinfo):
@@ -64,7 +61,8 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiscountCode
-        fields = '__all__'
+        fields = ['id', 'code', 'value', 'expiration_date',
+                  'remaining', 'user']
         read_only_fields = ['id', 'value',
                             'expiration_date', 'remaining', 'user']
         extra_kwargs = {
