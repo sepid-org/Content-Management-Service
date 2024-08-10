@@ -233,7 +233,7 @@ class Merchandise(models.Model):
     discounted_price = models.IntegerField(null=True)
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
-        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises', null=True)
+        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises')
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 

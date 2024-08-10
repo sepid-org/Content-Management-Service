@@ -99,7 +99,7 @@ class UniversityCustomAdmin(admin.ModelAdmin):
 @admin.register(Merchandise)
 class MerchandiseCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'program',
-                    'price', 'discounted_price', 'is_active']
+                    'price', 'discounted_price', 'is_active', 'is_deleted']
     list_filter = ['is_active', 'program']
 
 

@@ -7,7 +7,7 @@ from apps.accounts.serializers.user_serializer import UserPublicInfoSerializer
 from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
-from apps.accounts.models import Merchandise, DiscountCode
+from apps.accounts.models import DiscountCode
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):

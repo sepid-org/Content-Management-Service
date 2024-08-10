@@ -12,5 +12,5 @@ class MerchandiseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Merchandise
-        fields = ['id', 'name', 'price', 'discounted_price', 'is_active']
+        fields = ['id', 'name', 'price', 'discounted_price', 'is_active', 'program', 'is_deleted']
         read_only_fields = ['id']
