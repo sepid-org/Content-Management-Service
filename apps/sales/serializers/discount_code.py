@@ -11,6 +11,8 @@ from apps.accounts.models import DiscountCode
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
+    discount_code_limit = serializers.IntegerField(
+        required=False, allow_null=True)
     merchandises = MerchandiseSerializer(many=True, required=False)
     user = UserPublicInfoSerializer(required=False, allow_null=True)
     username = serializers.CharField(
@@ -21,12 +23,14 @@ class DiscountCodeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiscountCode
-        fields = ['id', 'code', 'value', 'expiration_date',
-                  'remaining', 'user', 'merchandises', 'username']
+        fields = ['id', 'code', 'value', 'expiration_date', 'remaining',
+                  'user', 'merchandises', 'username', 'discount_code_limit']
         read_only_fields = ['id', 'code']
 
 
 class DiscountCodeValidationSerializer(serializers.ModelSerializer):
+    discount_code_limit = serializers.IntegerField(
+        required=False, allow_null=True)
     code = serializers.CharField(
         max_length=DISCOUNT_CODE_LENGTH, required=False, allow_null=True)
 
@@ -62,7 +66,7 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountCode
         fields = ['id', 'code', 'value', 'expiration_date',
-                  'remaining', 'user']
+                  'remaining', 'user', 'discount_code_limit']
         read_only_fields = ['id', 'value',
                             'expiration_date', 'remaining', 'user']
         extra_kwargs = {

@@ -237,7 +237,6 @@ class Merchandise(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
 
-
 # class Code(models.Model):
 #     TODO - create a 'code' class  and subclass discounts, vouchers & verification codes from it.
 #     class CodeType(models.TextChoices):
@@ -267,16 +266,19 @@ class DiscountCode(models.Model):
     remaining = models.IntegerField(default=1)
     user = models.ForeignKey(User, related_name='discount_codes', on_delete=models.CASCADE, null=True, blank=True,
                              default=None)
-    merchandises = models.ManyToManyField(to=Merchandise, related_name='discount_codes')
-
+    merchandises = models.ManyToManyField(
+        to=Merchandise, related_name='discount_codes')
+    discount_code_limit = models.IntegerField(null=True, blank=True)
     objects = DiscountCodeManager()
 
     def __str__(self):
         return self.code + " " + str(self.value)
 
-    @staticmethod
-    def calculate_discount(value, price):
-        return ((price * (1 - value) + 50) // 100) * 100
+    def calculate_discounted_price(self, price):
+        if self.discount_code_limit:
+            return max(((price * (1 - self.value) + 50) // 100) * 100, price - self.discount_code_limit)
+        else:
+            return ((price * (1 - self.value) + 50) // 100) * 100
 
 
 class VoucherManager(models.Manager):

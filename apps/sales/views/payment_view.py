@@ -27,7 +27,7 @@ class PaymentViewSet(GenericViewSet):
     my_tags = ['payments']
     serializer_class = DiscountCodeValidationSerializer
     serializer_action_classes = {
-        'verify_discount': DiscountCodeValidationSerializer,
+        'apply_discount_code': DiscountCodeValidationSerializer,
         'purchase': DiscountCodeValidationSerializer
     }
 
@@ -38,7 +38,7 @@ class PaymentViewSet(GenericViewSet):
             return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action == 'verify_discount' or self.action == 'purchase':
+        if self.action == 'apply_discount_code' or self.action == 'purchase':
             permission_classes = [permissions.IsAuthenticated]
         elif self.action == 'verify_payment':
             permission_classes = [permissions.AllowAny]
@@ -52,14 +52,14 @@ class PaymentViewSet(GenericViewSet):
         return context
 
     def get_queryset(self):
-        if self.action == 'verify_discount' or self.action == 'purchase':
+        if self.action == 'apply_discount_code' or self.action == 'purchase':
             return Merchandise.objects.all()
         else:
             return Purchase.objects.all()
 
     @transaction.atomic
     @action(detail=False, methods=['post'], serializer_class=DiscountCodeValidationSerializer)
-    def verify_discount(self, request, pk=None):
+    def apply_discount_code(self, request, pk=None):
         merchandise_id = request.data.pop('merchandise', None)
         merchandise = get_object_or_404(Merchandise, id=merchandise_id)
         serializer = DiscountCodeValidationSerializer(
@@ -72,7 +72,7 @@ class PaymentViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         code = serializer.data.get('code', None)
         discount_code = get_object_or_404(DiscountCode, code=code)
-        new_price = DiscountCode.calculate_discount(discount_code.value, merchandise.price)
+        new_price = discount_code.calculate_discounted_price(merchandise.price)
         return Response({'new_price': new_price, **serializer.to_representation(discount_code)},
                         status=status.HTTP_200_OK)
 
@@ -104,8 +104,7 @@ class PaymentViewSet(GenericViewSet):
                 if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
                     raise ParseError(serialize_error('4046'))
                 if discount_code:
-                    price = DiscountCode.calculate_discount(
-                        discount_code.value, merchandise.price)
+                    price = discount_code.calculate_discounted_price(merchandise.price)
                     discount_code.remaining -= 1
                     discount_code.save()
                 else:
@@ -117,7 +116,7 @@ class PaymentViewSet(GenericViewSet):
                                                             amount=price, discount_code=discount_code, callback_domain=website_domain)
                 callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?id={request.user.id}&uniq_code={purchase.uniq_code}'
                 response = zarinpal.send_request(amount=price, description=merchandise.name,
-                                                    callback_url=callback_url)
+                                                 callback_url=callback_url)
 
                 return Response({'payment_link': response, **PurchaseSerializer().to_representation(purchase)},
                                 status=status.HTTP_200_OK)
