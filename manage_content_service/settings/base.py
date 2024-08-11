@@ -214,3 +214,14 @@ def GET_PAYMENT_CALLBACK_URL(domain, status):
 METABASE_URL = get_environment_var('METABASE_URL', None)
 METABASE_USERNAME = get_environment_var('METABASE_USERNAME', None)
 METABASE_PASSWORD = get_environment_var('METABASE_PASSWORD', None)
+
+
+########## INSTANT MESSAGING ##########
+
+INSTANT_MESSAGE_URL = get_environment_var(
+    'INSTANT_MESSAGE_URL', 'https://ims.sepid.org/')
+
+
+########## BAND AS A SERVICE ##########
+
+BANK_URL = get_environment_var('BANK_URL', 'https://baas.sepid.org/')
