@@ -147,7 +147,7 @@ class StudentshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Studentship
         fields = ['id', 'studentship_type', 'school', 'grade',
-                  'degree', 'major', 'university', 'university_major']
+                  'degree', 'major', 'university', 'university_major', 'document']
         read_only_fields = ['id', 'is_document_verified']
 
 
@@ -156,7 +156,7 @@ class SchoolStudentshipReadOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SchoolStudentship
-        fields = ['id', 'studentship_type', 'school', 'grade', 'major']
+        fields = ['id', 'studentship_type', 'school', 'grade', 'major', 'document']
         read_only_fields = fields
 
 
