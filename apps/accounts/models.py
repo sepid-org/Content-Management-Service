@@ -168,6 +168,7 @@ class Studentship(PolymorphicModel):
     end_date = models.DateField(null=True, blank=True)
     document = models.FileField(
         upload_to='studentship_documents/', null=True, blank=True)
+    document2 = models.URLField(max_length=2000, null=True)
     is_document_verified = models.BooleanField(default=False)
 
 
