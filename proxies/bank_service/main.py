@@ -2,32 +2,42 @@ from django.conf import settings
 from utilities.singleton_class import Singleton
 
 
+class Currency:
+    name: str
+
+
+class Money:
+    currency: Currency
+    value: float
+
+
 class BankProxy(Singleton):
     url = settings.BANK_URL
 
     def create_session(self):
-        # todo
+        # todo: Ehsan
         pass
 
-    def __init__(self, website) -> None:
+    def __init__(self, website: str) -> None:
         self.website = website
         self.create_session()
 
-    def deposit(self, user, currency, value):
-        self.transfer(
-            sender=self.website,
-            receiver=user,
-            currency=currency,
-            value=value
-        )
+    def get_currencies(self) -> list[Currency]:
+        # return website currencies
+        # todo: Ehsan
+        pass
 
-    def withdraw(self, user, currency, value):
-        self.transfer(
-            sender=user,
-            receiver=self.website,
-            currency=currency,
-            value=value
-        )
+    def deposit(self, user, money: Money):
+        # todo: Ehsan
+        pass
 
-    def transfer(self, sender, receiver, value):
+    def balance_inquiry(self, balance: list[Money]):
+        # todo: Ehsan
+        pass
+
+    def withdraw(self, user, money: Money):
+        # todo: Ehsan
+        pass
+
+    def transfer(self, sender, receiver, money: Money):
         pass
