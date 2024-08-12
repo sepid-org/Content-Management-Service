@@ -5,7 +5,7 @@ from utilities.singleton_class import Singleton
 
 class MetabaseProxy(Singleton):
 
-    def create_session():
+    def create_session(self):
         headers = {
             "Content-Type": "application/json"
         }
