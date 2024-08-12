@@ -10,13 +10,6 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 
-router.register(r'reward', RewardViewSet)
-router.register(r'cost', CostViewSet)
-router.register(r'transaction', TransactionViewSet)
-router.register(r'score_type', ScoreTypeViewSet)
-
-urlpatterns = [
-    path('apply_scores_on_user/', apply_scores_on_user_view),
-]
+urlpatterns = []
 
 urlpatterns += router.urls
