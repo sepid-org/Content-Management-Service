@@ -50,6 +50,27 @@ def get_form_respondents_answers_file(form_id):
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
 
+
+
+def get_form_respondents_bilit_file(form_id):
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "query": '{"database":2,"type":"query","query":{"source-table":104,"joins":[{"strategy":"left-join","alias":"Accounts+Merchandise+-+Merchandise","fields":[["field",103,{"base-type":"type/Text","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",105,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",107,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}]],"condition":["=",["field",123,{"base-type":"type/UUID"}],["field",106,{"base-type":"type/UUID","join-alias":"Accounts+Merchandise+-+Merchandise"}]],"source-table":73},{"strategy":"left-join","alias":"Accounts+User+-+User","fields":[["field",142,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",156,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",158,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",144,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",146,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}]],"condition":["=",["field",121,{"base-type":"type/UUID"}],["field",151,{"base-type":"type/UUID","join-alias":"Accounts+User+-+User"}]],"source-table":32},{"strategy":"left-join","alias":"Fsm+Program+-+Program","fields":"none","condition":["=",["field",786,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",742,{"base-type":"type/Integer","join-alias":"Fsm+Program+-+Program"}]],"source-table":145}],"fields":[["field",116,{"base-type":"type/Integer"}],["field",114,{"base-type":"type/Text"}],["field",115,{"base-type":"type/DateTimeWithLocalTZ"}]],"filter":["=",["field",438,{"base-type":"type/Integer","source-field":762}],'+f'{form_id}'+']},"middleware":{"js-int-to-string?":true,"userland-query?":true,"add-default-userland-constraints?":true}}'
+    }
+    response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
+
+    if response.status_code == 200:
+        in_memory_file = SimpleUploadedFile("test.xlsx", response.content)
+        file = FileSerializer(data={"file": in_memory_file})
+        file.is_valid(raise_exception=True)
+        file.save()
+        print("File created successfully:")
+        return file.data
+    else:
+        print(f"Failed to retrieve data. Status code: {response.status_code}")
+
 @api_view(["post"])
 def get_form_respondents_info(request):
     form_id = request.data.get('form_id')
@@ -62,3 +83,12 @@ def get_form_respondents_answers(request):
     form_id = request.data.get('form_id')
     file_content = get_form_respondents_answers_file(form_id=form_id)
     return Response(file_content)
+
+
+@api_view(["post"])
+def get_form_respondents_bilit(request):
+    form_id = request.data.get('form_id')
+    file_content = get_form_respondents_bilit_file(form_id=form_id)
+    return Response(file_content)
+
+
