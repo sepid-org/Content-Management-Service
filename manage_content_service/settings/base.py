@@ -224,4 +224,4 @@ INSTANT_MESSAGE_URL = get_environment_var(
 
 ########## BAND AS A SERVICE ##########
 
-BANK_URL = get_environment_var('BANK_URL', 'https://baas.sepid.org/')
+BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
