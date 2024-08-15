@@ -58,12 +58,9 @@ class EdgeViewSet(ModelViewSet):
             raise PermissionDenied(serialize_error('4087'))
 
         # check password:
-        if edge.lock and len(edge.lock) > 0:
-            password = request.data.get('password', None)
-            if not password:
-                raise PermissionDenied(serialize_error('4085'))
-            elif edge.lock != password:
-                raise PermissionDenied(serialize_error('4084'))
+        password = request.data.get('password', None)
+        if edge.transition_lock and edge.transition_lock != password:
+            raise PermissionDenied(serialize_error('4084'))
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
@@ -76,7 +73,7 @@ class EdgeViewSet(ModelViewSet):
             if player.current_state == edge.tail:
                 player = transit_player_in_fsm(
                     player, edge.tail, edge.head, edge)
-        
+
         return Response(status=status.HTTP_202_ACCEPTED)
 
     @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['mentor'])

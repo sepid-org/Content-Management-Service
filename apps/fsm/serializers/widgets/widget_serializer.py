@@ -4,11 +4,7 @@ import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 from errors.error_codes import serialize_error
-
-from apps.scoring.serializers.cost_serializer import CostSerializer
-from apps.scoring.serializers.reward_serializer import RewardSerializer
-from apps.fsm.models import Player, Problem, State, Hint, \
-    Widget
+from apps.fsm.models import Player, Problem, State, Hint, Widget
 
 
 def add_datetime_to_filename(file):
@@ -21,9 +17,6 @@ class WidgetSerializer(serializers.ModelSerializer):
     widget_type = serializers.ChoiceField(
         choices=Widget.WidgetTypes.choices, required=True)
     hints = serializers.SerializerMethodField()
-    cost = CostSerializer(required=False, allow_null=True)
-    reward = RewardSerializer(required=False, allow_null=True)
-    
 
     def get_hints(self, obj):
         from apps.fsm.serializers.paper_serializers import WidgetHintSerializer

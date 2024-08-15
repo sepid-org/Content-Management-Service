@@ -8,8 +8,6 @@ from abc import abstractmethod
 from apps.accounts.models import Purchase, User
 
 from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
-from apps.scoring.models import Cost, Reward
-from manage_content_service.settings.base import get_environment_var
 
 
 ################ BASE #################
@@ -221,6 +219,19 @@ class Content():
         return result
 
     @property
+    def transition_lock(self):
+        for attribute in self.get_performable_actions():
+            if attribute.type == 'transit':
+                for intrinsic_attribute in attribute.attributes.all():
+                    if intrinsic_attribute.type == 'password':
+                        return intrinsic_attribute.value
+        return None
+
+    @property
+    def has_transition_lock(self):
+        return bool(self.transition_lock)
+
+    @property
     def entrance_lock(self):
         for attribute in self.get_performable_actions():
             if attribute.type == 'enter':
@@ -376,39 +387,17 @@ class State(Paper):
         return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
-class EdgeManager(models.Manager):
-    @transaction.atomic
-    def create(self, **args):
-        lock = args.get('lock', None)
-        has_lock = False
-        if lock:
-            has_lock = True
-        return super(EdgeManager, self).create(**{'has_lock': has_lock, **args})
+class Edge(models.Model, Content):
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
-    def update(self, instance, **args):
-        lock = args.get('lock', None)
-        has_lock = False
-        if lock or instance.lock:
-            has_lock = True
-        return super(EdgeManager, self).update(instance, **{'has_lock': has_lock, **args})
-
-
-# from tail to head
-class Edge(models.Model):
     tail = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='outward_edges')
     head = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
-    min_score = models.FloatField(default=0.0)
-    cost = models.FloatField(default=0.0)
     priority = models.IntegerField(null=True, blank=True)
-    lock = models.CharField(max_length=10, null=True, blank=True)
-    has_lock = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
-
-    objects = EdgeManager()
 
     class Meta:
         unique_together = ('tail', 'head')
@@ -699,10 +688,6 @@ class Widget(PolymorphicModel):
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    cost = models.ForeignKey(
-        Cost, on_delete=models.CASCADE, null=True, blank=True)
-    reward = models.ForeignKey(
-        Reward, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         order_with_respect_to = 'paper'

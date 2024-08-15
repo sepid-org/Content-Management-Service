@@ -3,18 +3,19 @@ from rest_framework import serializers
 from apps.fsm.models import Player
 
 from apps.accounts.serializers.user_serializer import MentorSerializer
+from apps.fsm.serializers.content_serializer import ContentSerializer
 from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer
 
 
-class FSMMinimalSerializer(serializers.ModelSerializer):
+class FSMMinimalSerializer(ContentSerializer):
 
     class Meta:
         model = FSM
         fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
-                  'fsm_learning_type', 'fsm_p_type', 'order_in_program', 'has_entrance_lock']
+                  'fsm_learning_type', 'fsm_p_type', 'order_in_program']
 
     def to_representation(self, instance):
         representation = super(FSMMinimalSerializer,
@@ -122,7 +123,7 @@ class FSMSerializer(serializers.ModelSerializer):
                             'first_state', 'registration_form', 'is_mentor', 'is_manager']
 
 
-class EdgeSerializer(serializers.ModelSerializer):
+class EdgeSerializer(ContentSerializer):
 
     def validate(self, attrs):
         user = self.context.get('user', None)
@@ -149,7 +150,7 @@ class EdgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edge
         fields = '__all__'
-        read_only_fields = ['id', 'has_lock']
+        read_only_fields = ['id']
 
 
 class KeySerializer(serializers.Serializer):

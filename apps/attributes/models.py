@@ -16,6 +16,7 @@ class IntrinsicAttributeTypes(models.TextChoices):
     reward = 'reward'
     required_balance = 'required_balance'
     password = 'password'
+    disabled = 'disabled'
 
 
 class IntrinsicAttribute(Attribute):
@@ -32,6 +33,7 @@ class PerformableActionTypes(models.TextChoices):
     solve = 'solve'
     attempt = 'attempt'
     enter = 'enter'
+    transit = 'transit'
 
 
 class PerformableAction(Attribute):
