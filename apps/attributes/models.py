@@ -1,46 +1,39 @@
 from django.db import models
-
-# Create your models here.
-
-from django.db import models
-from apps.accounts.models import EducationalInstitute, User
 from polymorphic.models import PolymorphicModel
-
-
-class ActionTypes(models.TextChoices):
-    Male = 'Male'
-    Female = 'Female'
-
-
-class Action(PolymorphicModel):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
-    type = models.CharField(max_length=10, choices=ActionTypes.choices)
-
-    def __str__(self):
-        return self.name
-
-
-class AttributeTypes(models.TextChoices):
-    See = 'Male'
-    Female = 'Female'
 
 
 class Attribute(PolymorphicModel):
     name = models.CharField(max_length=50, unique=True)
-    type = models.CharField(max_length=10, choices=ActionTypes.choices)
+    attributes = models.ManyToManyField(to='attributes.Attribute', blank=True)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
 
 
-class RequiredBalance(Attribute):
-    pass
+class IntrinsicAttributeTypes(models.TextChoices):
+    cost = 'cost'
+    reward = 'reward'
+    required_balance = 'required_balance'
+    password = 'password'
 
 
-class Cost(Attribute):
-    pass
+class IntrinsicAttribute(Attribute):
+    value = models.JSONField(default=dict, null=True, blank=True)
+    type = models.CharField(
+        max_length=20, choices=IntrinsicAttributeTypes.choices)
 
 
-class Reward(Attribute):
-    pass
+class PerformableActionTypes(models.TextChoices):
+    see = 'see'
+    purchase = 'purchase'
+    sell = 'sell'
+    copy = 'copy'
+    solve = 'solve'
+    attempt = 'attempt'
+    enter = 'enter'
+
+
+class PerformableAction(Attribute):
+    type = models.CharField(
+        max_length=20, choices=PerformableActionTypes.choices)

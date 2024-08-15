@@ -53,6 +53,7 @@ CUSTOM_APPS = [
     'apps.sales.apps.SalesConfig',
     # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'apps.file_storage.apps.FileStorageConfig',
+    'apps.attributes.apps.AttributesConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS

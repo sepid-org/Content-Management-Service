@@ -79,13 +79,11 @@ class FSMViewSet(viewsets.ModelViewSet):
         if not fsm.first_state.is_user_permitted(user):
             raise ParseError(serialize_error('4108'))
 
+        if fsm.entrance_lock and password != fsm.entrance_lock:
+            raise PermissionDenied(serialize_error('4080'))
+
         # first time entering fsm
         if not player:
-            if fsm.lock and len(fsm.lock) > 0:
-                if not password:
-                    raise PermissionDenied(serialize_error('4085'))
-                elif password != fsm.lock:
-                    raise PermissionDenied(serialize_error('4080'))
             serializer = PlayerSerializer(data={'user': user.id, 'fsm': fsm.id, 'receipt': receipt.id,
                                                 'current_state': fsm.first_state.id, 'last_visit': timezone.now()},
                                           context=self.get_serializer_context())

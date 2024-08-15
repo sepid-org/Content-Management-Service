@@ -14,7 +14,7 @@ class FSMMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = FSM
         fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
-                  'fsm_learning_type', 'fsm_p_type', 'order_in_program', 'lock']
+                  'fsm_learning_type', 'fsm_p_type', 'order_in_program', 'has_entrance_lock']
 
     def to_representation(self, instance):
         representation = super(FSMMinimalSerializer,

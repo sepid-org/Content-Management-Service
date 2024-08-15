@@ -7,6 +7,7 @@ from polymorphic.models import PolymorphicModel
 from abc import abstractmethod
 from apps.accounts.models import Purchase, User
 
+from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
 from apps.scoring.models import Cost, Reward
 from manage_content_service.settings.base import get_environment_var
 
@@ -204,6 +205,35 @@ class ProgramContactInfo(models.Model):
 ################ FSM #################
 
 
+class Content():
+    def get_intrinsic_attributes(self) -> list[IntrinsicAttribute]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, IntrinsicAttribute):
+                result.append(attribute)
+        return result
+
+    def get_performable_actions(self) -> list[PerformableAction]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, PerformableAction):
+                result.append(attribute)
+        return result
+
+    @property
+    def entrance_lock(self):
+        for attribute in self.get_performable_actions():
+            if attribute.type == 'enter':
+                for intrinsic_attribute in attribute.attributes.all():
+                    if intrinsic_attribute.type == 'password':
+                        return intrinsic_attribute.value
+        return None
+
+    @property
+    def has_entrance_lock(self):
+        return bool(self.entrance_lock)
+
+
 class FSMManager(models.Manager):
     @transaction.atomic
     def create(self, **args):
@@ -213,7 +243,7 @@ class FSMManager(models.Manager):
         return fsm
 
 
-class FSM(models.Model):
+class FSM(models.Model, Content):
     class FSMLearningType(models.TextChoices):
         Supervised = 'Supervised'
         Unsupervised = 'Unsupervised'
@@ -222,6 +252,8 @@ class FSM(models.Model):
         Team = 'Team'
         Individual = 'Individual'
         Hybrid = 'Hybrid'
+
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
@@ -244,7 +276,6 @@ class FSM(models.Model):
                                          choices=FSMLearningType.choices)
     fsm_p_type = models.CharField(
         max_length=40, default=FSMPType.Individual, choices=FSMPType.choices)
-    lock = models.CharField(max_length=10, null=True, blank=True)
     team_size = models.IntegerField(default=3)
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
