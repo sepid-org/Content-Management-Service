@@ -30,8 +30,9 @@ class PerformableActionTypes(models.TextChoices):
     purchase = 'purchase'
     sell = 'sell'
     copy = 'copy'
+    assess_answer = 'assess_answer'
     solve = 'solve'
-    attempt = 'attempt'
+    submit = 'submit'
     enter = 'enter'
     transit = 'transit'
 

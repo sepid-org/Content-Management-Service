@@ -13,8 +13,9 @@ from apps.fsm.models import *
 from apps.fsm.permissions import CanAnswerWidget
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
-from apps.scoring.views.apply_scores_on_user import apply_cost, apply_reward
 from proxies.assess_answer_service.main import assess_answer
+from proxies.bank_service.main import BankProxy
+from proxies.instant_messaging_service.main import InstantMessagingServiceProxy
 
 
 def get_question(question_id: int):
@@ -46,13 +47,13 @@ class AnswerViewSet(viewsets.ModelViewSet):
         return context
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
-    @action(detail=False, methods=['post'], serializer_class=AnswerPolymorphicSerializer,
-            permission_classes=[CanAnswerWidget])
+    @action(detail=False, methods=['post'], serializer_class=AnswerPolymorphicSerializer, permission_classes=[CanAnswerWidget])
     @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
-        # check if user has already answered this question correctly
-        question = get_question(request.data.get("question_id"))
+        question = get_question(request.data.get("question"))
         user = request.user
+
+        # check if user has already answered this question correctly
         if question.correct_answer:
             user_correctly_answered_problems = Answer.objects.filter(
                 submitted_by=user, is_correct=True)
@@ -60,6 +61,11 @@ class AnswerViewSet(viewsets.ModelViewSet):
                 if answer.problem == question:
                     raise ParseError(serialize_error('6000'))
 
+        # withdraw the submission cost from user wallet
+        _apply_submission_answer_cost(
+            user=user, question=question, website=request.data.get('website'))
+
+        # create submitted answer object
         given_answer_data = {
             'is_final_answer': True,
             'problem': question.id,
@@ -70,28 +76,22 @@ class AnswerViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         given_answer_object = serializer.save()
 
-        correctness_percentage = -1
-        comment = 'not assessed'
+        # assess the answer (is any correct answer is provided)
         if question.correct_answer:
-            apply_cost(
-                question.cost, request.user, 'کسر هزینه بابت تصحیح پاسخ', f'بابت تصحیح پاسخ سوال {question.id} از شما امتیاز کسر شد')
-
             correctness_percentage, comment = assess_answer(
                 question=question, given_answer=given_answer_object)
-
-            if correctness_percentage == 100:
+            if correctness_percentage >= question.correctness_threshold:
                 given_answer_object.is_correct = True
                 given_answer_object.save()
-                apply_reward(
-                    given_answer_object.problem.reward, request.user, 'پاداش حل سوال', f'بابت حل سوال {question.id} به شما امتیاز اضافه شد')
-
+                _apply_solve_question_reward(
+                    user=user, question=question, website=request.data.get('website'))
             return Response(data={'correctness_percentage': correctness_percentage, 'comment': comment})
 
-        return Response()
+        return Response(status=status.HTTP_202_ACCEPTED)
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
-    @action(detail=False, methods=['post'], permission_classes=[CanAnswerWidget, ])
+    @action(detail=False, methods=['post'], permission_classes=[CanAnswerWidget])
     def clear_question_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question_id"))
         question.unfinalize_older_answers(request.user)
@@ -99,7 +99,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic
-    @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget, ])
+    @action(detail=True, methods=['get'], permission_classes=[CanAnswerWidget])
     def answers(self, request, *args, **kwargs):
         question = get_question(request.data.get("question_id"))
         teammates = Team.objects.get_teammates_from_widget(
@@ -121,3 +121,22 @@ class AnswerViewSet(viewsets.ModelViewSet):
         answer_sheet = AnswerSheet.objects.get(id=answer_sheet_id)
         answers = answer_sheet.answers
         return Response(AnswerPolymorphicSerializer(answers, many=True).data)
+
+
+def _apply_submission_answer_cost(user, question, website):
+    if question.submission_cost:
+        bank_proxy = BankProxy(website=website)
+        bank_proxy.withdraw(user=user, money=question.submission_cost)
+        notification_proxy = InstantMessagingServiceProxy(website=website)
+        notification_proxy.send_submit_answer_cost_notification(
+            recipient=user, question_id=question.id, cost=question.submission_cost)
+
+
+def _apply_solve_question_reward(user, question, website):
+    if question.solve_reward:
+        bank_proxy = BankProxy(website=website)
+        bank_proxy.deposit(user=user, money=question.solve_reward)
+        notification_proxy = InstantMessagingServiceProxy(
+            website=website)
+        notification_proxy.send_solve_question_reward_notification(
+            recipient=user, question_id=question.id, cost=question.solve_reward)

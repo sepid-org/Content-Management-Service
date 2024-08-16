@@ -204,45 +204,56 @@ class ProgramContactInfo(models.Model):
 
 
 class Content():
-    def get_intrinsic_attributes(self) -> list[IntrinsicAttribute]:
-        result = []
-        for attribute in self.attributes.all():
-            if isinstance(attribute, IntrinsicAttribute):
-                result.append(attribute)
-        return result
-
-    def get_performable_actions(self) -> list[PerformableAction]:
-        result = []
-        for attribute in self.attributes.all():
-            if isinstance(attribute, PerformableAction):
-                result.append(attribute)
-        return result
 
     @property
-    def transition_lock(self):
-        for attribute in self.get_performable_actions():
-            if attribute.type == 'transit':
-                for intrinsic_attribute in attribute.attributes.all():
-                    if intrinsic_attribute.type == 'password':
-                        return intrinsic_attribute.value
-        return None
+    def solve_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('solve', 'reward')
+
+    @property
+    def submission_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
+
+    @property
+    def submission_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
 
     @property
     def has_transition_lock(self):
         return bool(self.transition_lock)
 
     @property
-    def entrance_lock(self):
-        for attribute in self.get_performable_actions():
-            if attribute.type == 'enter':
-                for intrinsic_attribute in attribute.attributes.all():
-                    if intrinsic_attribute.type == 'password':
-                        return intrinsic_attribute.value
-        return None
+    def transition_lock(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('transit', 'password')
 
     @property
     def has_entrance_lock(self):
         return bool(self.entrance_lock)
+
+    @property
+    def entrance_lock(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('enter', 'password')
+
+    def _get_performable_action_intrinsic_attribute_template_method(self, performable_action_type, intrinsic_attribute_type):
+        for performable_action in self._get_performable_actions():
+            if performable_action.type == performable_action_type:
+                for intrinsic_attribute in performable_action.attributes.all():
+                    if intrinsic_attribute.type == intrinsic_attribute_type:
+                        return intrinsic_attribute.value
+        return None
+
+    def _get_intrinsic_attributes(self) -> list[IntrinsicAttribute]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, IntrinsicAttribute):
+                result.append(attribute)
+        return result
+
+    def _get_performable_actions(self) -> list[PerformableAction]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, PerformableAction):
+                result.append(attribute)
+        return result
 
 
 class FSMManager(models.Manager):
@@ -666,7 +677,7 @@ class RegistrationForm(Paper):
 ############ Widget ############
 
 
-class Widget(PolymorphicModel):
+class Widget(PolymorphicModel, Content):
     class WidgetTypes(models.TextChoices):
         Iframe = 'Iframe'
         Video = 'Video'
@@ -679,8 +690,8 @@ class Widget(PolymorphicModel):
         BigAnswerProblem = 'BigAnswerProblem'
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
-        Scorable = 'Scorable'
 
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
@@ -820,6 +831,7 @@ class Problem(Widget):
     is_required = models.BooleanField(default=False)
     solution = models.TextField(null=True, blank=True)
     be_corrected = models.BooleanField(default=False)
+    correctness_threshold = models.IntegerField(default=100)
 
     @property
     def correct_answer(self):
