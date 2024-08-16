@@ -1,63 +1,55 @@
+from typing import Dict
 from django.conf import settings
-# from utilities.singleton_class import Singleton
+from utilities.singleton_class import Singleton
 import requests
 import json
 
+
 class Currency:
     name: str
+    display_name: str
+    logo: str
+    description: str
 
 
 class Money:
-    currency: Currency
-    value: float
+    Dict[str, int]
 
 
-class BankProxy():
-    url = settings.BANK_URL + "/graphql"
+class BankProxy(Singleton):
+    url = settings.BANK_URL + "graphql"
 
     def create_session_party(self):
-        headers = {
-            "Content-Type": "application/json"
-        }
         data = {
             "query": "mutation { createParty(name: \""+f"{self.website}"+"\") { name coins { name description } } }"
         }
-        response = requests.post(self.url, headers=headers, data=json.dumps(data))
+        self._post(data=data)
 
-        print(response.json())
     def __init__(self, website: str) -> None:
         self.website = website
         self.create_session_party()
 
-    def meke_currencies(self , name , description):
-        headers = {
-            "Content-Type": "application/json"
-        }
+    def create_currency(self, name, display_name, logo, description) -> None:
         data = {
             "query": "mutation { createCoin(partyName: \"" + f"{self.website}"+"\", name: \""+f"{name}"+"\", description: \""+f"{description}"+"\") { name coins { name description } } }"
         }
-
-        response = requests.post(self.url, headers=headers, data=json.dumps(data))
-
-        print(response.json())
+        self._post(data=data)
 
     def get_currencies(self) -> list[Currency]:
-        headers = {
-            "Content-Type": "application/json"
-        }
         data = {
             "query": "query { getParty(name: \""+f"{self.website}"+"\") { name coins { name description } } }"
         }
-        response = requests.post(self.url, headers=headers, data=json.dumps(data))
+        return self._post(data=data)
 
-        print(response.json())
-        return  response.json()
+    def get_balance(self, user):
+        # todo: Ehsan
+        pass
 
     def deposit(self, user, money: Money):
         # todo: Ehsan
         pass
 
-    def balance_inquiry(self, balance: list[Money]):
+    def balance_inquiry(self, balance: list[Money]) -> bool:
         # todo: Ehsan
         pass
 
@@ -68,7 +60,10 @@ class BankProxy():
     def transfer(self, sender, receiver, money: Money):
         pass
 
-
-
-
-
+    def _post(self, data):
+        headers = {
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            self.url, headers=headers, data=json.dumps(data))
+        return response.json()
