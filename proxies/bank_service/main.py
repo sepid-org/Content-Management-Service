@@ -12,8 +12,7 @@ class Currency:
     description: str
 
 
-class Money:
-    Dict[str, int]
+MoneyType = Dict[str, int]
 
 
 class BankProxy(Singleton):
@@ -45,19 +44,19 @@ class BankProxy(Singleton):
         # todo: Ehsan
         pass
 
-    def deposit(self, user, money: Money):
+    def deposit(self, user, money: MoneyType):
         # todo: Ehsan
         pass
 
-    def balance_inquiry(self, balance: list[Money]) -> bool:
+    def balance_inquiry(self, balance: MoneyType) -> bool:
         # todo: Ehsan
         pass
 
-    def withdraw(self, user, money: Money):
+    def withdraw(self, user, money: MoneyType):
         # todo: Ehsan
         pass
 
-    def transfer(self, sender, receiver, money: Money):
+    def transfer(self, sender, receiver, money: MoneyType):
         pass
 
     def _post(self, data):
