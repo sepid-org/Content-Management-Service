@@ -1,12 +1,10 @@
 
 
 import json
+from django.conf import settings
 import requests
 
-from manage_content_service.settings.base import get_environment_var
-
-url = get_environment_var(
-    'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')
+url = settings.ASSESS_ANSWER_SERVICE_URL
 
 
 def assess_answer(question, given_answer):
