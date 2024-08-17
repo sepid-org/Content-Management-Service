@@ -37,7 +37,7 @@ errors_dict = {'4000': 'phone number must be digit',
                '4029': 'a required problem is unanswered',
                '4030': 'selected choices should be from corresponding problems',
                '4031': 'only institutes\'s admins can create programs / fsm',
-               '4032': 'your grade doesn\'t fit registration criteria',
+               '4032': 'your are not allowed to register',
                '4033': 'you must provide your grade in your profile',
                '4034': 'you must have an active school studentship to register',
                '4035': 'program is full',
@@ -138,6 +138,7 @@ errors_dict = {'4000': 'phone number must be digit',
                '6001': 'user does not have enough scores',
                '6002': 'one user with this phone number exists',
                '6003': 'you have already submitted for this registration form',
+               '6004': 'grade not suitable',
                }
 
 

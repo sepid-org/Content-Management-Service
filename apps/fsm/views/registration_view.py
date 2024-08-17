@@ -148,6 +148,8 @@ class RegistrationViewSet(ModelViewSet):
             raise PermissionDenied(serialize_error('4032'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
             raise ParseError(serialize_error('4033'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotSuitable:
+            raise ParseError(serialize_error('6004'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
             raise ParseError(serialize_error('4034'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:

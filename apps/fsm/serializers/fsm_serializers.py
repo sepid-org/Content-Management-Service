@@ -93,27 +93,6 @@ class FSMSerializer(serializers.ModelSerializer):
             representation['team_head_name'] = None
             representation['is_team_head'] = False
 
-        if instance.registration_form:
-            representation['has_certificate'] = instance.registration_form.has_certificate
-            representation['certificates_ready'] = instance.registration_form.certificates_ready
-            representation['registration_since'] = instance.registration_form.since
-            representation['registration_till'] = instance.registration_form.till
-            representation['audience_type'] = instance.registration_form.audience_type
-            receipt = RegistrationReceipt.objects.filter(
-                user=user, form=instance.registration_form).last()
-            if receipt:
-                representation[
-                    'user_registration_status'] = instance.registration_form.check_time() if instance.registration_form.check_time() != 'ok' else receipt.status
-                representation['is_paid'] = receipt.is_paid
-                representation['is_user_participating'] = receipt.is_participating
-                representation['registration_receipt'] = receipt.id
-            else:
-                representation['user_registration_status'] = instance.registration_form.get_user_permission_status(
-                    user)
-                representation['is_paid'] = False
-                representation['is_user_participating'] = False
-                representation['registration_receipt'] = None
-
         return representation
 
     class Meta:

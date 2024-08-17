@@ -581,6 +581,7 @@ class RegistrationForm(Paper):
         StudentshipDataIncomplete = "StudentshipDataIncomplete"
         NotPermitted = "NotPermitted"
         GradeNotAvailable = "GradeNotAvailable"
+        GradeNotSuitable = "GradeNotSuitable"
         StudentshipDataNotApproved = "StudentshipDataNotApproved"
         Permitted = "Permitted"
         NotRightGender = "NotRightGender"
@@ -637,24 +638,20 @@ class RegistrationForm(Paper):
                     return self.RegisterPermissionStatus.StudentshipDataIncomplete
             else:
                 return self.RegisterPermissionStatus.StudentshipDataNotApproved
-        elif self.audience_type == self.AudienceType.Student:
-            studentship = user.school_studentship
-            if studentship:
-                # todo: fix tof
-                return self.RegisterPermissionStatus.Permitted
-                if studentship.grade:
-                    if self.min_grade <= studentship.grade <= self.max_grade:
-                        if studentship.school is not None or studentship.document is not None:
 
-                            return self.RegisterPermissionStatus.Permitted
-                        else:
-                            return self.RegisterPermissionStatus.StudentshipDataIncomplete
-                    else:
-                        return self.RegisterPermissionStatus.NotPermitted
-                else:
-                    return self.RegisterPermissionStatus.GradeNotAvailable
-            else:
+        if self.audience_type == self.AudienceType.Student:
+            studentship = user.school_studentship
+            print("ddddddddddddd", studentship.grade, self.min_grade, self.max_grade)
+            if not studentship:
                 return self.RegisterPermissionStatus.StudentshipDataNotApproved
+            if not studentship.grade:
+                return self.RegisterPermissionStatus.GradeNotAvailable
+            if not studentship.school or not studentship.document:
+                return self.RegisterPermissionStatus.StudentshipDataIncomplete
+            if self.min_grade > studentship.grade or studentship.grade > self.max_grade:
+                return self.RegisterPermissionStatus.GradeNotSuitable
+            return self.RegisterPermissionStatus.Permitted
+
         return self.RegisterPermissionStatus.Permitted
 
     def check_time(self):
