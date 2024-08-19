@@ -695,6 +695,7 @@ class Widget(PolymorphicModel, Content):
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
+    is_hidden = models.BooleanField(default=False)
 
     class Meta:
         order_with_respect_to = 'paper'

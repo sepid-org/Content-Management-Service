@@ -63,3 +63,8 @@ class WidgetSerializer(serializers.ModelSerializer):
                 player_id = matcher.group()
                 user = Player.objects.filter(id=player_id).first().user
         return representation
+
+    class Meta:
+        model = Widget
+        fields = ['id', 'name', 'paper', 'creator', 'widget_type', 'hints', 'is_hidden']
+        read_only_fields = ['id', 'creator']
