@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
 from rest_polymorphic.serializers import PolymorphicSerializer
 
+from apps.fsm.serializers.content_serializer import ContentSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
@@ -188,15 +189,15 @@ class StateSimpleSerializer(serializers.ModelSerializer):
                             'since', 'till', 'duration', 'is_exam']
 
 
-class EdgeSimpleSerializer(serializers.ModelSerializer):
+class EdgeSimpleSerializer(ContentSerializer):
     tail = StateSimpleSerializer()
     head = StateSimpleSerializer()
 
     class Meta:
         model = Edge
         fields = '__all__'
-        read_only_fields = ['id', 'tail', 'head', 'is_back_enabled', 'min_score', 'cost', 'priority', 'lock',
-                            'has_lock', 'is_hidden', 'text']
+        read_only_fields = ['id', 'tail', 'head',
+                            'is_back_enabled', 'priority', 'is_hidden', 'text']
 
 
 class StateSerializer(PaperSerializer):

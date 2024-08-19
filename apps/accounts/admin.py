@@ -1,13 +1,7 @@
-import logging
-from re import search
-
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
-from .models import Purchase, DiscountCode, User, UserWebsite, VerificationCode, UserWebsiteLogin, \
-    University, EducationalInstitute, School, SchoolStudentship, AcademicStudentship, Merchandise, Voucher
-
-logger = logging.getLogger(__name__)
+from .models import User, UserWebsite, VerificationCode, UserWebsiteLogin, University, EducationalInstitute, School, SchoolStudentship, AcademicStudentship
 
 
 @admin.register(UserWebsite)
@@ -24,6 +18,7 @@ class UserWebsiteLoginsCustomAdmin(admin.ModelAdmin):
     search_fields = ['user_website__user', 'user_website__website']
 
 
+@admin.register(User)
 class CustomUserAdmin(admin.ModelAdmin):
     def verify_school_documents(self, request, queryset):
         # documents = queryset.exclude(
@@ -49,6 +44,7 @@ class CustomUserAdmin(admin.ModelAdmin):
     ordering = ['-date_joined']
 
 
+@admin.register(School)
 class CustomSchoolAdmin(admin.ModelAdmin):
     def merge_schools(self, request, queryset):
         schools = len(queryset)
@@ -75,6 +71,18 @@ class CustomSchoolAdmin(admin.ModelAdmin):
     search_fields = ['name', 'address']
 
 
+@admin.register(University)
+class UniversityCustomAdmin(admin.ModelAdmin):
+    model = University
+    list_display = ['id', 'name', 'province', 'city', 'postal_code', 'address']
+    search_fields = ['name', 'city']
+
+
+admin.site.register(EducationalInstitute)
+admin.site.register(VerificationCode)
+admin.site.register(SchoolStudentship)
+admin.site.register(AcademicStudentship)
+
 
 def export_selected_objects(model_admin, request, queryset):
     selected = queryset.values_list('pk', flat=True)
@@ -83,29 +91,4 @@ def export_selected_objects(model_admin, request, queryset):
         f'/api/admin/export/?ct={ct.pk}&ids={",".join(str(pk) for pk in selected)}&name={ct.model}')
 
 
-class CustomPurchaseAdmin(admin.ModelAdmin):
-    model = Purchase
-    list_display = ['id', 'ref_id', 'amount',
-                    'status', 'created_at', 'user', 'merchandise']
-    search_fields = ['user__username']
-
-
-class UniversityCustomAdmin(admin.ModelAdmin):
-    model = University
-    list_display = ['id', 'name', 'province', 'city',
-                    'school_type', 'postal_code', 'address']
-    search_fields = ['name', 'city']
-
-
 admin.site.add_action(export_selected_objects, 'export_selected')
-admin.site.register(User, CustomUserAdmin)
-admin.site.register(School, CustomSchoolAdmin)
-admin.site.register(EducationalInstitute)
-admin.site.register(DiscountCode)
-admin.site.register(VerificationCode)
-admin.site.register(Purchase, CustomPurchaseAdmin)
-admin.site.register(SchoolStudentship)
-admin.site.register(AcademicStudentship)
-admin.site.register(Merchandise)
-# admin.site.register(University)
-admin.site.register(Voucher)

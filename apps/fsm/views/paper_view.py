@@ -1,5 +1,6 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 
 from apps.fsm.models import Paper
 from apps.fsm.serializers.paper_serializers import PaperSerializer
@@ -11,8 +12,25 @@ class PaperViewSet(viewsets.ModelViewSet):
     my_tags = ['paper']
 
     def get_permissions(self):
-        if self.action == 'create' or self.action == 'retrieve' or self.action == 'list':
-            permission_classes = [IsAuthenticated]
+        if self.action == 'retrieve':
+            permission_classes = [AllowAny]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        # Allow anonymous access to articles
+        if instance.paper_type == Paper.PaperType.Article:
+            return Response(serializer.data)
+
+        # Check IsAuthenticated permission for other paper types
+        if not IsAuthenticated().has_permission(request, self):
+            self.permission_denied(
+                request,
+                message=getattr(IsAuthenticated, 'message', None),
+                code=getattr(IsAuthenticated, 'code', None)
+            )
+        return Response(serializer.data)

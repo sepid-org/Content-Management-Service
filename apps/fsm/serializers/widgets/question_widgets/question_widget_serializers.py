@@ -9,8 +9,8 @@ from apps.response.serializers.answers.answer_serializers import SmallAnswerSeri
 
 class QuestionWidgetSerializer(WidgetSerializer):
     class Meta:
-        fields = ['id', 'name', 'paper', 'widget_type', 'creator', 'text',
-                  'is_required', 'solution', 'hints', 'cost', 'reward']
+        fields = ['id', 'name', 'paper', 'widget_type',
+                  'creator', 'text', 'is_required', 'solution', 'hints']
         read_only_fields = ['id', 'creator']
 
 

@@ -1,6 +1,3 @@
-import logging
-
-from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -11,8 +8,6 @@ from apps.accounts.models import Studentship
 from apps.accounts.serializers.institute_serializer import InstituteSerializer
 from apps.accounts.serializers.user_serializer import StudentshipSerializer
 
-logger = logging.getLogger(__name__)
-
 
 # todo - everyone can edit anyone's studentships
 class StudentshipViewSet(ModelViewSet):
@@ -21,9 +16,7 @@ class StudentshipViewSet(ModelViewSet):
     queryset = Studentship.objects.all()
     my_tags = ['studentship']
 
-    @swagger_auto_schema(responses={200: InstituteSerializer,
-                                    403: "error code 4011 for already associating a studentship to user"
-                                    })
+    @swagger_auto_schema(responses={200: InstituteSerializer, 403: "error code 4011 for already associating a studentship to user"})
     @transaction.atomic
     def create(self, request):
         data = request.data

@@ -84,7 +84,7 @@ class ProgramViewSet(ModelViewSet):
         return Response()
 
     @action(detail=True, methods=['get'])
-    def soft_remove_program(self, request, pk=None):
+    def soft_delete(self, request, pk=None):
         program = self.get_object()
         program.is_deleted = True
         program.deleted_at = timezone.now()

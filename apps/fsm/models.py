@@ -7,8 +7,7 @@ from polymorphic.models import PolymorphicModel
 from abc import abstractmethod
 from apps.accounts.models import Purchase, User
 
-from apps.scoring.models import Cost, Reward
-from manage_content_service.settings.base import get_environment_var
+from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
 
 
 ################ BASE #################
@@ -133,8 +132,6 @@ class Program(models.Model):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    merchandise = models.OneToOneField('accounts.Merchandise', related_name='program', on_delete=models.SET_NULL,
-                                       null=True, blank=True)
     registration_form = models.OneToOneField(
         'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
@@ -173,6 +170,12 @@ class Program(models.Model):
         return modifiers
 
     @property
+    def is_free(self):
+        if len(self.merchandises.filter(is_active=True)) == 0:
+            return True
+        return False
+
+    @property
     def initial_participants(self):
         return self.registration_form.registration_receipts.filter()
 
@@ -182,7 +185,6 @@ class Program(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None
-        self.merchandise.delete() if self.merchandise is not None else None
         return super(Program, self).delete(using, keep_parents)
 
     class Meta:
@@ -201,6 +203,59 @@ class ProgramContactInfo(models.Model):
 ################ FSM #################
 
 
+class Content():
+
+    @property
+    def solve_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('solve', 'reward')
+
+    @property
+    def submission_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
+
+    @property
+    def submission_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
+
+    @property
+    def has_transition_lock(self):
+        return bool(self.transition_lock)
+
+    @property
+    def transition_lock(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('transit', 'password')
+
+    @property
+    def has_entrance_lock(self):
+        return bool(self.entrance_lock)
+
+    @property
+    def entrance_lock(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('enter', 'password')
+
+    def _get_performable_action_intrinsic_attribute_template_method(self, performable_action_type, intrinsic_attribute_type):
+        for performable_action in self._get_performable_actions():
+            if performable_action.type == performable_action_type:
+                for intrinsic_attribute in performable_action.attributes.all():
+                    if intrinsic_attribute.type == intrinsic_attribute_type:
+                        return intrinsic_attribute.value
+        return None
+
+    def _get_intrinsic_attributes(self) -> list[IntrinsicAttribute]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, IntrinsicAttribute):
+                result.append(attribute)
+        return result
+
+    def _get_performable_actions(self) -> list[PerformableAction]:
+        result = []
+        for attribute in self.attributes.all():
+            if isinstance(attribute, PerformableAction):
+                result.append(attribute)
+        return result
+
+
 class FSMManager(models.Manager):
     @transaction.atomic
     def create(self, **args):
@@ -210,7 +265,7 @@ class FSMManager(models.Manager):
         return fsm
 
 
-class FSM(models.Model):
+class FSM(models.Model, Content):
     class FSMLearningType(models.TextChoices):
         Supervised = 'Supervised'
         Unsupervised = 'Unsupervised'
@@ -220,12 +275,12 @@ class FSM(models.Model):
         Individual = 'Individual'
         Hybrid = 'Hybrid'
 
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
+
     website = models.CharField(blank=True, null=True, max_length=50)
 
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                                 blank=True)
-    merchandise = models.OneToOneField('accounts.Merchandise', related_name='fsm', on_delete=models.SET_NULL, null=True,
-                                       blank=True)
     registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='fsm', on_delete=models.SET_NULL, null=True,
                                              blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
@@ -243,7 +298,6 @@ class FSM(models.Model):
                                          choices=FSMLearningType.choices)
     fsm_p_type = models.CharField(
         max_length=40, default=FSMPType.Individual, choices=FSMPType.choices)
-    lock = models.CharField(max_length=10, null=True, blank=True)
     team_size = models.IntegerField(default=3)
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
@@ -344,39 +398,17 @@ class State(Paper):
         return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
-class EdgeManager(models.Manager):
-    @transaction.atomic
-    def create(self, **args):
-        lock = args.get('lock', None)
-        has_lock = False
-        if lock:
-            has_lock = True
-        return super(EdgeManager, self).create(**{'has_lock': has_lock, **args})
+class Edge(models.Model, Content):
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
-    def update(self, instance, **args):
-        lock = args.get('lock', None)
-        has_lock = False
-        if lock or instance.lock:
-            has_lock = True
-        return super(EdgeManager, self).update(instance, **{'has_lock': has_lock, **args})
-
-
-# from tail to head
-class Edge(models.Model):
     tail = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='outward_edges')
     head = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
-    min_score = models.FloatField(default=0.0)
-    cost = models.FloatField(default=0.0)
     priority = models.IntegerField(null=True, blank=True)
-    lock = models.CharField(max_length=10, null=True, blank=True)
-    has_lock = models.BooleanField(default=False)
     is_visible = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
-
-    objects = EdgeManager()
 
     class Meta:
         unique_together = ('tail', 'head')
@@ -499,8 +531,12 @@ class RegistrationReceipt(AnswerSheet):
 
     @property
     def purchases(self):
-        if self.form.program_or_fsm.merchandise:
-            return self.form.program_or_fsm.merchandise.purchases.filter(user=self.user)
+        purchases = []
+        merchandises = self.form.program.merchandises
+        if merchandises:
+            for merchandise in merchandises:
+                purchases.append(*merchandise.purchases.filter(user=self.user))
+            return purchases
         return Purchase.objects.none()
 
     @property
@@ -545,6 +581,7 @@ class RegistrationForm(Paper):
         StudentshipDataIncomplete = "StudentshipDataIncomplete"
         NotPermitted = "NotPermitted"
         GradeNotAvailable = "GradeNotAvailable"
+        GradeNotSuitable = "GradeNotSuitable"
         StudentshipDataNotApproved = "StudentshipDataNotApproved"
         Permitted = "Permitted"
         NotRightGender = "NotRightGender"
@@ -601,24 +638,19 @@ class RegistrationForm(Paper):
                     return self.RegisterPermissionStatus.StudentshipDataIncomplete
             else:
                 return self.RegisterPermissionStatus.StudentshipDataNotApproved
-        elif self.audience_type == self.AudienceType.Student:
-            studentship = user.school_studentship
-            if studentship:
-                # todo: fix tof
-                return self.RegisterPermissionStatus.Permitted
-                if studentship.grade:
-                    if self.min_grade <= studentship.grade <= self.max_grade:
-                        if studentship.school is not None or studentship.document is not None:
 
-                            return self.RegisterPermissionStatus.Permitted
-                        else:
-                            return self.RegisterPermissionStatus.StudentshipDataIncomplete
-                    else:
-                        return self.RegisterPermissionStatus.NotPermitted
-                else:
-                    return self.RegisterPermissionStatus.GradeNotAvailable
-            else:
+        if self.audience_type == self.AudienceType.Student:
+            studentship = user.school_studentship
+            if not studentship:
                 return self.RegisterPermissionStatus.StudentshipDataNotApproved
+            if not studentship.grade:
+                return self.RegisterPermissionStatus.GradeNotAvailable
+            if not studentship.school:
+                return self.RegisterPermissionStatus.StudentshipDataIncomplete
+            if self.min_grade > studentship.grade or studentship.grade > self.max_grade:
+                return self.RegisterPermissionStatus.GradeNotSuitable
+            return self.RegisterPermissionStatus.Permitted
+
         return self.RegisterPermissionStatus.Permitted
 
     def check_time(self):
@@ -641,7 +673,7 @@ class RegistrationForm(Paper):
 ############ Widget ############
 
 
-class Widget(PolymorphicModel):
+class Widget(PolymorphicModel, Content):
     class WidgetTypes(models.TextChoices):
         Iframe = 'Iframe'
         Video = 'Video'
@@ -654,8 +686,8 @@ class Widget(PolymorphicModel):
         BigAnswerProblem = 'BigAnswerProblem'
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
-        Scorable = 'Scorable'
 
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
@@ -663,10 +695,6 @@ class Widget(PolymorphicModel):
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    cost = models.ForeignKey(
-        Cost, on_delete=models.CASCADE, null=True, blank=True)
-    reward = models.ForeignKey(
-        Reward, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         order_with_respect_to = 'paper'
@@ -799,6 +827,7 @@ class Problem(Widget):
     is_required = models.BooleanField(default=False)
     solution = models.TextField(null=True, blank=True)
     be_corrected = models.BooleanField(default=False)
+    correctness_threshold = models.IntegerField(default=100)
 
     @property
     def correct_answer(self):

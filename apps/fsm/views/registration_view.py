@@ -120,7 +120,7 @@ class RegistrationViewSet(ModelViewSet):
             self.get_object().set_widget_order(serializer.validated_data.get('order'))
         return Response(data=RegistrationFormSerializer(self.get_object()).data, status=status.HTTP_200_OK)
 
-    # @swagger_auto_schema(responses={201: RegistrationReceiptSerializer})
+    @swagger_auto_schema(responses={201: RegistrationReceiptSerializer})
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=RegistrationReceiptSerializer)
     def register(self, request, pk=None):
@@ -148,6 +148,8 @@ class RegistrationViewSet(ModelViewSet):
             raise PermissionDenied(serialize_error('4032'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
             raise ParseError(serialize_error('4033'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotSuitable:
+            raise ParseError(serialize_error('6004'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
             raise ParseError(serialize_error('4034'))
         elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:
@@ -163,13 +165,13 @@ class RegistrationViewSet(ModelViewSet):
             if program.maximum_participant is None or len(program.final_participants) < program.maximum_participant:
                 if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
                     registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                    if not program.merchandise:
+                    if program.is_free:
                         registration_receipt.is_participating = True
                     registration_receipt.save()
                 elif registration_form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
                     if registration_receipt.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
                         registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
-                        if not program.merchandise:
+                        if program.is_free:
                             registration_receipt.is_participating = True
                         registration_receipt.save()
             else:

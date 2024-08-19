@@ -7,7 +7,6 @@ from apps.accounts.views.check_authentication import CheckAuthenticationView
 from apps.accounts.views.google_login import GoogleLogin
 from apps.accounts.views.studentship_view import StudentshipViewSet
 from apps.accounts.views.institute_view import InstituteViewSet, SchoolViewSet
-from apps.accounts.views.payment_view import PaymentViewSet, DiscountCodeViewSet, MerchandiseViewSet
 from apps.accounts.views.profile_view import ProfileViewSet
 
 urlpatterns = [
@@ -45,8 +44,4 @@ router.register(r'institutes', InstituteViewSet, basename='institutes')
 router.register(r'schools', SchoolViewSet, basename='schools')
 router.register(r'profile', ProfileViewSet, basename='profiles')
 router.register(r'studentship', StudentshipViewSet, basename='studentships')
-router.register(r'payment', PaymentViewSet, basename='merchandises')
-router.register(r'discount_code', DiscountCodeViewSet,
-                basename='discount_codes')
-router.register(r'merchandise', MerchandiseViewSet, basename='merchandises')
 urlpatterns += router.urls

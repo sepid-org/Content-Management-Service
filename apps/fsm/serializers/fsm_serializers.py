@@ -3,18 +3,19 @@ from rest_framework import serializers
 from apps.fsm.models import Player
 
 from apps.accounts.serializers.user_serializer import MentorSerializer
-from apps.accounts.serializers.serializers import MerchandiseSerializer
+from apps.fsm.serializers.content_serializer import ContentSerializer
+from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
 from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer
 
 
-class FSMMinimalSerializer(serializers.ModelSerializer):
+class FSMMinimalSerializer(ContentSerializer):
 
     class Meta:
         model = FSM
         fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
-                  'fsm_learning_type', 'fsm_p_type', 'order_in_program', 'lock']
+                  'fsm_learning_type', 'fsm_p_type', 'order_in_program']
 
     def to_representation(self, instance):
         representation = super(FSMMinimalSerializer,
@@ -92,27 +93,6 @@ class FSMSerializer(serializers.ModelSerializer):
             representation['team_head_name'] = None
             representation['is_team_head'] = False
 
-        if instance.registration_form:
-            representation['has_certificate'] = instance.registration_form.has_certificate
-            representation['certificates_ready'] = instance.registration_form.certificates_ready
-            representation['registration_since'] = instance.registration_form.since
-            representation['registration_till'] = instance.registration_form.till
-            representation['audience_type'] = instance.registration_form.audience_type
-            receipt = RegistrationReceipt.objects.filter(
-                user=user, form=instance.registration_form).last()
-            if receipt:
-                representation[
-                    'user_registration_status'] = instance.registration_form.check_time() if instance.registration_form.check_time() != 'ok' else receipt.status
-                representation['is_paid'] = receipt.is_paid
-                representation['is_user_participating'] = receipt.is_participating
-                representation['registration_receipt'] = receipt.id
-            else:
-                representation['user_registration_status'] = instance.registration_form.get_user_permission_status(
-                    user)
-                representation['is_paid'] = False
-                representation['is_user_participating'] = False
-                representation['registration_receipt'] = None
-
         return representation
 
     class Meta:
@@ -122,7 +102,7 @@ class FSMSerializer(serializers.ModelSerializer):
                             'first_state', 'registration_form', 'is_mentor', 'is_manager']
 
 
-class EdgeSerializer(serializers.ModelSerializer):
+class EdgeSerializer(ContentSerializer):
 
     def validate(self, attrs):
         user = self.context.get('user', None)
@@ -149,7 +129,7 @@ class EdgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edge
         fields = '__all__'
-        read_only_fields = ['id', 'has_lock']
+        read_only_fields = ['id']
 
 
 class KeySerializer(serializers.Serializer):

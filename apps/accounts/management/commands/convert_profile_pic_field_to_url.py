@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.accounts.models import User
+from apps.accounts.models import Studentship
 from django.db import transaction
 
 
@@ -9,9 +9,9 @@ class Command(BaseCommand):
 
         @transaction.atomic
         def do():
-            for user in User.objects.all():
-                if user.profile_picture:
-                    user.profile_picture2 = user.profile_picture.url
-                    user.save()
+            for studentship in Studentship.objects.all():
+                if studentship.document:
+                    studentship.document2 = studentship.document.url
+                    studentship.save()
 
         do()

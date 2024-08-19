@@ -13,7 +13,7 @@ from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerStateSerializer
-from apps.fsm.utils import get_a_random_player_from_team, get_player, transit_player_in_fsm, transit_team_in_fsm
+from apps.fsm.utils import get_player, transit_player_in_fsm, transit_team_in_fsm
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +58,9 @@ class EdgeViewSet(ModelViewSet):
             raise PermissionDenied(serialize_error('4087'))
 
         # check password:
-        if edge.lock and len(edge.lock) > 0:
-            password = request.data.get('password', None)
-            if not password:
-                raise PermissionDenied(serialize_error('4085'))
-            elif edge.lock != password:
-                raise PermissionDenied(serialize_error('4084'))
+        password = request.data.get('password', None)
+        if edge.transition_lock and edge.transition_lock != password:
+            raise PermissionDenied(serialize_error('4084'))
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
@@ -71,16 +68,13 @@ class EdgeViewSet(ModelViewSet):
                 raise ParseError(serialize_error('4089'))
             if player.current_state == edge.tail:
                 transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
-                player = get_a_random_player_from_team(team, fsm)
-            return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
 
         elif fsm.fsm_p_type == FSM.FSMPType.Individual:
             if player.current_state == edge.tail:
                 player = transit_player_in_fsm(
                     player, edge.tail, edge.head, edge)
 
-            return Response(PlayerStateSerializer(player).data,
-                            status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
     @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['mentor'])
     @transaction.atomic
@@ -93,6 +87,5 @@ class EdgeViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         team: Team = serializer.validated_data['team']
         transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
-        player = get_a_random_player_from_team(team, fsm)
 
-        return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_202_ACCEPTED)

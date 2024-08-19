@@ -1,31 +1,29 @@
 import requests
 from django.conf import settings
+from utilities.singleton_class import Singleton
 
 
-def create_session():
-    headers = {
-        "Content-Type": "application/json"
-    }
-    data = {
-        "username": settings.METABASE_USERNAME,
-        "password": settings.METABASE_PASSWORD,
-    }
+class MetabaseProxy(Singleton):
 
-    response = requests.post(
-        f'{settings.METABASE_URL}api/session/', headers=headers, json=data)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        response.raise_for_status()
-
-
-class MetabaseProxy():
+    def create_session(self):
+        headers = {
+            "Content-Type": "application/json"
+        }
+        data = {
+            "username": settings.METABASE_USERNAME,
+            "password": settings.METABASE_PASSWORD,
+        }
+        response = requests.post(
+            f'{settings.METABASE_URL}api/session/', headers=headers, json=data)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            response.raise_for_status()
 
     def __init__(self) -> None:
         from django.conf import settings
         if not settings.DEBUG:
-            self.session_data = create_session()
+            self.session_data = self.create_session()
 
     def post(self, url, headers, data):
         headers = {

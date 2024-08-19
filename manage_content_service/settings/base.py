@@ -50,8 +50,10 @@ CUSTOM_APPS = [
     'apps.roadmap.apps.RoadmapConfig',
     'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
+    'apps.sales.apps.SalesConfig',
     # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'apps.file_storage.apps.FileStorageConfig',
+    'apps.attributes.apps.AttributesConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
@@ -213,3 +215,18 @@ def GET_PAYMENT_CALLBACK_URL(domain, status):
 METABASE_URL = get_environment_var('METABASE_URL', None)
 METABASE_USERNAME = get_environment_var('METABASE_USERNAME', None)
 METABASE_PASSWORD = get_environment_var('METABASE_PASSWORD', None)
+
+
+########## INSTANT MESSAGING ##########
+
+INSTANT_MESSAGE_URL = get_environment_var(
+    'INSTANT_MESSAGE_URL', 'https://ims.sepid.org/')
+
+
+########## BAND AS A SERVICE ##########
+
+BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
+
+
+ASSESS_ANSWER_SERVICE_URL = get_environment_var(
+    'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')

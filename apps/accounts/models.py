@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
-from apps.accounts.validators import percentage_validator
+from apps.sales.validators import percentage_validator
 from manage_content_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
 from proxies.sms_system.sms_service_proxy import SMSServiceProxy
@@ -166,8 +166,7 @@ class Studentship(PolymorphicModel):
         max_length=10, null=False, blank=False, choices=StudentshipType.choices)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    document = models.FileField(
-        upload_to='studentship_documents/', null=True, blank=True)
+    document = models.URLField(max_length=2000, null=True)
     is_document_verified = models.BooleanField(default=False)
 
 
@@ -228,22 +227,14 @@ class Player(models.Model):
 class Merchandise(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50, null=True, blank=True)
-    price = models.IntegerField(default=0)
-    discounted_price = models.IntegerField(default=None, null=True)
+    name = models.CharField(max_length=50)
+    price = models.IntegerField()
+    discounted_price = models.IntegerField(null=True)
     is_active = models.BooleanField(default=True)
-
-    @property
-    def program_or_fsm(self):
-        try:
-            if self.program:
-                return self.program
-        except:
-            try:
-                if self.fsm:
-                    return self.fsm
-            except:
-                return None
+    program = models.ForeignKey(
+        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises')
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
 
 # class Code(models.Model):
@@ -275,17 +266,19 @@ class DiscountCode(models.Model):
     remaining = models.IntegerField(default=1)
     user = models.ForeignKey(User, related_name='discount_codes', on_delete=models.CASCADE, null=True, blank=True,
                              default=None)
-    merchandise = models.ForeignKey(Merchandise, related_name='discount_codes', on_delete=models.CASCADE, null=False,
-                                    blank=False)
-
+    merchandises = models.ManyToManyField(
+        to=Merchandise, related_name='discount_codes')
+    discount_code_limit = models.IntegerField(null=True, blank=True)
     objects = DiscountCodeManager()
 
     def __str__(self):
         return self.code + " " + str(self.value)
 
-    @staticmethod
-    def calculate_discount(value, price):
-        return ((price * (1 - value) + 50) // 100) * 100
+    def calculate_discounted_price(self, price):
+        if self.discount_code_limit:
+            return max(((price * (1 - self.value) + 50) // 100) * 100, price - self.discount_code_limit)
+        else:
+            return ((price * (1 - self.value) + 50) // 100) * 100
 
 
 class VoucherManager(models.Manager):
@@ -359,7 +352,7 @@ class Purchase(models.Model):
 
     @property
     def registration_receipt(self):
-        return self.merchandise.program_or_fsm.registration_form.registration_receipts.filter(user=self.user).last()
+        return self.merchandise.program.registration_form.registration_receipts.filter(user=self.user).last()
 
     def __str__(self):
         return f'{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}'

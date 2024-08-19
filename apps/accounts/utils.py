@@ -76,10 +76,10 @@ def create_or_get_user(user_data, website):
     #         email=user.email,
     #         name=user.full_name,
     #     )
-    
+
     # send greeting notification
     notification_service_proxy = InstantMessagingServiceProxy(website=website)
-    notification_service_proxy.send_notification(recipient=str(user.id), message='به آکادمی خود خوش آمدید!')
+    notification_service_proxy.send_greeting_notification(recipient=user)
 
     return user
 

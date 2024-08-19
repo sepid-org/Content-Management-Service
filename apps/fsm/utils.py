@@ -66,11 +66,6 @@ def get_player(user, fsm) -> Player:
     return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
 
 
-def get_a_random_player_from_team(team, fsm) -> Player:
-    member = team.members.first()
-    return member.get_player_of(fsm=fsm)
-
-
 def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge) -> None:
     for member in team.members.all():
         player = member.get_player_of(fsm=fsm)

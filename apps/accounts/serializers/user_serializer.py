@@ -1,16 +1,14 @@
 from datetime import datetime
 from django.contrib.auth.hashers import make_password
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
+from rest_framework.exceptions import ParseError
 
-from apps.accounts.serializers.institute_serializer import InstituteInfoSummarySerializer, InstituteSerializer
+from apps.accounts.serializers.institute_serializer import InstituteSerializer
 from errors.error_codes import serialize_error
-from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_LENGTH
-from ..models import User, VerificationCode, EducationalInstitute, School, University, SchoolStudentship, Studentship, \
-    AcademicStudentship, Merchandise, DiscountCode, Purchase
-from ..validators import phone_number_validator, grade_validator, price_validator
+from ..models import User, VerificationCode, School, University, SchoolStudentship, Studentship, \
+    AcademicStudentship
+from apps.accounts.validators import phone_number_validator, grade_validator
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
@@ -149,7 +147,7 @@ class StudentshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Studentship
         fields = ['id', 'studentship_type', 'school', 'grade',
-                  'degree', 'major', 'university', 'university_major']
+                  'degree', 'major', 'university', 'university_major', 'document']
         read_only_fields = ['id', 'is_document_verified']
 
 
@@ -158,7 +156,7 @@ class SchoolStudentshipReadOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SchoolStudentship
-        fields = ['id', 'studentship_type', 'school', 'grade', 'major']
+        fields = ['id', 'studentship_type', 'school', 'grade', 'major', 'document']
         read_only_fields = fields
 
 
@@ -192,7 +190,8 @@ class UserPublicInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'bio', 'profile_picture', 'gender']
+        fields = ['id', 'first_name', 'last_name',
+                  'bio', 'profile_picture', 'gender']
         read_only_fields = fields
 
 
