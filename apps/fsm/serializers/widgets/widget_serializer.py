@@ -47,7 +47,6 @@ class WidgetSerializer(serializers.ModelSerializer):
         return super(WidgetSerializer, self).validate(attrs)
 
     def to_representation(self, instance):
-        from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
         representation = super(
             WidgetSerializer, self).to_representation(instance)
         if 'solution' in representation.keys() and instance.paper.is_exam:
