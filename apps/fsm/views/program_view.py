@@ -64,9 +64,10 @@ class ProgramViewSet(ModelViewSet):
         user_serializer = UserSerializer(data=request.data)
         user_serializer.is_valid(raise_exception=True)
         user = find_user_in_website(
-            user_data=user_serializer.validated_data, website=request.data.get("website"))
-        if user is None:
-            raise ParseError(serialize_error('4115'))
+            user_data=user_serializer.validated_data,
+            website=request.data.get("website"),
+            raise_exception=True,
+        )
         add_admin_to_program(user, program)
         return Response()
 

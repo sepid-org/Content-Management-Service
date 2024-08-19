@@ -43,7 +43,7 @@ def find_user(user_data):
         return None
 
 
-def find_user_in_website(user_data, website):
+def find_user_in_website(user_data, website, raise_exception=False):
     if not website:
         raise ParseError(serialize_error('4116'))
 
@@ -52,6 +52,8 @@ def find_user_in_website(user_data, website):
     if user and user.get_user_website(website=website):
         return user
     else:
+        if raise_exception:
+            raise ParseError(serialize_error('4115'))
         return None
 
 
@@ -69,7 +71,7 @@ def create_or_get_user(user_data, website):
     UserWebsite.objects.create(
         user=user, website=website, password=make_password(user_data.get("password")))
 
-    # # send greeting email
+    # send greeting email
     # if user.email:
     #     email_service_proxy = EmailServiceProxy(website=website)
     #     email_service_proxy.send_greeting_email(
@@ -94,22 +96,6 @@ def can_user_login(user, password, website):
 
 def find_registration_receipt(user, registration_form):
     return RegistrationReceipt.objects.filter(user=user, form=registration_form).first()
-
-
-def create_user_account_if_not_exist(website, **user_data):
-    # handle name
-    if not user_data.get('first_name') and not user_data.get('last_name') and user_data.get('full_name'):
-        full_name_parts = user_data['full_name'].split(' ')
-        user_data['first_name'] = full_name_parts[0]
-        user_data['last_name'] = ' '.join(full_name_parts[1:])
-
-    user = find_user(user_data=user_data)
-
-    if user:
-        return user
-
-    user = create_or_get_user(user_data=user_data, website=website)
-    return user
 
 
 def update_or_create_registration_receipt(user: User, registration_form: RegistrationForm):

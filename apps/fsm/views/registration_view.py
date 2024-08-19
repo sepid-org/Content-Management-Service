@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from io import StringIO
 from threading import Thread
 
 from django.db.models import Count, F, Q
@@ -13,13 +12,13 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from apps.accounts.models import User
-from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import update_or_create_team, create_user_account_if_not_exist, update_or_create_registration_receipt, create_team
+from apps.accounts.utils import create_or_get_user, find_user_in_website, update_or_create_team, update_or_create_registration_receipt
+from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationPerCitySerializer
 from apps.fsm.serializers.paper_serializers import RegistrationFormSerializer, ChangeWidgetOrderSerializer
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
-from apps.fsm.models import RegistrationForm, transaction, RegistrationReceipt, Invitation, Team
+from apps.fsm.models import RegistrationForm, transaction, RegistrationReceipt, Invitation
 from apps.fsm.permissions import IsRegistrationFormModifier
 from apps.fsm.serializers.serializers import BatchRegistrationSerializer
 from apps.fsm.serializers.team_serializer import InvitationSerializer
@@ -69,7 +68,8 @@ class RegistrationViewSet(ModelViewSet):
         paginator = RegistrationReceiptSetPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
         if page_queryset is not None:
-            serializer = RegistrationReceiptSerializer(page_queryset, many=True)
+            serializer = RegistrationReceiptSerializer(
+                page_queryset, many=True)
             return paginator.get_paginated_response(serializer.data)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -209,8 +209,10 @@ class RegistrationFormAdminViewSet(GenericViewSet):
 
                 try:
                     registration_form = self.get_object()
-                    participant_user_account = create_user_account_if_not_exist(
-                        **participant, website=website)
+                    participant = handle_user_name_while_registration(
+                        participant)
+                    participant_user_account = create_or_get_user(
+                        user_data=participant, website=website)
                     receipt = update_or_create_registration_receipt(
                         participant_user_account, registration_form)
                     update_or_create_team(
@@ -225,11 +227,21 @@ class RegistrationFormAdminViewSet(GenericViewSet):
 
     @action(detail=True, methods=['post'])
     @transaction.atomic
-    def register_individual_participant(self, request, pk=None):
+    def register_user_in_program(self, request, pk=None):
         website = request.data.get('website')
-        user = create_user_account_if_not_exist(
-            website=website, **request.data)
-        registration_form = self.get_object()
-        receipt = update_or_create_registration_receipt(
-            user, registration_form)
-        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        username = request.data.get('username')
+        user = find_user_in_website(
+            user_data={'username': username},
+            website=website,
+            raise_exception=True,
+        )
+        register_user_in_program(user=user, program=self.get_object().program)
+        return Response(status=status.HTTP_201_CREATED)
+
+
+def handle_user_name_while_registration(user_data):
+    if not user_data.get('first_name') and not user_data.get('last_name') and user_data.get('full_name'):
+        full_name_parts = user_data['full_name'].split(' ')
+        user_data['first_name'] = full_name_parts[0]
+        user_data['last_name'] = ' '.join(full_name_parts[1:])
+    return user_data

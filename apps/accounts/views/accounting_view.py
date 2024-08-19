@@ -138,10 +138,11 @@ class Login(TokenObtainPairView):
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
         website = request.data.get("website")
-        user = find_user_in_website(user_data=request.data, website=website)
-
-        if not user:
-            raise ParseError(serialize_error('4115'))
+        user = find_user_in_website(
+            user_data=request.data,
+            website=website,
+            raise_exception=True,
+        )
 
         if not can_user_login(user=user, password=request.data.get("password"), website=website):
             raise ParseError(serialize_error('4009'))
@@ -171,10 +172,10 @@ class ChangePassword(GenericAPIView):
         phone_number = serializer.validated_data.get('phone_number', None)
 
         user = find_user_in_website(
-            user_data={"phone_number": phone_number}, website=request.data.get("website"))
-
-        if not user:
-            raise ParseError(serialize_error('4115'))
+            user_data={"phone_number": phone_number},
+            website=request.data.get("website"),
+            raise_exception=True,
+        )
 
         new_password = request.data.get("password")
         user.get_user_website(website=request.data.get(
