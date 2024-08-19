@@ -4,6 +4,14 @@ from utilities.singleton_class import Singleton
 import requests
 import json
 
+import requests
+
+# Define the GraphQL endpoint
+url = "http://localhost:8000/graphql"  # Adjust the URL to your server's endpoint
+
+
+
+
 
 class Currency:
     name: str
@@ -41,20 +49,28 @@ class BankProxy(Singleton):
         return self._post(data=data)
 
     def get_balance(self, user):
-        # todo: Ehsan
-        pass
+        data = {
+            'query':  "{ checkBalance(userUuid: \""+f"{user}"+"\", partyName: \""+f"{self.website}"+'\") { coinName amount } }"}'
+
+        }
 
     def deposit(self, user, money: MoneyType):
-        # todo: Ehsan
-        pass
+        data = {
+            'query': "mutation { createTransaction(transactionInput: { userUuid: \""+f"{user}"+"\", date: \"2024-08-19\", party: { name: \""+f"{self.website}"+"\" }, coins: [{"+f"{money}" +"}], type: PLUS }) }"
+
+        }
+        return self._post(data=data)
 
     def balance_inquiry(self, balance: MoneyType) -> bool:
         # todo: Ehsan
         pass
 
     def withdraw(self, user, money: MoneyType):
-        # todo: Ehsan
-        pass
+        data = {
+            'query': "mutation { createTransaction(transactionInput: { userUuid: \"" + f"{user}" + "\", date: \"2024-08-19\", party: { name: \"" + f"{self.website}" + "\" }, coins: [{" + f"{money}" + "}], type: MINUS }) }"
+
+        }
+        return self._post(data=data)
 
     def transfer(self, sender, receiver, money: MoneyType):
         pass
