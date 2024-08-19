@@ -50,9 +50,7 @@ def get_form_respondents_answers_file(form_id):
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
 
-
-
-def get_form_respondents_bilit_file(form_id):
+def get_program_merchandises_purchases_file(form_id):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
@@ -71,6 +69,7 @@ def get_form_respondents_bilit_file(form_id):
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
+
 @api_view(["post"])
 def get_form_respondents_info(request):
     form_id = request.data.get('form_id')
@@ -86,9 +85,7 @@ def get_form_respondents_answers(request):
 
 
 @api_view(["post"])
-def get_form_respondents_bilit(request):
-    form_id = request.data.get('form_id')
-    file_content = get_form_respondents_bilit_file(form_id=form_id)
+def get_program_merchandises_purchases(request):
+    program_id = request.data.get('program_id')
+    file_content = get_program_merchandises_purchases_file(form_id=program_id)
     return Response(file_content)
-
-
