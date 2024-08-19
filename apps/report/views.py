@@ -87,5 +87,6 @@ def get_form_respondents_answers(request):
 @api_view(["post"])
 def get_program_merchandises_purchases(request):
     program_id = request.data.get('program_id')
+    # todo: EHSAN: this function should not get form_id. It should get program_id as input
     file_content = get_program_merchandises_purchases_file(form_id=program_id)
     return Response(file_content)
