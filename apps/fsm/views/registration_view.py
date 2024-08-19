@@ -64,7 +64,7 @@ class RegistrationViewSet(ModelViewSet):
     @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
     @action(detail=True, methods=['get'])
     def receipts(self, request, pk=None):
-        queryset = self.get_object().registration_receipts.all()
+        queryset = self.get_object().registration_receipts.all().order_by('-id')
         paginator = RegistrationReceiptSetPagination()
         page_queryset = paginator.paginate_queryset(queryset, request)
         if page_queryset is not None:
