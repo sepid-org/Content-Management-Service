@@ -641,12 +641,11 @@ class RegistrationForm(Paper):
 
         if self.audience_type == self.AudienceType.Student:
             studentship = user.school_studentship
-            print("ddddddddddddd", studentship.grade, self.min_grade, self.max_grade)
             if not studentship:
                 return self.RegisterPermissionStatus.StudentshipDataNotApproved
             if not studentship.grade:
                 return self.RegisterPermissionStatus.GradeNotAvailable
-            if not studentship.school or not studentship.document:
+            if not studentship.school:
                 return self.RegisterPermissionStatus.StudentshipDataIncomplete
             if self.min_grade > studentship.grade or studentship.grade > self.max_grade:
                 return self.RegisterPermissionStatus.GradeNotSuitable
