@@ -687,18 +687,15 @@ class Widget(PolymorphicModel, Content):
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
 
+    widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')
-    widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
     is_hidden = models.BooleanField(default=False)
-
-    class Meta:
-        order_with_respect_to = 'paper'
 
     @abstractmethod
     def clone(self, paper):
