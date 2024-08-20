@@ -30,7 +30,7 @@ class DiscountCodeViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         username = request.data.pop('user', None)
-        merchandises = request.data.pop('merchandises', None)
+        merchandises = request.data.pop('merchandises', [])
 
         # create discount code
         serializer = self.get_serializer(data=request.data)
@@ -41,7 +41,6 @@ class DiscountCodeViewSet(ModelViewSet):
         for merchandise_id in merchandises:
             merchandise = Merchandise.objects.get(id=merchandise_id)
             discount_code.merchandises.add(merchandise)
-        # discount_code.save()
 
         # add user (if provided)
         if username:
@@ -51,4 +50,5 @@ class DiscountCodeViewSet(ModelViewSet):
 
             discount_code.user = target_user
             discount_code.save()
+
         return Response(status=status.HTTP_201_CREATED)
