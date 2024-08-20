@@ -172,7 +172,10 @@ class FSMViewSet(viewsets.ModelViewSet):
         account_serializer = UserSerializer(data=request.data)
         account_serializer.is_valid(raise_exception=True)
         new_mentor = find_user_in_website(
-            user_data={**account_serializer.validated_data}, website=request.data.get("website"))
+            user_data={**account_serializer.validated_data},
+            website=request.data.get("website"),
+            raise_exception=True,
+        )
         fsm.mentors.add(new_mentor)
         register_user_in_program(new_mentor, fsm.program)
         return Response()
