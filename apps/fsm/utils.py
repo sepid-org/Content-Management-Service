@@ -127,7 +127,15 @@ def get_player_backward_edge(player: Player) -> Edge:
 
 def register_user_in_program(user: User, program: Program):
     registration_form = program.registration_form
-    if len(RegistrationReceipt.objects.filter(form=registration_form, user=user)) == 0:
+    try:
+        # if there is any registration_receipt, make it registered
+        registration_receipt = RegistrationReceipt.objects.get(
+            form=registration_form, user=user)
+        registration_receipt.is_participating = True
+        registration_receipt.status = RegistrationReceipt.RegistrationStatus.Accepted
+        registration_receipt.save()
+    except:
+        # if there is no registration_receipt, create it
         RegistrationReceipt.objects.create(
             form=registration_form,
             user=user,

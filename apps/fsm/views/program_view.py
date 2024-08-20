@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
-from apps.fsm.utils import add_admin_to_program, register_user_in_program
+from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from utilities.safe_auth import SafeTokenAuthentication
 
