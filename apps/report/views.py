@@ -21,7 +21,8 @@ def get_form_respondents_info_file(form_id):
     response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
 
     if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile("test.xlsx", response.content)
+        in_memory_file = SimpleUploadedFile(
+            f"form{form_id}-respondents-info.xlsx", response.content)
         file = FileSerializer(data={"file": in_memory_file})
         file.is_valid(raise_exception=True)
         file.save()
@@ -40,7 +41,8 @@ def get_form_respondents_answers_file(form_id):
     response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
 
     if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile("test.xlsx", response.content)
+        in_memory_file = SimpleUploadedFile(
+            f"form{form_id}-respondents-answers.xlsx", response.content)
         file = FileSerializer(data={"file": in_memory_file})
         file.is_valid(raise_exception=True)
         file.save()
@@ -60,7 +62,8 @@ def get_program_merchandises_purchases_file(form_id):
     response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
 
     if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile("test.xlsx", response.content)
+        in_memory_file = SimpleUploadedFile(
+            f"program{form_id}-merchandises-purchases.xlsx", response.content)
         file = FileSerializer(data={"file": in_memory_file})
         file.is_valid(raise_exception=True)
         file.save()
