@@ -6,12 +6,6 @@ import json
 
 import requests
 
-# Define the GraphQL endpoint
-url = "http://localhost:8000/graphql"  # Adjust the URL to your server's endpoint
-
-
-
-
 
 class Currency:
     name: str
@@ -50,14 +44,13 @@ class BankProxy(Singleton):
 
     def get_balance(self, user):
         data = {
-            'query':  "{ checkBalance(userUuid: \""+f"{user}"+"\", partyName: \""+f"{self.website}"+'\") { coinName amount } }"}'
-
+            'query':  "query { checkBalance(userUuid: \""+f"{user}"+"\", partyName: \""+f"{self.website}"+'\") { coinName amount } }"}'
         }
+        return self._post(data=data)
 
     def deposit(self, user, money: MoneyType):
         data = {
-            'query': "mutation { createTransaction(transactionInput: { userUuid: \""+f"{user}"+"\", date: \"2024-08-19\", party: { name: \""+f"{self.website}"+"\" }, coins: [{"+f"{money}" +"}], type: PLUS }) }"
-
+            'query': "mutation { createTransaction(transactionInput: { userUuid: \""+f"{user}"+"\", date: \"2024-08-19\", party: { name: \""+f"{self.website}"+"\" }, coins: [{"+f"{money}" + "}], type: PLUS }) }"
         }
         return self._post(data=data)
 
