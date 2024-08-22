@@ -127,8 +127,27 @@ class Invitation(models.Model):
 
 class Program(models.Model):
     class ProgramType(models.TextChoices):
-        Team = "Team"
-        Individual = "Individual"
+        EVENT = "Event"
+        CLASS = "Class"
+        CAMPAIGN = "Campaign"
+        GAME = "Game"
+        COURSE = "Course"
+
+    class ParticipationType(models.TextChoices):
+        TEAM = "Team"
+        INDIVIDUAL = "Individual"
+
+    type = models.CharField(
+        max_length=40,
+        choices=ProgramType.choices,
+        default=ProgramType.EVENT
+    )
+
+    participation_type = models.CharField(
+        max_length=40,
+        choices=ParticipationType.choices,
+        default=ParticipationType.INDIVIDUAL
+    )
 
     slug = models.SlugField(max_length=100, unique=True, null=True,
                             blank=True, help_text="Unique identifier for the program")
@@ -152,8 +171,6 @@ class Program(models.Model):
     is_approved = models.BooleanField(default=False)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    program_type = models.CharField(
-        max_length=40, default=ProgramType.Individual, choices=ProgramType.choices)
     team_size = models.IntegerField(null=True, blank=True)
     maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)

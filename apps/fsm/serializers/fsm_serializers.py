@@ -43,7 +43,7 @@ class FSMSerializer(serializers.ModelSerializer):
             if merchandise or registration_form:
                 raise ParseError(serialize_error('4069'))
             if fsm_p_type == FSM.FSMPType.Team:
-                if program.program_type == Program.ProgramType.Individual:
+                if program.participation_type == Program.ParticipationType.INDIVIDUAL:
                     raise ParseError(serialize_error('4071'))
                 if team_size and team_size != program.team_size:
                     raise ParseError(serialize_error('4072'))

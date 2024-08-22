@@ -18,7 +18,7 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Program
-        fields = ['id', 'slug', 'cover_page', 'name', 'description', 'program_type',
+        fields = ['id', 'slug', 'cover_page', 'name', 'description', 'participation_type',
                   'is_visible', 'is_active', 'team_size', 'is_free']
 
 
@@ -66,10 +66,10 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         team_size = attrs.get('team_size', 0)
-        program_type = attrs.get(
-            'program_type', Program.ProgramType.Individual)
-        if (team_size > 0 and program_type != Program.ProgramType.Team) or (
-                program_type == Program.ProgramType.Team and team_size <= 0):
+        participation_type = attrs.get(
+            'participation_type', Program.ParticipationType.INDIVIDUAL)
+        if (team_size > 0 and participation_type != Program.ParticipationType.TEAM) or (
+                participation_type == Program.ParticipationType.TEAM and team_size <= 0):
             raise ParseError(serialize_error('4074'))
         return attrs
 
