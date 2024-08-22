@@ -2,7 +2,8 @@ from rest_framework import permissions
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from apps.accounts.models import User
+from rest_framework.exceptions import NotFound
+
 from apps.fsm.models import Program
 from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
@@ -26,6 +27,22 @@ class ProgramViewSet(ModelViewSet):
     my_tags = ['program']
     filterset_fields = ['website']
     pagination_class = ProgramsPagination
+
+    def get_object(self):
+        lookup_value = self.kwargs.get('lookup_value')
+
+        # Try to fetch by slug first
+        program = self.queryset.filter(slug=lookup_value).first()
+
+        if program is None:
+            # If slug lookup fails, try ID lookup
+            try:
+                program = self.queryset.get(id=int(lookup_value))
+            except (ValueError, Program.DoesNotExist):
+                raise NotFound(
+                    f"No Program found with slug or id: {lookup_value}")
+
+        return program
 
     def initialize_request(self, request, *args, **kwargs):
         self.action = self.action_map.get(request.method.lower())
@@ -91,23 +108,3 @@ class ProgramViewSet(ModelViewSet):
         program.deleted_at = timezone.now()
         program.save()
         return Response()
-
-    # @action(detail=True, methods=['get'])
-    # def permission(self, request, pk=None):
-    #     user = self.request.user
-    #     program = self.get_object()
-    #     receipt = user.get_receipt(form=program.registration_form)
-    #     print(receipt)
-    #     return Response("todo")
-
-    # @action(detail=False, methods=['get'])
-    # def permissions(self, request):
-    #     user = self.request.user
-    #     website = request.GET.get('website')
-    #     programs = self.get_queryset().filter(website=website)
-    #     permissions = []
-    #     for program in programs:
-    #         receipt = user.get_receipt(form=program.registration_form)
-    #         if receipt:
-    #             permissions.append(get_user_permission(receipt))
-    #     return Response("todo")

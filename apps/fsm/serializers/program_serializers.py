@@ -14,17 +14,12 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
                                self).to_representation(instance)
         representation['initial_participants_count'] = len(instance.initial_participants)
         representation['final_participants_count'] = len(instance.final_participants)
-        representation['registration_since'] = instance.registration_form.since
-        representation['registration_till'] = instance.registration_form.till
-        representation['audience_type'] = instance.registration_form.audience_type
-
-        representation['is_free'] = instance.is_free
         return representation
 
     class Meta:
         model = Program
-        fields = ['id', 'cover_page', 'name', 'description',
-                  'program_type', 'is_visible', 'is_active', 'team_size']
+        fields = ['id', 'slug', 'cover_page', 'name', 'description', 'program_type',
+                  'is_visible', 'is_active', 'team_size', 'is_free']
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -89,11 +84,10 @@ class ProgramSerializer(serializers.ModelSerializer):
         representation['registration_since'] = registration_form.since
         representation['registration_till'] = registration_form.till
         representation['audience_type'] = registration_form.audience_type
-        representation['is_free'] = instance.is_free
         return representation
 
     class Meta:
         model = Program
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'is_approved',
-                            'registration_form', 'program_contact_info']
+                            'registration_form', 'program_contact_info', 'is_free']

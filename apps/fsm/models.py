@@ -1,3 +1,6 @@
+from django.utils.text import slugify
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 import json
 import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -127,6 +130,9 @@ class Program(models.Model):
         Team = "Team"
         Individual = "Individual"
 
+    slug = models.SlugField(max_length=100, unique=True, null=True,
+                            blank=True, help_text="Unique identifier for the program")
+
     admins = models.ManyToManyField(
         User, related_name='administered_programs', null=True, blank=True)
 
@@ -162,6 +168,19 @@ class Program(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.name and not self.slug:
+            self.slug = slugify(self.name)
+
+            # Ensure uniqueness of the slug
+            original_slug = self.slug
+            count = 1
+            while Program.objects.filter(slug=self.slug).exists():
+                self.slug = f"{original_slug}-{count}"
+                count += 1
+
+        super().save(*args, **kwargs)
 
     @property
     def modifiers(self):
