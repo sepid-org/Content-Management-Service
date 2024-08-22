@@ -1,21 +1,14 @@
 import csv
-import logging
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse
 from django.urls import path
 from django.utils.translation import gettext_lazy
-from rest_framework.decorators import api_view
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
 
-from apps.accounts.models import User
 from errors.error_codes import serialize_error
-from apps.fsm.models import RegistrationForm, RegistrationReceipt
-
-logger = logging.getLogger(__name__)
+from apps.fsm.models import RegistrationForm
 
 
 def export(request):
