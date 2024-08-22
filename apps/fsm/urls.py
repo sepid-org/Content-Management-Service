@@ -39,9 +39,5 @@ router.register(r'widget', WidgetViewSet, basename='widgets')
 router.register(r'player', PlayerViewSet, basename='players')
 
 urlpatterns = [
-    path('program/',
-         ProgramViewSet.as_view({'get': 'list'}), name='program-list'),
-    path('program/<str:lookup_value>/',
-         ProgramViewSet.as_view({'get': 'retrieve'}), name='program-detail'),
     path('', include(router.urls)),
 ]

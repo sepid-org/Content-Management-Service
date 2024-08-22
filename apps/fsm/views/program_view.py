@@ -29,7 +29,7 @@ class ProgramViewSet(ModelViewSet):
     pagination_class = ProgramsPagination
 
     def get_object(self):
-        lookup_value = self.kwargs.get('lookup_value')
+        lookup_value = self.kwargs.get('pk')
 
         # Try to fetch by slug first
         program = self.queryset.filter(slug=lookup_value).first()
