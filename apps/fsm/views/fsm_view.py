@@ -7,8 +7,6 @@ from rest_framework.exceptions import PermissionDenied, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
-from rest_framework.filters import OrderingFilter
-from django_filters import rest_framework as dj_filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
@@ -19,27 +17,10 @@ from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
     TeamGetSerializer
 from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSimpleSerializer
-from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerHistorySerializer, PlayerStateSerializer
+from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerStateSerializer
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
 from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
-
-
-class ProgramFilter(dj_filters.FilterSet):
-    program = dj_filters.CharFilter(method='filter_program')
-
-    class Meta:
-        model = FSM
-        fields = ['program']
-
-    def filter_program(self, queryset, name, value):
-        try:
-            # First, try to filter by Program ID
-            program_id = int(value)
-            return queryset.filter(program_id=program_id)
-        except ValueError:
-            # If it's not a valid integer, assume it's a slug
-            return queryset.filter(program__slug=value)
 
 
 class FSMViewSet(viewsets.ModelViewSet):
@@ -49,8 +30,6 @@ class FSMViewSet(viewsets.ModelViewSet):
     ordering = ['-order_in_program']
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filter_backends = [dj_filters.DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProgramFilter
     filterset_fields = ['website', 'program']
     pagination_class = StandardPagination
 

@@ -46,8 +46,8 @@ class MerchandiseViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['GET'])
     def program_merchandises(self, request, pk=None):
-        program_slug = request.GET.get('program_slug', None)
-        merchandises = self.get_queryset().filter(program_slug=program_slug)
+        program_id = request.GET.get('program_id', None)
+        merchandises = self.get_queryset().filter(program_id=program_id)
         return Response(self.serializer_class(merchandises, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
