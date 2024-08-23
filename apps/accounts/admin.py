@@ -51,10 +51,8 @@ class CustomSchoolAdmin(admin.ModelAdmin):
         first = queryset.first()
         for school in queryset.exclude(id=first.id):
             for fsm in school.fsms.all():
-                fsm.holder = first
                 fsm.save()
             for program in school.programs.all():
-                program.holder = first
                 program.save()
             for studentship in school.students.all():
                 studentship.school = first

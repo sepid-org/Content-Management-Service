@@ -161,8 +161,6 @@ class Program(models.Model):
         'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
-    holder = models.ForeignKey('accounts.EducationalInstitute', related_name='programs', on_delete=models.SET_NULL,
-                               null=True, blank=True)
 
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)

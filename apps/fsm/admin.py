@@ -510,7 +510,7 @@ class WidgetHintCustomAdmin(admin.ModelAdmin):
 
 @admin.register(Program)
 class ProgramCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'registration_form', 'creator', 'holder']
+    list_display = ['id', 'name', 'registration_form', 'creator']
     list_display_links = ['id', 'name']
 
 
