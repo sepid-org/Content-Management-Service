@@ -187,16 +187,8 @@ class Program(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.name and not self.slug:
-            self.slug = slugify(self.name)
-
-            # Ensure uniqueness of the slug
-            original_slug = self.slug
-            count = 1
-            while Program.objects.filter(slug=self.slug).exists():
-                self.slug = f"{original_slug}-{count}"
-                count += 1
-
+        if not self.slug:
+            self.slug = self.id
         super().save(*args, **kwargs)
 
     @property
