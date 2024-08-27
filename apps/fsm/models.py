@@ -232,8 +232,12 @@ class ProgramContactInfo(models.Model):
 class Content():
 
     @property
-    def solve_cost(self):
+    def solve_reward(self):
         return self._get_performable_action_intrinsic_attribute_template_method('solve', 'reward')
+
+    @property
+    def solve_cost(self):
+        return self._get_performable_action_intrinsic_attribute_template_method('solve', 'cost')
 
     @property
     def submission_cost(self):

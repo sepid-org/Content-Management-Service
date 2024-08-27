@@ -78,14 +78,14 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         # assess the answer (is any correct answer is provided)
         if question.correct_answer:
-            correctness_percentage, comment = assess_answer(
+            score, feedback, improvement_suggestion = assess_answer(
                 question=question, given_answer=given_answer_object)
-            if correctness_percentage >= question.correctness_threshold:
+            if score >= question.correctness_threshold:
                 given_answer_object.is_correct = True
                 given_answer_object.save()
                 _apply_solve_question_reward(
                     user=user, question=question, website=request.data.get('website'))
-            return Response(data={'correctness_percentage': correctness_percentage, 'comment': comment})
+            return Response(data={'score': score, 'feedback': feedback, 'improvement_suggestion': improvement_suggestion})
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
