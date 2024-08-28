@@ -156,7 +156,8 @@ class SchoolStudentshipReadOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SchoolStudentship
-        fields = ['id', 'studentship_type', 'school', 'grade', 'major', 'document']
+        fields = ['id', 'studentship_type',
+                  'school', 'grade', 'major', 'document']
         read_only_fields = fields
 
 
@@ -190,8 +191,8 @@ class UserPublicInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name',
-                  'bio', 'profile_picture', 'gender']
+        fields = ['id', 'username', 'first_name',
+                  'last_name', 'bio', 'profile_picture', 'gender']
         read_only_fields = fields
 
 
