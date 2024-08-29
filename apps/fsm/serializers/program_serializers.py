@@ -84,10 +84,11 @@ class ProgramSerializer(serializers.ModelSerializer):
         representation['registration_since'] = registration_form.since
         representation['registration_till'] = registration_form.till
         representation['audience_type'] = registration_form.audience_type
+        representation['is_free'] = instance.is_free        
         return representation
 
     class Meta:
         model = Program
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'is_approved',
-                            'registration_form', 'program_contact_info', 'is_free']
+                            'registration_form', 'program_contact_info']
