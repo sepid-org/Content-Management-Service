@@ -3,6 +3,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
+import hashlib
 
 
 class CacheModelViewSet(ModelViewSet):
@@ -13,20 +14,26 @@ class CacheModelViewSet(ModelViewSet):
     def get_cache_key_prefix(self):
         return f"viewset-{self.__class__.__name__}"
 
+    def _make_safe_cache_key(self, key):
+        # Use MD5 to create a safe hash of the key
+        return hashlib.md5(key.encode('utf-8')).hexdigest()
+
     def get_list_cache_key(self, request):
         key_prefix = self.get_cache_key_prefix()
         full_path = iri_to_uri(request.get_full_path())
-        return f"views.decorators.cache.cache_page.{key_prefix}-list.{full_path}"
+        unsafe_key = f"{key_prefix}-list-{full_path}"
+        return self._make_safe_cache_key(unsafe_key)
 
     def get_object_cache_key(self, lookup_value):
         key_prefix = self.get_cache_key_prefix()
-        return f"views.decorators.cache.cache_page.{key_prefix}-object.{self.lookup_field}.{lookup_value}"
+        unsafe_key = f"{key_prefix}-object-{self.lookup_field}-{lookup_value}"
+        return self._make_safe_cache_key(unsafe_key)
 
-    @method_decorator(cache_page(cache_timeout, key_prefix=lambda request: request.resolver_match.func.view_class().get_cache_key_prefix() + '-list'))
+    @method_decorator(cache_page(cache_timeout, key_prefix=lambda request: request.resolver_match.func.view_class().get_cache_key_prefix()))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    @method_decorator(cache_page(cache_timeout, key_prefix=lambda request: request.resolver_match.func.view_class().get_cache_key_prefix() + '-object'))
+    @method_decorator(cache_page(cache_timeout, key_prefix=lambda request: request.resolver_match.func.view_class().get_cache_key_prefix()))
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
