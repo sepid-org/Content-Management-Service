@@ -1,13 +1,11 @@
-from rest_framework import permissions
+from rest_framework import permissions, status
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
-from django.views.decorators.cache import cache_page
 
 from apps.fsm.models import Program
 from apps.fsm.pagination import ProgramsPagination
@@ -17,6 +15,7 @@ from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
+from utilities.custom_cache_key import custom_cache_page
 from utilities.safe_auth import SafeTokenAuthentication
 
 
@@ -72,22 +71,23 @@ class ProgramViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=['get'])
-    def get_admins(self, request, pk):
-        admins = self.get_object().admins
-        return Response(data=UserSerializer(admins, many=True).data)
+    def get_admins(self, request, pk=None):
+        program = self.get_object()
+        serializer = UserSerializer(program.admins.all(), many=True)
+        return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], serializer_class=UserSerializer)
+    @action(detail=True, methods=['post'])
     def add_admin(self, request, pk=None):
         program = self.get_object()
-        user_serializer = UserSerializer(data=request.data)
-        user_serializer.is_valid(raise_exception=True)
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         user = find_user_in_website(
-            user_data=user_serializer.validated_data,
+            user_data=serializer.validated_data,
             website=request.data.get("website"),
             raise_exception=True,
         )
         add_admin_to_program(user, program)
-        return Response()
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], serializer_class=UserSerializer)
     def remove_admin(self, request, pk=None):
@@ -95,12 +95,13 @@ class ProgramViewSet(ModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_admin = find_user_in_website(
-            user_data={**serializer.validated_data}, website=request.data.get("website"))
+            user_data=serializer.validated_data,
+            website=request.data.get("website")
+        )
         if removed_admin == program.creator:
             raise ParseError(serialize_error('5007'))
-        if removed_admin in program.admins.all():
-            program.admins.remove(removed_admin)
-        return Response()
+        program.admins.remove(removed_admin)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def soft_delete(self, request, pk=None):
@@ -111,7 +112,7 @@ class ProgramViewSet(ModelViewSet):
         self.invalidate_list_cache()
         return Response()
 
-    @method_decorator(cache_page(60 * 15))
+    @method_decorator(custom_cache_page(60 * 15, cache_key_prefix='programs_list'))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -131,9 +132,5 @@ class ProgramViewSet(ModelViewSet):
         return response
 
     def invalidate_list_cache(self):
-        cache_key = self.get_list_cache_key()
-        cache.delete(cache_key)
-
-    def get_list_cache_key(self):
-        # This should match the key used by cache_page
-        return f'program-view-set.{self.request.path}'
+        # Invalidate cache for all possible list URLs
+        cache.delete_pattern('programs_list:*')
