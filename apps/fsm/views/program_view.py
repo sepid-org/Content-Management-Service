@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
 
@@ -25,6 +26,8 @@ class ProgramViewSet(ModelViewSet):
     my_tags = ['program']
     filterset_fields = ['website']
     pagination_class = ProgramsPagination
+    authentication_classes = [SafeTokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
@@ -44,14 +47,10 @@ class ProgramViewSet(ModelViewSet):
             raise NotFound(f"No Program found with slug or id: {lookup_value}")
         return program
 
-    def initialize_request(self, request, *args, **kwargs):
-        self.action = self.action_map.get(request.method.lower())
-        return super().initialize_request(request, *args, **kwargs)
-
-    def get_authenticators(self):
+    def get_permissions(self):
         if self.action in ['retrieve', 'list']:
-            return [SafeTokenAuthentication()]
-        return super().get_authenticators()
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action == 'list':
