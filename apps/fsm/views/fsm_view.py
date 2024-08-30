@@ -7,6 +7,8 @@ from rest_framework.exceptions import PermissionDenied, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
+from django.contrib.auth.models import AnonymousUser
+
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
@@ -60,16 +62,20 @@ class FSMViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def enter_fsm(self, request, pk=None):
-        password = self.request.data.get('password', None)
         fsm = self.get_object()
         user = request.user
+
+        if fsm.is_public:
+            if isinstance(user, AnonymousUser):
+                pass
+
+        password = self.request.data.get('password', None)
         receipt = get_receipt(user, fsm)
-        player = get_player(user, fsm)
+        is_mentor = user in fsm.mentors.all()
 
         if receipt is None:
             raise ParseError(serialize_error('4079'))
 
-        # TODO - add for hybrid and individual
         if fsm.fsm_p_type in [FSM.FSMPType.Team, FSM.FSMPType.Hybrid]:
             if receipt.team is None:
                 raise ParseError(serialize_error('4078'))
@@ -83,6 +89,8 @@ class FSMViewSet(viewsets.ModelViewSet):
         if fsm.entrance_lock and password != fsm.entrance_lock:
             raise PermissionDenied(serialize_error('4080'))
 
+        player = get_player(user, fsm)
+
         # first time entering fsm
         if not player:
             serializer = PlayerSerializer(data={'user': user.id, 'fsm': fsm.id, 'receipt': receipt.id,
@@ -93,11 +101,10 @@ class FSMViewSet(viewsets.ModelViewSet):
             transit_player_in_fsm(
                 player=player, source_state=None, target_state=fsm.first_state, edge=None)
 
-        else:
-            # if any state has been deleted and player has no current state:
-            if player.current_state is None:
-                player.current_state = fsm.first_state
-                player.save()
+        # if any state has been deleted and player has no current state:
+        if player.current_state is None:
+            player.current_state = fsm.first_state
+            player.save()
 
         return Response(status=status.HTTP_202_ACCEPTED)
 

@@ -305,6 +305,8 @@ class FSM(models.Model, Content):
         Individual = 'Individual'
         Hybrid = 'Hybrid'
 
+    is_public = models.BooleanField(default=False)
+
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
     website = models.CharField(blank=True, null=True, max_length=50)
@@ -332,7 +334,7 @@ class FSM(models.Model, Content):
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-
+    
     objects = FSMManager()
 
     def __str__(self):
