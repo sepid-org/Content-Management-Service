@@ -6,9 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import viewsets
 from django.contrib.auth.models import AnonymousUser
-
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
@@ -16,16 +14,16 @@ from apps.fsm.pagination import StandardPagination
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
-from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, \
-    TeamGetSerializer
+from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, TeamGetSerializer
 from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSimpleSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerStateSerializer
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
 from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
+from utilities.cache_model_viewset import CacheModelViewSet
 
 
-class FSMViewSet(viewsets.ModelViewSet):
+class FSMViewSet(CacheModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = FSM.objects.filter(is_deleted=False)
     ordering_fields = ['order_in_program']
@@ -211,8 +209,8 @@ class FSMViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             team = serializer.validated_data['team']
             player = get_a_player_from_team(team, fsm)
-            return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                            status=status.HTTP_200_OK)
+        return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
+                        status=status.HTTP_200_OK)
 
     @transaction.atomic
     @action(detail=True, methods=['get'])
@@ -229,14 +227,11 @@ class FSMViewSet(viewsets.ModelViewSet):
         return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
-    # @method_decorator(cache_page(60 * 1,  key_prefix="fsm"))
-    def list(self, request, *args, **kwargs):
-        return super().list(self, request, *args, **kwargs)
-
     @action(detail=True, methods=['get'])
     def soft_delete(self, request, pk=None):
         fsm = self.get_object()
         fsm.is_deleted = True
         fsm.deleted_at = timezone.now()
         fsm.save()
+        self._invalidate_list_cache()
         return Response()
