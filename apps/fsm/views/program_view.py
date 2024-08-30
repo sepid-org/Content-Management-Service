@@ -92,6 +92,14 @@ class ProgramViewSet(CacheModelViewSet):
             'is_manager': request.user in program.modifiers,
         })
 
+    @action(detail=True, methods=['get'])
+    def get_fsms_user_permissions(self, request, slug=None):
+        program = self.get_object()
+        return Response({
+            'fsm_id': fsm.id,
+            'is_mentor': request.user in fsm.mentors.all(),
+        } for fsm in program.fsms.all())
+
     def _find_user(self, user_data, website):
         return find_user_in_website(user_data=user_data, website=website, raise_exception=True)
 

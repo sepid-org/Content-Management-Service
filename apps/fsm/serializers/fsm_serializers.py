@@ -23,7 +23,6 @@ class FSMMinimalSerializer(ContentSerializer):
         user = self.context.get('user', None)
         representation['players_count'] = len(
             Player.objects.filter(fsm=instance))
-        representation['is_mentor'] = user in instance.mentors.all()
         return representation
 
 
@@ -79,7 +78,6 @@ class FSMSerializer(serializers.ModelSerializer):
         representation = super(FSMSerializer, self).to_representation(instance)
         user = self.context.get('user', None)
         player = user.players.filter(is_active=True, fsm=instance).first()
-        representation['is_mentor'] = user in instance.mentors.all()
         representation['player'] = player.id if player else 'NotStarted'
         representation['state'] = player.current_state.name if player and player.current_state else 'NotStarted'
         representation['last_visit'] = player.last_visit if player else 'NotStarted'
@@ -99,7 +97,7 @@ class FSMSerializer(serializers.ModelSerializer):
         model = FSM
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'mentors',
-                            'first_state', 'registration_form', 'is_mentor']
+                            'first_state', 'registration_form']
 
 
 class EdgeSerializer(ContentSerializer):
