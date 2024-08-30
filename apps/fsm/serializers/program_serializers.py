@@ -24,13 +24,6 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
 class ProgramSerializer(serializers.ModelSerializer):
     program_contact_info = ProgramContactInfoSerializer(required=False)
-    is_manager = serializers.SerializerMethodField()
-
-    def get_is_manager(self, obj):
-        user = self.context.get('user', None)
-        if user in obj.modifiers:
-            return True
-        return False
 
     def create(self, validated_data):
         website = validated_data.pop('website')

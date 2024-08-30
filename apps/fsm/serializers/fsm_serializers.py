@@ -99,7 +99,7 @@ class FSMSerializer(serializers.ModelSerializer):
         model = FSM
         fields = '__all__'
         read_only_fields = ['id', 'creator', 'mentors',
-                            'first_state', 'registration_form', 'is_mentor', 'is_manager']
+                            'first_state', 'registration_form', 'is_mentor']
 
 
 class EdgeSerializer(ContentSerializer):
