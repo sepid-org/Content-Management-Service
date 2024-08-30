@@ -3,17 +3,16 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import NotFound
+from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
+from django.utils.decorators import method_decorator
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
 
 from apps.fsm.models import Program
 from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
-
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
-
-from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError
-from rest_framework.response import Response
-
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.utils import add_admin_to_program
@@ -28,20 +27,22 @@ class ProgramViewSet(ModelViewSet):
     filterset_fields = ['website']
     pagination_class = ProgramsPagination
 
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+
+        # Add headers to prevent frontend caching
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+
+        return response
+
     def get_object(self):
-        lookup_value = self.kwargs.get('pk')
-
-        # Try to fetch by slug first
-        program = self.queryset.filter(slug=lookup_value).first()
-
-        if program is None:
-            # If slug lookup fails, try ID lookup
-            try:
-                program = self.queryset.get(id=int(lookup_value))
-            except (ValueError, Program.DoesNotExist):
-                raise NotFound(
-                    f"No Program found with slug or id: {lookup_value}")
-
+        lookup_value = self.kwargs.get(self.lookup_field)
+        program = self.queryset.filter(slug=lookup_value).first(
+        ) or self.queryset.filter(id=lookup_value).first()
+        if not program:
+            raise NotFound(f"No Program found with slug or id: {lookup_value}")
         return program
 
     def initialize_request(self, request, *args, **kwargs):
@@ -107,4 +108,32 @@ class ProgramViewSet(ModelViewSet):
         program.is_deleted = True
         program.deleted_at = timezone.now()
         program.save()
+        self.invalidate_list_cache()
         return Response()
+
+    @method_decorator(cache_page(60 * 15))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        self.invalidate_list_cache()
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        self.invalidate_list_cache()
+        return response
+
+    def partial_update(self, request, *args, **kwargs):
+        response = super().partial_update(request, *args, **kwargs)
+        self.invalidate_list_cache()
+        return response
+
+    def invalidate_list_cache(self):
+        cache_key = self.get_list_cache_key()
+        cache.delete(cache_key)
+
+    def get_list_cache_key(self):
+        # This should match the key used by cache_page
+        return f'program-view-set.{self.request.path}'
