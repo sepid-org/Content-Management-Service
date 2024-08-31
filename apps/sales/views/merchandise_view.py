@@ -47,7 +47,7 @@ class MerchandiseViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'])
     def program_merchandises(self, request, pk=None):
         program_slug = request.GET.get('program', None)
-        merchandises = self.get_queryset().filter(program=program_slug)
+        merchandises = self.get_queryset().filter(program__slug=program_slug)
         return Response(self.serializer_class(merchandises, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
