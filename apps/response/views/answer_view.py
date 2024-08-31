@@ -63,7 +63,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         # withdraw the submission cost from user wallet
         _apply_submission_answer_cost(
-            user=user, question=question, website=request.data.get('website'))
+            user=user, question=question, website=request.headers.get('Website'))
 
         # create submitted answer object
         given_answer_data = {
@@ -84,7 +84,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
                 given_answer_object.is_correct = True
                 given_answer_object.save()
                 _apply_solve_question_reward(
-                    user=user, question=question, website=request.data.get('website'))
+                    user=user, question=question, website=request.headers.get('Website'))
             return Response(data={'score': score, 'feedback': feedback, 'improvement_suggestion': improvement_suggestion})
 
         return Response(status=status.HTTP_202_ACCEPTED)
