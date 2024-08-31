@@ -20,10 +20,10 @@ from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerState
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
 from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
-from utilities.cache_model_viewset import CacheModelViewSet
+from utilities.cache_model_viewset.cache_model_viewset import CacheEnabledModelViewSet
 
 
-class FSMViewSet(CacheModelViewSet):
+class FSMViewSet(CacheEnabledModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = FSM.objects.filter(is_deleted=False)
     ordering_fields = ['order_in_program']
