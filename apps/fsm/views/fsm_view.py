@@ -244,5 +244,5 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm.is_deleted = True
         fsm.deleted_at = timezone.now()
         fsm.save()
-        self.cache.invalidate_list_cache()
+        self.cache.invalidate_list_cache(request.headers.get('website'))
         return Response()

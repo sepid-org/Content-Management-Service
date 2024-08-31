@@ -10,8 +10,10 @@ class ModelViewSetCache:
     def __init__(self, model_view_set_name) -> None:
         self.model_view_set_name = model_view_set_name
 
-    def get_list_cache_key(self, query_params=None):
+    def get_list_cache_key(self, query_params=None, website=None):
         pattern = f"{self.model_view_set_name}:list"
+        if website:
+            pattern += f":{website}"
         if query_params:
             query_string = "&".join(
                 f"{k}={v}" for k, v in sorted(query_params.items()))
@@ -21,8 +23,8 @@ class ModelViewSetCache:
     def get_object_cache_key(self, lookup_field):
         return f"{self.model_view_set_name}:retrieve:{lookup_field}"
 
-    def invalidate_list_cache(self):
-        self._delete_from_cache(self.get_list_cache_key())
+    def invalidate_list_cache(self, website):
+        self._delete_from_cache(self.get_list_cache_key(website=website))
 
     def invalidate_object_cache(self, lookup_field):
         self._delete_from_cache(self.get_object_cache_key(lookup_field))
