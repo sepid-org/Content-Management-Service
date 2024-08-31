@@ -26,14 +26,6 @@ class ProgramViewSet(CacheEnabledModelViewSet):
     filterset_fields = ['website']
     lookup_field = 'slug'
 
-    def get_object(self):
-        lookup_value = self.kwargs.get(self.lookup_field)
-        program = self.queryset.filter(slug=lookup_value).first(
-        ) or self.queryset.filter(id=lookup_value).first()
-        if not program:
-            raise NotFound(f"No Program found with slug or id: {lookup_value}")
-        return program
-
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
             return [AllowAny()]
