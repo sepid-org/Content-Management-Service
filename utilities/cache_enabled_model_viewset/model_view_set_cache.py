@@ -11,26 +11,29 @@ class ModelViewSetCache:
         self.model_view_set_name = model_view_set_name
 
     def get_list_cache_key(self, query_params=None):
+        pattern = f"{self.model_view_set_name}:list"
         if query_params:
             query_string = "&".join(
                 f"{k}={v}" for k, v in sorted(query_params.items()))
-            return f"{self.model_view_set_name}:list:{query_string}"
-        return f"{self.model_view_set_name}:list"
+            pattern += f":{query_string}"
+        return pattern
 
     def get_object_cache_key(self, lookup_field):
         return f"{self.model_view_set_name}:retrieve:{lookup_field}"
 
     def invalidate_list_cache(self):
-        if hasattr(cache, 'delete_pattern'):
-            # For cache backends that support pattern deletion (e.g., Redis)
-            cache.delete_pattern(f"{self.model_view_set_name}:list*")
-        else:
-            # For cache backends that don't support pattern deletion
-            cache.delete(self.get_list_cache_key())
+        self._delete_from_cache(self.get_list_cache_key())
 
     def invalidate_object_cache(self, lookup_field):
-        cache_key_id = self.get_object_cache_key(lookup_field)
-        cache.delete(cache_key_id)
+        self._delete_from_cache(self.get_object_cache_key(lookup_field))
+
+    def _delete_from_cache(self, key):
+        if hasattr(cache, 'delete_pattern'):
+            # For cache backends that support pattern deletion (e.g., Redis)
+            cache.delete_pattern(f"*{key}*")
+        else:
+            # For cache backends that don't support pattern deletion
+            cache.delete(key)
 
     def cache_response(self, timeout=None):
         def decorator(view_func):
