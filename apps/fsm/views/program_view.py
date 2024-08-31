@@ -74,7 +74,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         program.is_deleted = True
         program.deleted_at = timezone.now()
         program.save()
-        self._invalidate_list_cache()
+        self.cache.invalidate_list_cache()
         return Response()
 
     @action(detail=True, methods=['get'])

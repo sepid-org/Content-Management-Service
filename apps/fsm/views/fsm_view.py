@@ -30,8 +30,15 @@ class FSMViewSet(CacheEnabledModelViewSet):
     ordering = ['-order_in_program']
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filterset_fields = ['website', 'program']
+    filterset_fields = ['website']
     pagination_class = StandardPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        program_slug = self.request.query_params.get('program', None)
+        if program_slug is not None:
+            queryset = queryset.filter(program__slug=program_slug)
+        return queryset
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
@@ -233,5 +240,5 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm.is_deleted = True
         fsm.deleted_at = timezone.now()
         fsm.save()
-        self._invalidate_list_cache()
+        self.cache.invalidate_list_cache()
         return Response()
