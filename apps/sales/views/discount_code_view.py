@@ -23,9 +23,9 @@ class DiscountCodeViewSet(ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['GET'])
     def program_discount_codes(self, request, pk=None):
-        program_id = request.GET.get('program_id', None)
+        program_slug = request.GET.get('program', None)
         discount_codes = DiscountCode.objects.filter(
-            merchandises__program_id=program_id).distinct()
+            merchandises__program=program_slug).distinct()
         return Response(self.serializer_class(discount_codes, many=True).data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
