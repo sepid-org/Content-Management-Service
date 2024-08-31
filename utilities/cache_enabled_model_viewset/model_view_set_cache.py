@@ -46,7 +46,10 @@ class ModelViewSetCache:
                     cache_key = self.get_object_cache_key(
                         kwargs[view_instance.lookup_field])
                 else:
-                    cache_key = self.get_list_cache_key(request.query_params)
+                    cache_key = self.get_list_cache_key(
+                        website=request.headers.get('Website'),
+                        query_params=request.query_params,
+                    )
 
                 # Try to get the cached response
                 cached_data = cache.get(cache_key)
