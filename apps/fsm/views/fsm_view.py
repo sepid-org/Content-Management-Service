@@ -7,6 +7,7 @@ from rest_framework.exceptions import PermissionDenied, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import AnonymousUser
+from django_filters import rest_framework as filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
@@ -23,6 +24,14 @@ from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get
 from utilities.cache_enabled_model_viewset import CacheEnabledModelViewSet
 
 
+class FSMFilter(filters.FilterSet):
+    program = filters.CharFilter(field_name='program__slug')
+
+    class Meta:
+        model = FSM
+        fields = ['website', 'program']
+
+
 class FSMViewSet(CacheEnabledModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = FSM.objects.filter(is_deleted=False)
@@ -30,15 +39,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
     ordering = ['-order_in_program']
     serializer_class = FSMSerializer
     my_tags = ['fsm']
-    filterset_fields = ['website']
+    filterset_class = FSMFilter
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ['website', 'program']
     pagination_class = StandardPagination
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        program_slug = self.request.query_params.get('program', None)
-        if program_slug is not None:
-            queryset = queryset.filter(program__slug=program_slug)
-        return queryset
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
