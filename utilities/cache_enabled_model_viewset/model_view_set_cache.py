@@ -17,8 +17,8 @@ class ModelViewSetCache:
             return f"{self.model_view_set_name}:list:{query_string}"
         return f"{self.model_view_set_name}:list"
 
-    def get_object_cache_key(self, object_id):
-        return f"{self.model_view_set_name}:retrieve:{object_id}"
+    def get_object_cache_key(self, lookup_field):
+        return f"{self.model_view_set_name}:retrieve:{lookup_field}"
 
     def invalidate_list_cache(self):
         if hasattr(cache, 'delete_pattern'):
