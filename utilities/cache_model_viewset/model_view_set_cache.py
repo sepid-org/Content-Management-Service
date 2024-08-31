@@ -4,7 +4,7 @@ from django.core.cache import cache
 
 
 class ModelViewSetCache:
-    cache_timeout = 60 * 15  # 15 minutes
+    cache_timeout = 60 * 15 * 60  # 60 minutes
     lookup_field = 'pk'  # Default to 'pk', can be overridden in subclasses
 
     def get_list_cache_key(self, key_prefix):
