@@ -11,8 +11,6 @@ def get_environment_var(var_name, default, prefixed=True):
     return os.getenv(var_name, default)
 
 
-CORS_ORIGIN_ALLOW_ALL = True
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))
@@ -233,3 +231,22 @@ BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
 
 ASSESS_ANSWER_SERVICE_URL = get_environment_var(
     'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')
+
+
+########## CORS ##########
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_ALL_ORIGINS = True  # Or specify allowed origins
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'Website',  # Add your custom header here
+]
