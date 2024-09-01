@@ -32,12 +32,6 @@ class CacheEnabledModelViewSet(ModelViewSet):
         self.cache.invalidate_object_cache(kwargs[self.lookup_field])
         return response
 
-    def partial_update(self, request, *args, **kwargs):
-        response = super().partial_update(request, *args, **kwargs)
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
-        self.cache.invalidate_object_cache(self.get_object())
-        return response
-
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
         self.cache.invalidate_list_cache(request.headers.get('Website'))
