@@ -8,7 +8,8 @@ SECRET_KEY = get_environment_var(
 
 ALLOWED_HOSTS = get_environment_var('ALLOWED_HOSTS', '*').split(',')
 
-SERVICE_DOMAIN = get_environment_var('SERVICE_DOMAIN', 'https://mcs.sepid.org/')
+SERVICE_DOMAIN = get_environment_var(
+    'SERVICE_DOMAIN', 'https://mcs.sepid.org/')
 
 DB_NAME = get_environment_var('DB_NAME', 'workshop')
 DB_USER = get_environment_var('DB_USER', 'user')
@@ -31,11 +32,13 @@ RD_HOST = get_environment_var("RD_HOST", 'redis://0.0.0.0:6379')
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': RD_HOST
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': RD_HOST,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
-
 
 STATIC_ROOT = os.path.join(BASE_DIR, get_environment_var(
     'STATIC_ROOT_FILE_NAME', 'staticfiles'))
@@ -114,7 +117,8 @@ ZARINPAL_CONFIG = {
 
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
-CSRF_TRUSTED_ORIGINS = get_environment_var('CSRF_TRUSTED_ORIGINS', '*').split(',')
+CSRF_TRUSTED_ORIGINS = get_environment_var(
+    'CSRF_TRUSTED_ORIGINS', '*').split(',')
 
 DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
 STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
