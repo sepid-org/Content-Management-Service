@@ -27,7 +27,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
     lookup_field = 'slug'
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ['retrieve', 'list', 'get_user_permissions', 'get_fsms_user_permissions']:
             return [AllowAny()]
         return [ProgramAdminPermission()]
 
