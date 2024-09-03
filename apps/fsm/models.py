@@ -94,6 +94,7 @@ class Team(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     registration_form = models.ForeignKey('fsm.RegistrationForm', related_name='teams', null=True, blank=True,
                                           on_delete=models.SET_NULL)
+    program = models.ForeignKey('fsm.Program', related_name='teams', null=True, blank=True, on_delete=models.CASCADE)
     team_head = models.OneToOneField('RegistrationReceipt', related_name='headed_team', null=True, blank=True,
                                      on_delete=models.SET_NULL)
 
