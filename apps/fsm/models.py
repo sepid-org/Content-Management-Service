@@ -92,7 +92,7 @@ class Team(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
-    program = models.ForeignKey('fsm.Program', related_name='teams', on_delete=models.CASCADE, null=True, blank=True)
+    program = models.ForeignKey('fsm.Program', related_name='teams', on_delete=models.CASCADE)
     team_head = models.OneToOneField('RegistrationReceipt', related_name='headed_team', null=True, blank=True,
                                      on_delete=models.SET_NULL)
 
