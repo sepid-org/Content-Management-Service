@@ -58,7 +58,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'make_team_head', 'register_and_join']:
             permission_classes = [permissions.IsAuthenticated]
-        elif self.action in ['get_invitations', 'retrieve']:
+        elif self.action in ['get_invitations', 'retrieve', 'get_team_invitations']:
             permission_classes = [customPermissions.IsTeamMember]
         else:
             permission_classes = [customPermissions.IsTeamModifier]

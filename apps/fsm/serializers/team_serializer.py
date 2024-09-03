@@ -73,21 +73,8 @@ class TeamSerializer(serializers.ModelSerializer):
     members = RegistrationReceiptSerializer(many=True, read_only=True)
     program = serializers.SlugField(write_only=True)
 
-    def validate(self, attrs):
-        program_slug = attrs.get('program', None)
-        program = Program.objects.get(slug=program_slug)
-        registration_form = program.registration_form
-        user = self.context.get('user', None)
-        user_receipt = registration_form.registration_receipts.filter(
-            user=user).first()
-        if user in registration_form.program_or_fsm.modifiers:
-            return attrs
-        if not user_receipt or not user_receipt.is_participating:
-            raise PermissionDenied(serialize_error('4050'))
-        if Invitation.objects.filter(invitee=user_receipt, team__program__registration_form=registration_form,
-                                     status=Invitation.InvitationStatus.Accepted):
-            raise PermissionDenied(serialize_error('4051'))
-        return attrs
+    # todo:
+    # related error codes: 4050 - 4051
 
     def create(self, validated_data):
         program_slug = validated_data.pop('program')
