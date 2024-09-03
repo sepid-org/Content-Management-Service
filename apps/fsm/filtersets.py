@@ -24,10 +24,3 @@ class AnswerFilterSet(FilterSet):
     class Meta:
         model = Answer
         fields = ['problem', 'is_final_answer', 'created_at', 'answer_type']
-
-
-class TeamFilterSet(FilterSet):
-
-    class Meta:
-        model = Team
-        fields = ['registration_form']

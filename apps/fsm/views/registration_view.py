@@ -108,7 +108,7 @@ class RegistrationViewSet(ModelViewSet):
         receipt = RegistrationReceipt.objects.filter(user=request.user, is_participating=True,
                                                      form=self.get_object()).first()
         invitations = Invitation.objects.filter(
-            invitee=receipt, team__registration_form=self.get_object(), status=Invitation.InvitationStatus.Waiting)
+            invitee=receipt, team__program__registration_form=self.get_object(), status=Invitation.InvitationStatus.Waiting)
         return Response(data=InvitationSerializer(invitations, many=True).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: RegistrationFormSerializer})

@@ -210,14 +210,12 @@ def download_team_info_csv(modeladmin, request, queryset):
 
 class TeamAdmin(admin.ModelAdmin):
     model = Team
-    list_display = ['name', 'program_or_fsm', 'team_head',
+    list_display = ['name', 'program', 'team_head',
                     'members', 'has_been_online_in_last_hour']
-    list_filter = ['registration_form']
+    list_filter = ['program']
     search_fields = ['name']
     actions = [download_team_info_csv]
 
-    def program_or_fsm(self, obj):
-        return obj.registration_form.program_or_fsm
 
     def members(self, obj):
         return ', '.join(member.user.full_name for member in obj.members.all())

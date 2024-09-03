@@ -86,7 +86,7 @@ class IsTeamModifier(permissions.BasePermission):
         head = obj.team_head
         if head and obj.team_head.user == request.user:
             return True
-        fsm_modifiers = obj.registration_form.program_or_fsm.modifiers
+        fsm_modifiers = obj.program.modifiers
         if request.user in fsm_modifiers:
             return True
         return False

@@ -1,14 +1,17 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
 
 from errors.error_codes import serialize_error
-from apps.fsm.models import Team, Invitation, RegistrationReceipt
+from apps.fsm.models import Program, Team, Invitation, RegistrationReceipt
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer
 
 
 class InvitationSerializer(serializers.ModelSerializer):
-    invitee = serializers.PrimaryKeyRelatedField(queryset=RegistrationReceipt.objects.all(), required=False)
-    username = serializers.CharField(max_length=150, required=False, write_only=True)
+    invitee = serializers.PrimaryKeyRelatedField(
+        queryset=RegistrationReceipt.objects.all(), required=False)
+    username = serializers.CharField(
+        max_length=150, required=False, write_only=True)
 
     def validate(self, attrs):
         username = attrs.get('username', None)
@@ -21,15 +24,15 @@ class InvitationSerializer(serializers.ModelSerializer):
             if username is None:
                 raise ParseError(serialize_error('4063'))
             else:
-                invitee = RegistrationReceipt.objects.filter(form=team.registration_form,
+                invitee = RegistrationReceipt.objects.filter(form=team.program.registration_form,
                                                              user__username__exact=username).first()
                 if invitee is None:
                     raise ParseError(serialize_error('4065'))
                 self.context['invitee'] = invitee
 
-        if len(team.members.all()) >= team.registration_form.program_or_fsm.team_size:
+        if len(team.members.all()) >= team.program.registration_form.program_or_fsm.team_size:
             raise PermissionDenied(serialize_error('4059'))
-        if invitee.form != team.registration_form:
+        if invitee.form != team.program.registration_form:
             raise ParseError(serialize_error('4052'))
         if not invitee.is_participating:
             raise PermissionDenied(serialize_error('4055'))
@@ -47,7 +50,8 @@ class InvitationSerializer(serializers.ModelSerializer):
         return super(InvitationSerializer, self).create({'team': self.context.get('team', None), **validated_data})
 
     def to_representation(self, instance):
-        representation = super(InvitationSerializer, self).to_representation(instance)
+        representation = super(InvitationSerializer,
+                               self).to_representation(instance)
         representation['first_name'] = instance.invitee.user.first_name
         representation['last_name'] = instance.invitee.user.last_name
         representation['phone_number'] = instance.invitee.user.phone_number
@@ -67,30 +71,42 @@ class InvitationSerializer(serializers.ModelSerializer):
 
 class TeamSerializer(serializers.ModelSerializer):
     members = RegistrationReceiptSerializer(many=True, read_only=True)
+    program = serializers.SlugField(write_only=True)
 
-    # todo: talk with Erfan about commenting this
-    # def validate(self, attrs):
-    #     registration_form = attrs.get('registration_form', None)
-    #     user = self.context.get('user', None)
-    #     user_registration = registration_form.registration_receipts.filter(user=user).first()
-    #     if user in registration_form.program_or_fsm.modifiers:
-    #         return attrs
-    #     if not user_registration or not user_registration.is_participating:
-    #         raise PermissionDenied(serialize_error('4050'))
-    #     if Invitation.objects.filter(invitee=user_registration, team__registration_form=registration_form,
-    #                                  status=Invitation.InvitationStatus.Accepted):
-    #         raise PermissionDenied(serialize_error('4051'))
-    #     return attrs
+    def validate(self, attrs):
+        program_slug = attrs.get('program', None)
+        program = Program.objects.get(slug=program_slug)
+        registration_form = program.registration_form
+        user = self.context.get('user', None)
+        user_receipt = registration_form.registration_receipts.filter(
+            user=user).first()
+        if user in registration_form.program_or_fsm.modifiers:
+            return attrs
+        if not user_receipt or not user_receipt.is_participating:
+            raise PermissionDenied(serialize_error('4050'))
+        if Invitation.objects.filter(invitee=user_receipt, team__program__registration_form=registration_form,
+                                     status=Invitation.InvitationStatus.Accepted):
+            raise PermissionDenied(serialize_error('4051'))
+        return attrs
+
+    def create(self, validated_data):
+        program_slug = validated_data.pop('program')
+        program = get_object_or_404(Program, slug=program_slug)
+        team = Team.objects.create(program=program, **validated_data)
+        return team
 
     def to_representation(self, instance):
-        representation = super(TeamSerializer, self).to_representation(instance)
+        representation = super(
+            TeamSerializer, self).to_representation(instance)
+        representation['program'] = instance.program.slug
         return representation
 
     class Meta:
         model = Team
         fields = '__all__'
-        read_only_fields = ['id', 'team_head', 'members']
+        read_only_fields = ['id', 'team_head', 'members', 'program']
 
 
 class InvitationResponseSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=Invitation.InvitationStatus.choices, required=True)
+    status = serializers.ChoiceField(
+        choices=Invitation.InvitationStatus.choices, required=True)
