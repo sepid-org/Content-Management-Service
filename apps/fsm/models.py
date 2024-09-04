@@ -80,8 +80,8 @@ class Hint(Paper):
 class TeamManager(models.Manager):
 
     def get_team_from_widget(self, user, widget):
-        form = widget.paper.fsm.registration_form or widget.paper.fsm.program.registration_form
-        return Team.objects.filter(registration_form=form, members__user=user).first()
+        program = widget.paper.fsm.program
+        return Team.objects.filter(program=program, members__user=user).first()
 
     def get_teammates_from_widget(self, user, widget):
         team = self.get_team_from_widget(user, widget)
@@ -92,7 +92,8 @@ class Team(models.Model):
     id = models.UUIDField(primary_key=True, unique=True,
                           default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
-    program = models.ForeignKey('fsm.Program', related_name='teams', on_delete=models.CASCADE)
+    program = models.ForeignKey(
+        'fsm.Program', related_name='teams', on_delete=models.CASCADE)
     team_head = models.OneToOneField('RegistrationReceipt', related_name='headed_team', null=True, blank=True,
                                      on_delete=models.SET_NULL)
 
@@ -333,7 +334,7 @@ class FSM(models.Model, Content):
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    
+
     objects = FSMManager()
 
     def __str__(self):
