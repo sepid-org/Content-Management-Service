@@ -1,7 +1,7 @@
 from rest_framework import status
 from django.utils import timezone
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
@@ -23,8 +23,18 @@ class ProgramViewSet(CacheEnabledModelViewSet):
     pagination_class = ProgramsPagination
     authentication_classes = [SafeTokenAuthentication]
     permission_classes = [IsAuthenticated]
-    filterset_fields = ['website']
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        website = self.request.headers.get('Website')
+
+        if website:
+            queryset = queryset.filter(website=website)
+        else:
+            raise ValidationError("Website header is required")
+
+        return queryset
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list', 'get_user_permissions', 'get_fsms_user_permissions']:
@@ -53,7 +63,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = self._find_user(serializer.validated_data,
-                               request.data.get("website"))
+                               request.headers.get("Website"))
         add_admin_to_program(user, program)
         return Response(status=status.HTTP_200_OK)
 
@@ -63,7 +73,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_admin = self._find_user(
-            serializer.validated_data, request.data.get("website"))
+            serializer.validated_data, request.headers.get("Website"))
         self._ensure_not_creator(removed_admin, program)
         program.admins.remove(removed_admin)
         return Response(status=status.HTTP_200_OK)

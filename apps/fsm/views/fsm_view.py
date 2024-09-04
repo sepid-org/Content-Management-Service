@@ -29,7 +29,7 @@ class FSMFilter(filters.FilterSet):
 
     class Meta:
         model = FSM
-        fields = ['website', 'program']
+        fields = ['program']
 
 
 class FSMViewSet(CacheEnabledModelViewSet):
@@ -41,7 +41,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
     my_tags = ['fsm']
     filterset_class = FSMFilter
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['website', 'program']
+    filterset_fields = ['program']
     pagination_class = StandardPagination
 
     def get_permissions(self):
@@ -190,7 +190,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         account_serializer.is_valid(raise_exception=True)
         new_mentor = find_user_in_website(
             user_data={**account_serializer.validated_data},
-            website=request.data.get("website"),
+            website=request.headers.get("Website"),
             raise_exception=True,
         )
         fsm.mentors.add(new_mentor)
@@ -204,7 +204,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_mentor = find_user_in_website(
-            user_data={**serializer.validated_data}, website=request.data.get("website"))
+            user_data={**serializer.validated_data}, website=request.headers.get("Website"))
         if removed_mentor == fsm.creator:
             raise ParseError(serialize_error('5006'))
         if removed_mentor in fsm.mentors.all():

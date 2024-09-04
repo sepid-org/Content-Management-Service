@@ -16,7 +16,7 @@ class GoogleLogin(TokenObtainPairView):
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
         user = create_or_get_user(user_data={**request.data, "password": request.data.get("email")},
-                                  website=request.data.get("website"))
+                                  website=request.headers.get("Website"))
         access_token, refresh_token = generate_tokens_for_user(user)
         return Response({
             'user': UserSerializer(user).data,

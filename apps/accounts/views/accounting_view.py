@@ -99,12 +99,12 @@ class UserViewSet(ModelViewSet):
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = find_user_in_website(user_data=request.data,
-                                    website=request.data.get("website"))
+                                    website=request.headers.get("Website"))
         if user:
             raise ParseError(serialize_error('4117'))
 
         user = create_or_get_user(user_data=request.data,
-                                  website=request.data.get("website"))
+                                  website=request.headers.get("Website"))
 
         token_serializer = CustomTokenObtainSerializer(
             data={'username': user.username})
@@ -137,7 +137,7 @@ class Login(TokenObtainPairView):
                                     400: "error code 4007 for not enough credentials",
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
-        website = request.data.get("website")
+        website = request.headers.get("Website")
         user = find_user_in_website(
             user_data=request.data,
             website=website,
@@ -173,7 +173,7 @@ class ChangePassword(GenericAPIView):
 
         user = find_user_in_website(
             user_data={"phone_number": phone_number},
-            website=request.data.get("website"),
+            website=request.headers.get("Website"),
             raise_exception=True,
         )
 
