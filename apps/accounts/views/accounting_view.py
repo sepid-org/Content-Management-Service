@@ -17,6 +17,7 @@ from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSeria
 from apps.accounts.utils import can_user_login, create_or_get_user, find_user, find_user_in_website
 from errors.error_codes import serialize_error
 from errors.exceptions import ServiceUnavailable
+from proxies.instant_messaging_service.main import InstantMessagingServiceProxy
 
 
 class SendVerificationCode(GenericAPIView):
@@ -146,6 +147,12 @@ class Login(TokenObtainPairView):
 
         if not can_user_login(user=user, password=request.data.get("password"), website=website):
             raise ParseError(serialize_error('4009'))
+
+        # todo: EHSAN
+        # send greeting notification (just for testing)
+        notification_service_proxy = InstantMessagingServiceProxy(website=website)
+        notification_service_proxy.send_greeting_notification(recipient=user)
+
 
         token_serializer = self.get_serializer(
             data={"username": user.username})
