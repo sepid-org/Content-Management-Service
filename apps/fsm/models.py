@@ -748,6 +748,18 @@ class Widget(PolymorphicModel, Content):
             pass
 
 
+class WidgetPosition(models.Model):
+    widget = models.OneToOneField(
+        'Widget', on_delete=models.CASCADE, primary_key=True)
+    x = models.IntegerField()
+    y = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.widget} at ({self.x}, {self.y})"
+
+
 def clone_widget(widget, paper, *args, **kwargs):
     widget_type = widget.__class__
     model_fields = [

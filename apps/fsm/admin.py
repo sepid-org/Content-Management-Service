@@ -9,7 +9,7 @@ from import_export.admin import ExportActionMixin
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
-    UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat
+    UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, WidgetPosition
 
 from apps.fsm.utils import get_django_file
 
@@ -215,7 +215,6 @@ class TeamAdmin(admin.ModelAdmin):
     list_filter = ['program']
     search_fields = ['name']
     actions = [download_team_info_csv]
-
 
     def members(self, obj):
         return ', '.join(member.user.full_name for member in obj.members.all())
@@ -537,3 +536,21 @@ admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
 admin.site.register(Widget, WidgetAdmin)
 admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
+
+
+class WidgetPositionAdmin(admin.ModelAdmin):
+    list_display = ('widget', 'get_paper', 'x', 'y', 'width', 'height')
+    list_filter = ('widget__paper',)
+    search_fields = ('widget__name', 'widget__paper__name')
+    readonly_fields = ('get_paper',)
+
+    def get_paper(self, obj):
+        return obj.widget.paper
+    get_paper.short_description = 'Paper'
+    get_paper.admin_order_field = 'widget__paper'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('widget__paper')
+
+
+admin.site.register(WidgetPosition, WidgetPositionAdmin)
