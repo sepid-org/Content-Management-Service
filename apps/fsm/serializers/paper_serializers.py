@@ -1,10 +1,10 @@
+from apps.fsm.serializers.fsm_serializers import EdgeSerializer
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from apps.fsm.serializers.content_serializer import ContentSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
@@ -21,10 +21,6 @@ class PaperMinimalSerializer(serializers.ModelSerializer):
 class PaperSerializer(serializers.ModelSerializer):
     widgets = WidgetPolymorphicSerializer(many=True)
 
-    class Meta:
-        model = Paper
-        fields = ['id', 'paper_type', 'widgets']
-
     @transaction.atomic
     def create(self, validated_data):
         widgets = validated_data.pop('widgets', [])
@@ -38,6 +34,11 @@ class PaperSerializer(serializers.ModelSerializer):
                 serializer.validated_data['paper'] = instance
                 serializer.save()
         return instance
+
+    class Meta:
+        model = Paper
+        fields = ['id', 'widgets']
+        read_only_fields = ['id']
 
 
 class RegistrationFormSerializer(PaperSerializer):
@@ -77,13 +78,13 @@ class RegistrationFormSerializer(PaperSerializer):
             raise PermissionDenied(serialize_error('4026'))
         return fsm
 
-    class Meta:
+    class Meta(PaperSerializer.Meta):
         model = RegistrationForm
         ref_name = 'registration_form'
-        fields = ['id', 'min_grade', 'max_grade', 'since', 'till', 'duration', 'is_exam',
-                  'program', 'fsm', 'paper_type', 'creator', 'accepting_status', 'certificate_templates',
-                  'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
-        read_only_fields = ['id', 'creator']
+        fields = PaperSerializer.Meta.fields + ['min_grade', 'max_grade', 'program', 'fsm', 'paper_type', 'accepting_status',
+                                                'certificate_templates', 'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + \
+            []
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -97,13 +98,6 @@ class TagSerializer(serializers.ModelSerializer):
 class ArticleSerializer(PaperSerializer):
     tags = serializers.ListSerializer(required=False, child=serializers.CharField(min_length=1, max_length=100),
                                       allow_null=True, allow_empty=True)
-
-    class Meta:
-        model = Article
-        ref_name = 'article'
-        fields = ['id', 'name', 'description', 'tags',
-                  'is_draft', 'publisher', 'cover_page']
-        read_only_fields = ['id', 'creator']
 
     @transaction.atomic
     def create(self, validated_data):
@@ -144,6 +138,13 @@ class ArticleSerializer(PaperSerializer):
             instance.tags.all(), context=self.context, many=True).data
         return representation
 
+    class Meta(PaperSerializer.Meta):
+        model = Article
+        ref_name = 'article'
+        fields = PaperSerializer.Meta.fields + ['name', 'description', 'tags',
+                                                'is_draft', 'publisher', 'cover_page']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + []
+
 
 class HintSerializer(PaperSerializer):
 
@@ -160,11 +161,11 @@ class HintSerializer(PaperSerializer):
 
         return super(HintSerializer, self).validate(attrs)
 
-    class Meta:
+    class Meta(PaperSerializer.Meta):
         model = Hint
         ref_name = 'hint'
-        fields = ['id', 'creator', 'reference']
-        read_only_fields = ['id', 'creator']
+        fields = PaperSerializer.Meta.fields + ['reference']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + []
 
 
 class WidgetHintSerializer(PaperSerializer):
@@ -174,36 +175,24 @@ class WidgetHintSerializer(PaperSerializer):
         user = self.context.get('user', None)
         return super(WidgetHintSerializer, self).create({'paper_type': 'Widgethint', 'creator': user, **validated_data})
 
-    class Meta:
+    class Meta(PaperSerializer.Meta):
         model = WidgetHint
         ref_name = 'hint'
-        fields = ['id', 'creator', 'reference']
-        read_only_fields = ['id', 'creator']
+        fields = PaperSerializer.Meta.fields + ['reference']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + []
 
 
 class StateSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        fields = ['id', 'name', 'fsm', 'since', 'till', 'duration', 'is_exam']
-        read_only_fields = ['id', 'name', 'fsm',
-                            'since', 'till', 'duration', 'is_exam']
-
-
-class EdgeSimpleSerializer(ContentSerializer):
-    tail = StateSimpleSerializer()
-    head = StateSimpleSerializer()
-
-    class Meta:
-        model = Edge
-        fields = '__all__'
-        read_only_fields = ['id', 'tail', 'head',
-                            'is_back_enabled', 'priority', 'is_hidden', 'text']
+        fields = ['name']
+        read_only_fields = ['name']
 
 
 class StateSerializer(PaperSerializer):
     hints = HintSerializer(many=True, read_only=True)
-    outward_edges = EdgeSimpleSerializer(many=True, read_only=True)
-    inward_edges = EdgeSimpleSerializer(many=True, read_only=True)
+    outward_edges = EdgeSerializer(many=True, read_only=True)
+    inward_edges = EdgeSerializer(many=True, read_only=True)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -224,13 +213,13 @@ class StateSerializer(PaperSerializer):
 
         return super(StateSerializer, self).validate(attrs)
 
-    class Meta:
+    class Meta(PaperSerializer.Meta):
         model = State
         ref_name = 'state'
-        fields = ['id', 'name', 'creator', 'fsm', 'hints', 'inward_edges', 'outward_edges', 'since', 'till',
-                  'duration', 'is_exam']
-        read_only_fields = ['id', 'creator',
-                            'hints', 'inward_edges', 'outward_edges']
+        fields = ['id', 'name', 'fsm', 'hints',
+                  'inward_edges', 'outward_edges', 'template']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + \
+            ['hints', 'inward_edges', 'outward_edges']
 
 
 class PaperPolymorphicSerializer(PolymorphicSerializer):

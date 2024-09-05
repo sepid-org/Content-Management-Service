@@ -16,7 +16,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, TeamGetSerializer
-from apps.fsm.serializers.paper_serializers import StateSimpleSerializer, EdgeSimpleSerializer
+from apps.fsm.serializers.paper_serializers import StateSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerStateSerializer
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
 from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
@@ -161,14 +161,14 @@ class FSMViewSet(CacheEnabledModelViewSet):
             queryset, many=True, context=self.get_serializer_context())
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: StateSimpleSerializer}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: StateSerializer}, tags=['mentor'])
     @transaction.atomic
     @action(detail=True, methods=['get'])
     def get_states(self, request, pk):
-        return Response(data=StateSimpleSerializer(self.get_object().states.order_by('id'), context=self.get_serializer_context(),
+        return Response(data=StateSerializer(self.get_object().states.order_by('id'), context=self.get_serializer_context(),
                                                    many=True).data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: EdgeSimpleSerializer}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: EdgeSerializer}, tags=['mentor'])
     @action(detail=True, methods=['get'])
     def get_edges(self, request, pk):
         edges = _get_fsm_edges(self.get_object())

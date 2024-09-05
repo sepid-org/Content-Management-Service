@@ -404,9 +404,15 @@ class Player(models.Model):
 
 
 class State(Paper):
+    class StateTemplate(models.TextChoices):
+        normal = 'normal'
+        board = 'board'
+
     name = models.TextField(null=True, blank=True)
     fsm = models.ForeignKey(
         FSM, on_delete=models.CASCADE, related_name='states')
+    template = models.CharField(max_length=20, default=StateTemplate.normal,
+                                choices=StateTemplate.choices)
 
     @transaction.atomic
     def delete(self):

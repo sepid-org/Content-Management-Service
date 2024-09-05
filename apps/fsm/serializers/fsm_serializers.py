@@ -6,8 +6,7 @@ from apps.accounts.serializers.user_serializer import MentorSerializer
 from apps.fsm.serializers.content_serializer import ContentSerializer
 from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Program, RegistrationReceipt, FSM, Edge, Team
-from apps.fsm.serializers.paper_serializers import StateSerializer, StateSimpleSerializer
+from apps.fsm.models import Program, FSM, Edge, Team
 
 
 class FSMMinimalSerializer(ContentSerializer):
@@ -29,7 +28,6 @@ class FSMMinimalSerializer(ContentSerializer):
 class FSMSerializer(serializers.ModelSerializer):
     merchandise = MerchandiseSerializer(required=False)
     mentors = MentorSerializer(many=True, read_only=True)
-    first_state = StateSerializer(read_only=True)
 
     def validate(self, attrs):
         program = attrs.get('program', None)
@@ -115,13 +113,13 @@ class EdgeSerializer(ContentSerializer):
         return super(EdgeSerializer, self).validate(attrs)
 
     def to_representation(self, instance):
+        from apps.fsm.serializers.paper_serializers import StateSimpleSerializer
         representation = super(
             EdgeSerializer, self).to_representation(instance)
         representation['tail'] = StateSimpleSerializer(
             context=self.context).to_representation(instance.tail)
         representation['head'] = StateSimpleSerializer(
             context=self.context).to_representation(instance.head)
-        representation['str'] = str(instance)
         return representation
 
     class Meta:
