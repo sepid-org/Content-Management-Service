@@ -1,6 +1,7 @@
 ## Instalation
 
-- `git clone git@github.com:sepid-org/Manage-Content-Service.git`
+- `git clone git@github.com:sepid-org/Content-Management-Service.git`
+- `cd Content-Management-Service`
 - `virtualenv venv`
 - `source venv/bin/activate`
 - `pip install -r requirements.txt`
