@@ -390,12 +390,12 @@ class VerificationCode(models.Model):
 
     objects = VerificationCodeManager()
 
-    def notify(self, verification_type, party_display_name='سپید'):
+    def notify(self, verification_type, website_display_name='سپید'):
         sms_service_proxy = SMSServiceProxy(provider='kavenegar')
         sms_service_proxy.send_otp(
             receptor_phone_number=self.phone_number,
             action=verification_type,
-            token=party_display_name,
+            token=website_display_name,
             token2=str(self.code)
         )
 

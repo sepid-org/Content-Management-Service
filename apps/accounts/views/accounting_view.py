@@ -36,15 +36,15 @@ class SendVerificationCode(GenericAPIView):
         serializer = PhoneNumberSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             phone_number = serializer.validated_data.get('phone_number', None)
-            party_display_name = serializer.validated_data.get(
-                'party_display_name', 'سپید')
+            website_display_name = serializer.validated_data.get(
+                'website_display_name', 'سپید')
             verification_code = VerificationCode.objects.create_verification_code(
                 phone_number=phone_number)
             try:
                 verification_code.notify(
                     verification_type=serializer.validated_data.get(
                         'code_type', None),
-                    party_display_name=party_display_name,
+                    website_display_name=website_display_name,
                 )
             except:
                 raise ServiceUnavailable(serialize_error('5000'))

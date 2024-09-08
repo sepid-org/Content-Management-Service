@@ -15,11 +15,11 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(
         max_length=15, required=True, validators=[phone_number_validator])
     code_type = serializers.CharField(required=True)
-    party_display_name = serializers.CharField(required=True)
+    website_display_name = serializers.CharField(required=True)
 
     class Meta:
         model = VerificationCode
-        fields = ['phone_number', 'code_type', 'party_display_name']
+        fields = ['phone_number', 'code_type', 'website_display_name']
 
 
 class PhoneNumberVerificationCodeSerializer(serializers.ModelSerializer):
