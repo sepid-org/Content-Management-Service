@@ -126,7 +126,7 @@ def change_phone_number(request):
     user = request.user
     user.phone_number = new_phone_number
     user.save()
-    return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+    return Response()
 
 
 class Login(TokenObtainPairView):
@@ -150,9 +150,9 @@ class Login(TokenObtainPairView):
 
         # todo: EHSAN
         # send greeting notification (just for testing)
-        notification_service_proxy = InstantMessagingServiceProxy(website=website)
+        notification_service_proxy = InstantMessagingServiceProxy(
+            website=website)
         notification_service_proxy.send_greeting_notification(recipient=user)
-
 
         token_serializer = self.get_serializer(
             data={"username": user.username})
