@@ -2,7 +2,7 @@ from django.db import models, transaction
 from apps.accounts.models import User
 
 from apps.attributes.models import Attribute
-from apps.fsm.models.base import Content, Paper
+from apps.fsm.models.base import Object, ObjectMixin, Paper, clone_paper
 from apps.fsm.models.program import Program
 
 
@@ -15,7 +15,10 @@ class FSMManager(models.Manager):
         return fsm
 
 
-class FSM(models.Model, Content):
+class FSM(models.Model, ObjectMixin):
+    _object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, null=True, related_name='fsm')
+
     class FSMLearningType(models.TextChoices):
         Supervised = 'Supervised'
         Unsupervised = 'Unsupervised'
@@ -26,8 +29,6 @@ class FSM(models.Model, Content):
         Hybrid = 'Hybrid'
 
     is_public = models.BooleanField(default=False)
-
-    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
@@ -156,8 +157,9 @@ class State(Paper):
         return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
-class Edge(models.Model, Content):
-    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
+class Edge(models.Model, ObjectMixin):
+    _object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, null=True, related_name='edge')
 
     tail = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='outward_edges')

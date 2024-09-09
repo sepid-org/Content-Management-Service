@@ -6,73 +6,40 @@ from apps.accounts.models import User
 from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
 
 
-def clone_paper(paper, *args, **kwargs):
-    paper_type = paper.__class__
-    model_fields = [
-        field.name for field in paper_type._meta.get_fields() if field.name != 'id']
-    dicted_model = {name: value for name, value
-                    in paper.__dict__.items() if name in model_fields}
-    cloned_paper = paper_type(
-        **{**dicted_model,
-           **kwargs,
-           },
-    )
-    cloned_paper.save()
-    return cloned_paper
+class Object(PolymorphicModel):
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    _attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
 
 
-class Paper(PolymorphicModel):
-    class PaperType(models.TextChoices):
-        RegistrationForm = 'RegistrationForm'
-        State = 'State'
-        Hint = 'Hint'
-        WidgetHint = 'WidgetHint'
-        Article = 'Article'
-        General = 'General'
+class ObjectMixin:
+    @property
+    def object(self):
+        if self._object is None:
+            self._object = Object.objects.create(
+                title=f'{self.__class__.__name__}-{self.id}',
+            )
+            self.save()
+        return self._object
 
-    paper_type = models.CharField(
-        max_length=25, blank=False, choices=PaperType.choices)
-    creator = models.ForeignKey('accounts.User', related_name='papers', null=True, blank=True,
-                                on_delete=models.SET_NULL)
-    since = models.DateTimeField(null=True, blank=True)
-    till = models.DateTimeField(null=True, blank=True)
-    duration = models.DurationField(null=True, blank=True, default=None)
-    is_exam = models.BooleanField(default=False)
+    @property
+    def position(self):
+        _position = None
+        try:
+            _position = getattr(self.object, '_position')
+        except AttributeError:
+            pass
+        return _position
 
-    def delete(self):
-        for w in Widget.objects.filter(paper=self):
-            try:
-                w.delete()
-            except:
-                w.paper = None
-                w.save()
-        return super(Paper, self).delete()
-
-    def is_user_permitted(self, user: User):
-        # if self.criteria:
-        #     return self.criteria.evaluate(user)
-        return True
-
-    def __str__(self):
-        return f"{self.paper_type}"
-
-
-class Hint(Paper):
-    reference = models.ForeignKey(
-        'fsm.State', on_delete=models.CASCADE, related_name='hints')
-
-    def clone(self, paper):
-        return clone_hint(self, paper)
-
-
-def clone_hint(hint, reference_paper):
-    cloned_hint = clone_paper(hint, reference=reference_paper)
-    cloned_widgets = [widget.clone(cloned_hint)
-                      for widget in hint.widgets.all()]
-    return cloned_hint
-
-
-class Content:
+    @property
+    def attributes(self):
+        _attributes = Attribute.objects.none()
+        try:
+            _attributes = getattr(self.object, '_attributes')
+        except AttributeError:
+            pass
+        return _attributes
 
     @property
     def solve_cost(self):
@@ -125,7 +92,57 @@ class Content:
         return result
 
 
-class Widget(PolymorphicModel, Content):
+class Paper(PolymorphicModel, ObjectMixin):
+    _object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, null=True, related_name='paper')
+
+    class PaperType(models.TextChoices):
+        RegistrationForm = 'RegistrationForm'
+        State = 'State'
+        Hint = 'Hint'
+        WidgetHint = 'WidgetHint'
+        Article = 'Article'
+        General = 'General'
+
+    paper_type = models.CharField(
+        max_length=25, blank=False, choices=PaperType.choices)
+    creator = models.ForeignKey('accounts.User', related_name='papers', null=True, blank=True,
+                                on_delete=models.SET_NULL)
+    since = models.DateTimeField(null=True, blank=True)
+    till = models.DateTimeField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True, default=None)
+    is_exam = models.BooleanField(default=False)
+
+    def delete(self):
+        for w in Widget.objects.filter(paper=self):
+            try:
+                w.delete()
+            except:
+                w.paper = None
+                w.save()
+        return super(Paper, self).delete()
+
+    def is_user_permitted(self, user: User):
+        # if self.criteria:
+        #     return self.criteria.evaluate(user)
+        return True
+
+    def __str__(self):
+        return f"{self.paper_type}"
+
+
+class Hint(Paper):
+    reference = models.ForeignKey(
+        'fsm.State', on_delete=models.CASCADE, related_name='hints')
+
+    def clone(self, paper):
+        return clone_hint(self, paper)
+
+
+class Widget(PolymorphicModel, ObjectMixin):
+    _object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, null=True, related_name='widget')
+
     class WidgetTypes(models.TextChoices):
         Iframe = 'Iframe'
         Video = 'Video'
@@ -139,7 +156,6 @@ class Widget(PolymorphicModel, Content):
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
 
-    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
@@ -160,6 +176,36 @@ class Widget(PolymorphicModel, Content):
             self.file = None
             self.file.save()
             pass
+
+
+class WidgetHint(Paper):
+    reference = models.ForeignKey(
+        Widget, on_delete=models.CASCADE, related_name='hints')
+
+    def clone(self, paper):
+        return clone_hint(self, paper)
+
+
+class Position(models.Model):
+    object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, primary_key=True, related_name='_position')
+    x = models.IntegerField()
+    y = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.object} at ({self.x}, {self.y})"
+
+
+################### HELPER METHODS ###################
+
+
+def clone_hint(hint, reference_paper):
+    cloned_hint = clone_paper(hint, reference=reference_paper)
+    cloned_widgets = [widget.clone(cloned_hint)
+                      for widget in hint.widgets.all()]
+    return cloned_hint
 
 
 def clone_widget(widget, paper, *args, **kwargs):
@@ -189,21 +235,16 @@ def clone_hint(hint, reference_paper):
     return cloned_hint
 
 
-class WidgetHint(Paper):
-    reference = models.ForeignKey(
-        Widget, on_delete=models.CASCADE, related_name='hints')
-
-    def clone(self, paper):
-        return clone_hint(self, paper)
-
-
-class WidgetPosition(models.Model):
-    widget = models.OneToOneField(
-        'Widget', on_delete=models.CASCADE, primary_key=True)
-    x = models.IntegerField()
-    y = models.IntegerField()
-    width = models.IntegerField()
-    height = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.widget} at ({self.x}, {self.y})"
+def clone_paper(paper, *args, **kwargs):
+    paper_type = paper.__class__
+    model_fields = [
+        field.name for field in paper_type._meta.get_fields() if field.name != 'id']
+    dicted_model = {name: value for name, value
+                    in paper.__dict__.items() if name in model_fields}
+    cloned_paper = paper_type(
+        **{**dicted_model,
+           **kwargs,
+           },
+    )
+    cloned_paper.save()
+    return cloned_paper
