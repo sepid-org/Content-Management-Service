@@ -10,36 +10,37 @@ class Object(PolymorphicModel):
     title = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    _attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
+    attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
+
+
+class Position(models.Model):
+    object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, primary_key=True, related_name='position')
+    x = models.IntegerField()
+    y = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.object} at ({self.x}, {self.y})"
 
 
 class ObjectMixin:
     @property
     def object(self):
-        if self._object is None:
+        if not hasattr(self, '_object') or self._object is None:
             self._object = Object.objects.create(
-                title=f'{self.__class__.__name__}-{self.id}',
-            )
+                title=f'{self.__class__.__name__}-{self.id}')
             self.save()
         return self._object
 
     @property
     def position(self):
-        _position = None
-        try:
-            _position = getattr(self.object, '_position')
-        except AttributeError:
-            pass
-        return _position
+        return getattr(self.object, 'position', None)
 
     @property
     def attributes(self):
-        _attributes = Attribute.objects.none()
-        try:
-            _attributes = getattr(self.object, '_attributes')
-        except AttributeError:
-            pass
-        return _attributes
+        return self.object.attributes.all()
 
     @property
     def solve_cost(self):
@@ -122,21 +123,8 @@ class Paper(PolymorphicModel, ObjectMixin):
                 w.save()
         return super(Paper, self).delete()
 
-    def is_user_permitted(self, user: User):
-        # if self.criteria:
-        #     return self.criteria.evaluate(user)
-        return True
-
     def __str__(self):
         return f"{self.paper_type}"
-
-
-class Hint(Paper):
-    reference = models.ForeignKey(
-        'fsm.State', on_delete=models.CASCADE, related_name='hints')
-
-    def clone(self, paper):
-        return clone_hint(self, paper)
 
 
 class Widget(PolymorphicModel, ObjectMixin):
@@ -178,24 +166,20 @@ class Widget(PolymorphicModel, ObjectMixin):
             pass
 
 
+class Hint(Paper):
+    reference = models.ForeignKey(
+        'fsm.State', on_delete=models.CASCADE, related_name='hints')
+
+    def clone(self, paper):
+        return clone_hint(self, paper)
+
+
 class WidgetHint(Paper):
     reference = models.ForeignKey(
         Widget, on_delete=models.CASCADE, related_name='hints')
 
     def clone(self, paper):
         return clone_hint(self, paper)
-
-
-class Position(models.Model):
-    object = models.OneToOneField(
-        Object, on_delete=models.CASCADE, primary_key=True, related_name='_position')
-    x = models.IntegerField()
-    y = models.IntegerField()
-    width = models.IntegerField()
-    height = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.object} at ({self.x}, {self.y})"
 
 
 ################### HELPER METHODS ###################

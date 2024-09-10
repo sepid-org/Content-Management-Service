@@ -92,9 +92,6 @@ class FSMViewSet(CacheEnabledModelViewSet):
         if not fsm.first_state:
             raise ParseError(serialize_error('4111'))
 
-        if not fsm.first_state.is_user_permitted(user):
-            raise ParseError(serialize_error('4108'))
-
         if fsm.entrance_lock and password != fsm.entrance_lock:
             raise PermissionDenied(serialize_error('4080'))
 
@@ -166,7 +163,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
     @action(detail=True, methods=['get'])
     def get_states(self, request, pk):
         return Response(data=StateSerializer(self.get_object().states.order_by('id'), context=self.get_serializer_context(),
-                                                   many=True).data, status=status.HTTP_200_OK)
+                                             many=True).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: EdgeSerializer}, tags=['mentor'])
     @action(detail=True, methods=['get'])
