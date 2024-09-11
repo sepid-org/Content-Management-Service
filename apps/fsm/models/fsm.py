@@ -134,6 +134,7 @@ class State(Paper):
         FSM, on_delete=models.CASCADE, related_name='states')
     template = models.CharField(max_length=20, default=StateTemplate.normal,
                                 choices=StateTemplate.choices)
+    show_appbar = models.BooleanField(default=True)
 
     @transaction.atomic
     def delete(self):
