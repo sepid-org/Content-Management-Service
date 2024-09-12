@@ -77,15 +77,15 @@ class AnswerViewSet(viewsets.ModelViewSet):
         given_answer_object = serializer.save()
 
         # assess the answer (is any correct answer is provided)
-        if question.correct_answer:
-            score, feedback, improvement_suggestion = assess_answer(
-                question=question, given_answer=given_answer_object)
-            if score >= question.correctness_threshold:
-                given_answer_object.is_correct = True
-                given_answer_object.save()
-                _apply_solve_question_reward(
-                    user=user, question=question, website=request.headers.get('Website'))
-            return Response(data={'score': score, 'feedback': feedback, 'improvement_suggestion': improvement_suggestion})
+        # if question.correct_answer:
+        #     score, feedback, improvement_suggestion = assess_answer(
+        #         question=question, given_answer=given_answer_object)
+        #     if score >= question.correctness_threshold:
+        #         given_answer_object.is_correct = True
+        #         given_answer_object.save()
+        #         _apply_solve_question_reward(
+        #             user=user, question=question, website=request.headers.get('Website'))
+        #     return Response(data={'score': score, 'feedback': feedback, 'improvement_suggestion': improvement_suggestion})
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
