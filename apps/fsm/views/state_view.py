@@ -24,7 +24,6 @@ class StateViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
-        context.update({'editable': True})
         context.update({'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
 
@@ -59,7 +58,6 @@ class HintViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
-        context.update({'editable': True})
         context.update({'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
 
@@ -94,6 +92,5 @@ class WidgetHintViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
-        context.update({'editable': True})
         context.update({'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
