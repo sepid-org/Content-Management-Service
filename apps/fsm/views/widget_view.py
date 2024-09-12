@@ -1,10 +1,11 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import parser_classes
+from rest_framework.decorators import parser_classes, action
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.parsers import MultiPartParser
 from django.db import transaction
+from drf_yasg import openapi
 
 from apps.fsm.models import *
 from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
@@ -27,7 +28,6 @@ class WidgetViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
-        context.update({'editable': True})
         context.update(
             {'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
@@ -50,3 +50,21 @@ class WidgetViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(WidgetPolymorphicSerializer(instance).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_INTEGER))
+            },
+            required=['ids']
+        ),
+        responses={200: WidgetPolymorphicSerializer(many=True)}
+    )
+    @action(detail=False, methods=['post'])
+    def get_widgets_by_ids(self, request):
+        ids = request.data.get('ids', [])
+        widgets = self.queryset.filter(id__in=ids)
+        serializer = self.get_serializer(widgets, many=True)
+        return Response(serializer.data)
