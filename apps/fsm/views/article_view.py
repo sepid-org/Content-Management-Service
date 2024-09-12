@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.forms import ValidationError
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -15,7 +16,17 @@ class ArticleViewSet(viewsets.ModelViewSet):
     serializer_class = ArticleSerializer
     queryset = Article.objects.all()
     my_tags = ['articles']
-    filterset_fields = ['website']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        website = self.request.headers.get('Website')
+
+        if website:
+            queryset = queryset.filter(website=website)
+        else:
+            raise ValidationError("Website header is required")
+
+        return queryset
 
     def get_authenticators(self):
         if self.request.method == 'GET':
