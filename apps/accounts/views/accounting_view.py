@@ -177,15 +177,15 @@ class ChangePassword(GenericAPIView):
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         phone_number = serializer.validated_data.get('phone_number', None)
+        website = request.headers.get("Website")
 
         user = find_user_in_website(
             user_data={"phone_number": phone_number},
-            website=request.headers.get("Website"),
+            website=website,
             raise_exception=True,
         )
 
-        new_password = request.data.get("password")
-        user.get_user_website(website=request.data.get(
-            "website")).set_password(new_password=new_password)
+        user.get_user_website(website=website).set_password(
+            new_password=request.data.get("password"))
 
         return Response(status=status.HTTP_200_OK)
