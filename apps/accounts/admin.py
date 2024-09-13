@@ -9,6 +9,7 @@ class UserWebsiteAdmin(admin.ModelAdmin):
     model = UserWebsite
     list_display = ['user', 'website']
     list_filter = ['website']
+    search_fields = ['user__username', 'website']
 
 
 @admin.register(UserWebsiteLogin)
