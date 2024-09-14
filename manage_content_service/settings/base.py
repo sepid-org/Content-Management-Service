@@ -41,15 +41,14 @@ CUSTOM_APPS = [
     'django_filters',
     'minio_storage',
     'shortener',
+    # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'manage_content_service.apps.MyAdminConfig',
     'apps.accounts.apps.AccountConfig',
     'apps.fsm.apps.FsmConfig',
-    'apps.scoring.apps.ScoringConfig',
     'apps.roadmap.apps.RoadmapConfig',
     'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
     'apps.sales.apps.SalesConfig',
-    # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'apps.file_storage.apps.FileStorageConfig',
     'apps.attributes.apps.AttributesConfig',
     'apps.responses.apps.ResponsesConfig',
