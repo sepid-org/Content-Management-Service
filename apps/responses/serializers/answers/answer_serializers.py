@@ -103,15 +103,6 @@ class UploadFileAnswerSerializer(AnswerSerializer):
         model = UploadFileAnswer
         fields = AnswerSerializer.Meta.fields + ['answer_file']
 
-    def validate(self, attrs):
-        problem = attrs.get('problem', None)
-        if problem:
-            if problem.paper:
-                if (problem.paper.since and datetime.now(problem.paper.since.tzinfo) < problem.paper.since) or \
-                        (problem.paper.till and datetime.now(problem.paper.till.tzinfo) > problem.paper.till):
-                    raise ParseError(serialize_error('4104'))
-        return attrs
-
     def to_representation(self, instance):
         representation = super(UploadFileAnswerSerializer,
                                self).to_representation(instance)
@@ -121,4 +112,3 @@ class UploadFileAnswerSerializer(AnswerSerializer):
             if domain:
                 representation['answer_file'] = domain + answer_file
         return representation
-

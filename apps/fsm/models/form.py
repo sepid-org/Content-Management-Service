@@ -128,6 +128,8 @@ class RegistrationForm(Paper):
 
     has_certificate = models.BooleanField(default=False)
     certificates_ready = models.BooleanField(default=False)
+    since = models.DateTimeField(null=True, blank=True)
+    till = models.DateTimeField(null=True, blank=True)
 
     @property
     def program_or_fsm(self):

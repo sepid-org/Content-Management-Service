@@ -128,7 +128,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
     @action(detail=True, methods=['get'])
     def review(self, request, pk):
         problems = Problem.objects.filter(
-            paper__in=self.get_object().states.filter(is_exam=True))
+            paper__in=self.get_object().states.all())
         return Response(WidgetPolymorphicSerializer(problems, context=self.get_serializer_context(), many=True).data,
                         status=status.HTTP_200_OK)
 

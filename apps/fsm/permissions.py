@@ -235,9 +235,6 @@ class CanAnswerWidget(permissions.BasePermission):
                 else:
                     return False
 
-            if (obj.paper.since and datetime.now(obj.paper.since.tzinfo) < obj.paper.since) or \
-                    (obj.paper.till and datetime.now(obj.paper.till.tzinfo) > obj.paper.till):
-                return False
             return True
         else:
             return False

@@ -92,8 +92,8 @@ class WidgetAdmin(admin.ModelAdmin):
 
 class PaperAdmin(admin.ModelAdmin):
     model = Paper
-    list_display = ['id', 'since', 'till', 'is_exam']
-    list_filter = ['is_exam']
+    list_display = ['id']
+    list_filter = []
 
 
 class RegistrationFormAdmin(admin.ModelAdmin):

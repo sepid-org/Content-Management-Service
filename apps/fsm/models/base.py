@@ -108,10 +108,6 @@ class Paper(PolymorphicModel, ObjectMixin):
         max_length=25, blank=False, choices=PaperType.choices)
     creator = models.ForeignKey('accounts.User', related_name='papers', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    since = models.DateTimeField(null=True, blank=True)
-    till = models.DateTimeField(null=True, blank=True)
-    duration = models.DurationField(null=True, blank=True, default=None)
-    is_exam = models.BooleanField(default=False)
 
     def delete(self):
         for w in Widget.objects.filter(paper=self):

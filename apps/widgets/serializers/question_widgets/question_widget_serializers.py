@@ -150,7 +150,7 @@ class UploadFileProblemSerializer(WidgetSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if instance.correct_answer and not instance.paper.is_exam:
+        if instance.correct_answer:
             representation['correct_answer'] = UploadFileAnswerSerializer(
             ).to_representation(instance.correct_answer)
         return representation

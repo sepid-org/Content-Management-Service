@@ -49,8 +49,6 @@ class WidgetSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super(
             WidgetSerializer, self).to_representation(instance)
-        if 'solution' in representation.keys() and instance.paper.is_exam:
-            representation.pop('solution')
         if isinstance(instance, Problem):
             user = self.context.get('user', None)
 
@@ -65,5 +63,6 @@ class WidgetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Widget
-        fields = ['id', 'name', 'paper', 'creator', 'widget_type', 'hints', 'is_hidden']
+        fields = ['id', 'name', 'paper', 'creator',
+                  'widget_type', 'hints', 'is_hidden']
         read_only_fields = ['id', 'creator']
