@@ -1,1 +1,1 @@
-from .content_widget.dialog_widget import *
+from .content_widgets.dialog_widget import *
