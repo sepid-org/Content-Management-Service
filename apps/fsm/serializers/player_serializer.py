@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.fsm.models import Player, PlayerStateHistory
-from apps.fsm.serializers.paper_serializers import StateSerializer
+from apps.fsm.serializers.papers.paper_serializers import StateSerializer
 from apps.fsm.serializers.team_serializer import TeamSerializer
 
 

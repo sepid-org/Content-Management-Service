@@ -16,7 +16,7 @@ from apps.accounts.utils import create_or_get_user, find_user_in_website, update
 from apps.fsm.utils import register_user_in_program
 from errors.error_codes import serialize_error
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationPerCitySerializer
-from apps.fsm.serializers.paper_serializers import RegistrationFormSerializer, ChangeWidgetOrderSerializer
+from apps.fsm.serializers.papers.paper_serializers import RegistrationFormSerializer, ChangeWidgetOrderSerializer
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
 from apps.fsm.models import RegistrationForm, transaction, RegistrationReceipt, Invitation
 from apps.fsm.permissions import IsRegistrationFormModifier

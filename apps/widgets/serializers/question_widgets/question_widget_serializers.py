@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework.exceptions import ParseError
-from apps.fsm.serializers.widgets.widget_serializer import WidgetSerializer
+from apps.widgets.serializers.widget_serializer import WidgetSerializer
 from errors.error_codes import serialize_error
 
 from apps.fsm.models import SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, Widget

@@ -1,10 +1,10 @@
 from rest_polymorphic.serializers import PolymorphicSerializer
 
 from apps.fsm.models import DetailBoxWidget, Iframe, Video, Image, TextWidget, SmallAnswerProblem, MultiChoiceProblem, UploadFileProblem, BigAnswerProblem, Aparat, Audio
-from apps.fsm.serializers.widgets.content_widgets.content_widget_serializers\
+from apps.widgets.serializers.content_widgets.content_widget_serializers\
     import AudioSerializer, DetailBoxWidgetSerializer, TextWidgetSerializer, ImageSerializer, VideoSerializer, AparatSerializer, \
     IframeSerializer
-from apps.fsm.serializers.widgets.question_widgets.question_widget_serializers \
+from apps.widgets.serializers.question_widgets.question_widget_serializers \
     import SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
 
 

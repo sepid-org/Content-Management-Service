@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.fsm.serializers.widgets.widget_serializer import WidgetSerializer
+from apps.widgets.serializers.widget_serializer import WidgetSerializer
 
 from apps.fsm.models import DetailBoxWidget, Paper, Iframe, Video, Image, TextWidget, Widget, Aparat, Audio
 
@@ -74,7 +74,7 @@ class DetailBoxWidgetSerializer(ContentWidgetSerializer):
     details = serializers.SerializerMethodField()
 
     def get_details(self, obj):
-        from apps.fsm.serializers.paper_serializers import PaperMinimalSerializer
+        from apps.fsm.serializers.papers.paper_serializers import PaperMinimalSerializer
         return PaperMinimalSerializer(obj.details).data
 
     def create(self, validated_data):

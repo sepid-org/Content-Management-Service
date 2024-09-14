@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/response/', include('apps.response.urls')),
     path('api/sales/', include('apps.sales.urls')),
     path('api/attributes/', include('apps.attributes.urls')),
+    path('api/widgets/', include('apps.widgets.urls')),
     # https://pypi.org/project/django-link-shortener/
     path('s/', include('shortener.urls')),
 ]

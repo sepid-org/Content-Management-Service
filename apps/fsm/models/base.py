@@ -1,7 +1,6 @@
 from django.db import models
 from polymorphic.models import PolymorphicModel
 from abc import abstractmethod
-from apps.accounts.models import User
 
 from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
 

@@ -113,7 +113,7 @@ class EdgeSerializer(ContentSerializer):
         return super(EdgeSerializer, self).validate(attrs)
 
     def to_representation(self, instance):
-        from apps.fsm.serializers.paper_serializers import StateSimpleSerializer
+        from apps.fsm.serializers.papers.paper_serializers import StateSimpleSerializer
         representation = super(
             EdgeSerializer, self).to_representation(instance)
         representation['tail'] = StateSimpleSerializer(

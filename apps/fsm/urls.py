@@ -11,8 +11,7 @@ from .views.edge_view import *
 from .views.registration_receipt_view import RegistrationReceiptViewSet
 from .views.registration_view import RegistrationViewSet, RegistrationFormAdminViewSet
 from .views.certificate_view import CertificateTemplateViewSet, FontViewSet
-from .views.state_view import StateViewSet, HintViewSet, WidgetHintViewSet
-from .views.widget_view import *
+from .views.state_view import StateViewSet, HintViewSet
 from .views.team_view import *
 from .views.player_view import *
 
@@ -35,8 +34,6 @@ router.register(r'state', StateViewSet, basename='states')
 router.register(r'paper', PaperViewSet, basename='papers')
 router.register(r'edge', EdgeViewSet, basename='edges')
 router.register(r'hint', HintViewSet, basename='hints')
-router.register(r'widget-hint', WidgetHintViewSet, basename='widget-hints')
-router.register(r'widget', WidgetViewSet, basename='widgets')
 router.register(r'positions', PositionViewSet)
 router.register(r'player', PlayerViewSet, basename='players')
 

@@ -2,13 +2,12 @@ from apps.fsm.serializers.fsm_serializers import EdgeSerializer
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
-from rest_polymorphic.serializers import PolymorphicSerializer
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Program, Paper, WidgetHint, FSM, RegistrationForm, Article, Hint, Edge, State, Tag
+from apps.fsm.models import Program, Paper, FSM, RegistrationForm, Article, Hint, State, Tag
 from apps.fsm.serializers.certificate_serializer import CertificateTemplateSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 
 
 class PaperMinimalSerializer(serializers.ModelSerializer):
@@ -168,20 +167,6 @@ class HintSerializer(PaperSerializer):
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
 
 
-class WidgetHintSerializer(PaperSerializer):
-
-    @transaction.atomic
-    def create(self, validated_data):
-        user = self.context.get('user', None)
-        return super(WidgetHintSerializer, self).create({'paper_type': 'Widgethint', 'creator': user, **validated_data})
-
-    class Meta(PaperSerializer.Meta):
-        model = WidgetHint
-        ref_name = 'hint'
-        fields = PaperSerializer.Meta.fields + ['reference']
-        read_only_fields = PaperSerializer.Meta.read_only_fields + []
-
-
 class StateSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
@@ -220,19 +205,6 @@ class StateSerializer(PaperSerializer):
                   'inward_edges', 'outward_edges', 'template', 'show_appbar']
         read_only_fields = PaperSerializer.Meta.read_only_fields + \
             ['hints', 'inward_edges', 'outward_edges']
-
-
-class PaperPolymorphicSerializer(PolymorphicSerializer):
-    model_serializer_mapping = {
-        'Paper': PaperSerializer,
-        'RegistrationForm': RegistrationFormSerializer,
-        'Article': ArticleSerializer,
-        'State': StateSerializer,
-        'Hint': HintSerializer,
-        'WidgetHint': WidgetHintSerializer,
-    }
-
-    resource_type_field_name = 'paper_type'
 
 
 class ChangeWidgetOrderSerializer(serializers.Serializer):

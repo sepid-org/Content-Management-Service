@@ -8,8 +8,8 @@ from django.db import transaction
 from drf_yasg import openapi
 
 from apps.fsm.models import *
-from apps.fsm.serializers.widgets.mock_widget_serializer import MockWidgetSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
+from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
+from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 
 
 class WidgetViewSet(viewsets.ModelViewSet):

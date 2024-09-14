@@ -12,7 +12,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import *
 from apps.fsm.permissions import CanAnswerWidget
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
-from apps.fsm.serializers.widgets.widget_polymorphic_serializer import WidgetPolymorphicSerializer
+from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from proxies.assess_answer_service.main import assess_answer
 from proxies.bank_service.main import BankProxy
 from proxies.instant_messaging_service.main import InstantMessagingServiceProxy

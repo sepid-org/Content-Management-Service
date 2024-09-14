@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from apps.fsm.serializers.widgets.content_widgets.content_widget_serializers\
+from apps.widgets.serializers.content_widgets.content_widget_serializers\
     import TextWidgetSerializer, ImageSerializer, VideoSerializer, AparatSerializer, \
     IframeSerializer
-from apps.fsm.serializers.widgets.question_widgets.question_widget_serializers \
+from apps.widgets.serializers.question_widgets.question_widget_serializers \
     import SmallAnswerProblemSerializer, BigAnswerProblemSerializer, MultiChoiceProblemSerializer, UploadFileProblemSerializer
 
 

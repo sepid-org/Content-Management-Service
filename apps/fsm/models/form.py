@@ -70,7 +70,7 @@ class RegistrationReceipt(AnswerSheet):
         unique_together = ('form', 'user')
 
     def correction_status(self):
-        from apps.fsm.models.respons import MultiChoiceAnswer, SmallAnswer
+        from apps.fsm.models.response import MultiChoiceAnswer, SmallAnswer
         for a in self.answers.all():
             if isinstance(a, (SmallAnswer, MultiChoiceAnswer)):
                 correction_status = a.correction_status()

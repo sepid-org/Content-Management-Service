@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from apps.fsm.models.respons import BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
+from apps.fsm.models.response import BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from apps.fsm.models.base import Widget, clone_widget
 from apps.fsm.models.fsm import State
 from apps.fsm.models.team import Team

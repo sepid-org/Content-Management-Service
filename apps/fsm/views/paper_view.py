@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from apps.fsm.models import Paper
-from apps.fsm.serializers.paper_serializers import PaperSerializer
+from apps.fsm.serializers.papers.paper_serializers import PaperSerializer
 
 
 class PaperViewSet(viewsets.ModelViewSet):
