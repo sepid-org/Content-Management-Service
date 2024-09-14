@@ -1,4 +1,4 @@
-from apps.response.serializers.answers.answer_serializers import SmallAnswerSerializer, BigAnswerSerializer, MultiChoiceAnswerSerializer, UploadFileAnswerSerializer
+from apps.responses.serializers.answers.answer_serializers import SmallAnswerSerializer, BigAnswerSerializer, MultiChoiceAnswerSerializer, UploadFileAnswerSerializer
 from rest_framework import serializers
 
 

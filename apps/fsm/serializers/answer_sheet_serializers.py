@@ -5,7 +5,7 @@ from rest_framework.exceptions import ParseError
 from apps.accounts.serializers.user_serializer import AcademicStudentshipReadOnlySerializer, SchoolStudentshipReadOnlySerializer, UserRegistrationReceiptInfoSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, RegistrationReceipt, Problem
-from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.responses.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):

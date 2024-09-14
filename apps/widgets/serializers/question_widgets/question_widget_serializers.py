@@ -4,7 +4,7 @@ from apps.widgets.serializers.widget_serializer import WidgetSerializer
 from errors.error_codes import serialize_error
 
 from apps.fsm.models import SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, Widget
-from apps.response.serializers.answers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
+from apps.responses.serializers.answers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
 
 
 class QuestionWidgetSerializer(WidgetSerializer):

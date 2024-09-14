@@ -52,6 +52,7 @@ CUSTOM_APPS = [
     # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'apps.file_storage.apps.FileStorageConfig',
     'apps.attributes.apps.AttributesConfig',
+    'apps.responses.apps.ResponsesConfig',
     'apps.widgets.apps.WidgetsConfig',
 ]
 

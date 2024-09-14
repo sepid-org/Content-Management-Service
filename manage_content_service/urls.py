@@ -37,7 +37,7 @@ urlpatterns = [
     path('api/contact-us/', include('apps.contact.urls')),
     path('api/report/', include('apps.report.urls')),
     path('api/scoring/', include('apps.scoring.urls')),
-    path('api/response/', include('apps.response.urls')),
+    path('api/response/', include('apps.responses.urls')),
     path('api/sales/', include('apps.sales.urls')),
     path('api/attributes/', include('apps.attributes.urls')),
     path('api/widgets/', include('apps.widgets.urls')),
