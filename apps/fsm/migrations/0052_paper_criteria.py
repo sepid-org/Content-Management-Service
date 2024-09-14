@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0004_basecondition_condition_criteria'),
         ('fsm', '0051_remove_event_crispwebsiteid'),
     ]
 

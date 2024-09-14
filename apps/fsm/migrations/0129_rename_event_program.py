@@ -8,7 +8,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('scoring', '0015_alter_transaction_description'),
         ('accounts', '0019_rename_is_event_owner_member_is_program_owner'),
         ('fsm', '0128_rename_event_type_event_program_type_and_more'),
     ]

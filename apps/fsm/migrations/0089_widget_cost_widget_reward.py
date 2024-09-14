@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0013_alter_scoretype_institute'),
         ('fsm', '0088_remove_paper_criteria'),
     ]
 
