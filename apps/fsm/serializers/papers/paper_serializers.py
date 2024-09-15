@@ -80,7 +80,7 @@ class RegistrationFormSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = RegistrationForm
         ref_name = 'registration_form'
-        fields = PaperSerializer.Meta.fields + ['min_grade', 'max_grade', 'program', 'fsm', 'paper_type', 'accepting_status',
+        fields = ['id', 'min_grade', 'max_grade', 'program', 'fsm', 'paper_type', 'accepting_status',
                                                 'certificate_templates', 'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
         read_only_fields = PaperSerializer.Meta.read_only_fields + \
             []
