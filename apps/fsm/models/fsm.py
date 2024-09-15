@@ -28,6 +28,10 @@ class FSM(models.Model, ObjectMixin):
         Individual = 'Individual'
         Hybrid = 'Hybrid'
 
+    class FSMCardType(models.TextChoices):
+        vertical1 = 'vertical1'
+        horizontal1 = 'horizontal1'
+
     is_public = models.BooleanField(default=False)
 
     website = models.CharField(blank=True, null=True, max_length=50)
@@ -55,6 +59,9 @@ class FSM(models.Model, ObjectMixin):
     order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    card_type = models.CharField(
+        max_length=20, default=FSMCardType.vertical1, choices=FSMCardType.choices)
+    show_roadmap = models.BooleanField(default=True)
 
     objects = FSMManager()
 
