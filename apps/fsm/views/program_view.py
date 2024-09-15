@@ -51,6 +51,10 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         context.update({'user': self.request.user})
         return context
 
+    def create(self, request, *args, **kwargs):
+        request.data['website'] = request.headers.get('Website')
+        return super().create(request, *args, **kwargs)
+
     @action(detail=True, methods=['get'])
     def get_admins(self, request, slug=None):
         program = self.get_object()

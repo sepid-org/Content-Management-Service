@@ -26,13 +26,12 @@ class ProgramSerializer(serializers.ModelSerializer):
     program_contact_info = ProgramContactInfoSerializer(required=False)
 
     def create(self, validated_data):
-        website = validated_data.pop('website')
         registration_form = RegistrationForm.objects.create(
             **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
 
         creator = self.context.get('user', None)
         program = super(ProgramSerializer, self).create(
-            {'creator': creator, 'website': website, 'registration_form': registration_form, **validated_data})
+            {'creator': creator, 'registration_form': registration_form, **validated_data})
 
         add_admin_to_program(creator, program)
 
