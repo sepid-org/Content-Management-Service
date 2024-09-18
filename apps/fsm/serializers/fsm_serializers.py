@@ -3,13 +3,13 @@ from rest_framework import serializers
 from apps.fsm.models import Player
 
 from apps.accounts.serializers.user_serializer import MentorSerializer
-from apps.fsm.serializers.content_serializer import ContentSerializer
+from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, FSM, Edge, Team
 
 
-class FSMMinimalSerializer(ContentSerializer):
+class FSMMinimalSerializer(ObjectSerializer):
 
     class Meta:
         model = FSM
@@ -28,6 +28,10 @@ class FSMMinimalSerializer(ContentSerializer):
 class FSMSerializer(serializers.ModelSerializer):
     merchandise = MerchandiseSerializer(required=False)
     mentors = MentorSerializer(many=True, read_only=True)
+    program_slug = serializers.SerializerMethodField()
+
+    def get_program_slug(self, obj):
+        return obj.program.slug
 
     def validate(self, attrs):
         program = attrs.get('program', None)
@@ -98,19 +102,7 @@ class FSMSerializer(serializers.ModelSerializer):
                             'first_state', 'registration_form']
 
 
-class EdgeSerializer(ContentSerializer):
-
-    def validate(self, attrs):
-        user = self.context.get('user', None)
-        tail = attrs.get('tail', None)
-        head = attrs.get('head', None)
-        if tail.fsm != head.fsm:
-            raise ParseError(serialize_error('4076'))
-
-        if user not in tail.fsm.mentors.all():
-            raise PermissionDenied(serialize_error('4075'))
-
-        return super(EdgeSerializer, self).validate(attrs)
+class EdgeSerializer(ObjectSerializer):
 
     def to_representation(self, instance):
         from apps.fsm.serializers.papers.paper_serializers import StateSimpleSerializer
