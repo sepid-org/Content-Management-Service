@@ -202,7 +202,7 @@ class StateSerializer(PaperSerializer):
         model = State
         ref_name = 'state'
         fields = ['id', 'name', 'fsm', 'hints',
-                  'inward_edges', 'outward_edges', 'template', 'show_appbar']
+                  'inward_edges', 'outward_edges', 'template', 'show_appbar', 'is_end']
         read_only_fields = PaperSerializer.Meta.read_only_fields + \
             ['hints', 'inward_edges', 'outward_edges']
 

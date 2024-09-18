@@ -142,6 +142,7 @@ class State(Paper):
     template = models.CharField(max_length=20, default=StateTemplate.normal,
                                 choices=StateTemplate.choices)
     show_appbar = models.BooleanField(default=True)
+    is_end = models.BooleanField(default=False)
 
     @transaction.atomic
     def delete(self):
