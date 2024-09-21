@@ -36,8 +36,11 @@ class PaperSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paper
-        fields = ['id', 'widgets']
+        fields = ['id', 'widgets', 'template']
         read_only_fields = ['id']
+
+        def get_fields():
+            return [field for field in PaperSerializer.Meta.fields if field != 'widgets']
 
 
 class RegistrationFormSerializer(PaperSerializer):
@@ -80,8 +83,8 @@ class RegistrationFormSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = RegistrationForm
         ref_name = 'registration_form'
-        fields = ['id', 'min_grade', 'max_grade', 'program', 'fsm', 'paper_type', 'accepting_status',
-                                                'certificate_templates', 'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
+        fields = PaperSerializer.Meta.get_fields() + ['min_grade', 'max_grade', 'program', 'fsm', 'paper_type', 'accepting_status',
+                                                      'certificate_templates', 'has_certificate', 'certificates_ready', 'audience_type', 'gender_partition_status']
         read_only_fields = PaperSerializer.Meta.read_only_fields + \
             []
 
@@ -140,8 +143,8 @@ class ArticleSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = Article
         ref_name = 'article'
-        fields = PaperSerializer.Meta.fields + ['name', 'description', 'tags',
-                                                'is_draft', 'publisher', 'cover_page']
+        fields = PaperSerializer.Meta.get_fields() + ['name', 'description', 'tags',
+                                                      'is_draft', 'publisher', 'cover_page']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
 
 
@@ -163,7 +166,7 @@ class HintSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = Hint
         ref_name = 'hint'
-        fields = PaperSerializer.Meta.fields + ['reference']
+        fields = PaperSerializer.Meta.get_fields() + ['reference']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
 
 
@@ -201,8 +204,10 @@ class StateSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = State
         ref_name = 'state'
-        fields = ['id', 'name', 'fsm', 'hints',
-                  'inward_edges', 'outward_edges', 'template', 'show_appbar', 'is_end']
+
+        fields = PaperSerializer.Meta.get_fields() + \
+            ['name', 'fsm', 'hints', 'inward_edges',
+                'outward_edges', 'show_appbar', 'is_end']
         read_only_fields = PaperSerializer.Meta.read_only_fields + \
             ['hints', 'inward_edges', 'outward_edges']
 
