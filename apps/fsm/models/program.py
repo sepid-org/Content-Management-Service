@@ -59,6 +59,7 @@ class Program(models.Model):
     is_visible = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    is_public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
