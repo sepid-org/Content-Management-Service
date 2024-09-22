@@ -62,6 +62,5 @@ class ArticleViewSet(viewsets.ModelViewSet):
             self.get_object().set_widget_order(serializer.validated_data.get('order'))
         return Response(data=ArticleSerializer(self.get_object()).data, status=status.HTTP_200_OK)
 
-    # @method_decorator(cache_page(60 * 1,  key_prefix="article"))
     def list(self, request, *args, **kwargs):
         return super().list(self, request, *args, **kwargs)
