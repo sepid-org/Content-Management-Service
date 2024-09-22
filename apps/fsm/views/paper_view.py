@@ -22,11 +22,11 @@ class PaperViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
 
-        # Allow anonymous access to articles
-        if instance.paper_type == Paper.PaperType.Article:
+        # Allow anonymous access to public papers
+        if not instance.is_private:
             return Response(serializer.data)
 
-        # Check IsAuthenticated permission for other paper types
+        # Check IsAuthenticated permission for private objects
         if not IsAuthenticated().has_permission(request, self):
             self.permission_denied(
                 request,
