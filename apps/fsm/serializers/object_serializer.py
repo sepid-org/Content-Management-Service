@@ -8,7 +8,8 @@ class ObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Object
-        fields = ['title', 'created_at', 'updated_at', 'attributes']
+        fields = ['title', 'created_at', 'updated_at',
+                  'attributes', 'order', 'is_private']
         read_only_fields = ['created_at', 'updated_at', 'attributes']
 
     def to_representation(self, instance):

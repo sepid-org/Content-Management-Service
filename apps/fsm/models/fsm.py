@@ -56,7 +56,6 @@ class FSM(models.Model, ObjectMixin):
     fsm_p_type = models.CharField(
         max_length=40, default=FSMPType.Individual, choices=FSMPType.choices)
     team_size = models.IntegerField(default=3)
-    order_in_program = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     card_type = models.CharField(
@@ -169,7 +168,6 @@ class Edge(models.Model, ObjectMixin):
     head = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
-    priority = models.IntegerField(null=True, blank=True)
     is_visible = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
 

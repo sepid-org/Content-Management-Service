@@ -35,8 +35,8 @@ class FSMFilter(filters.FilterSet):
 class FSMViewSet(CacheEnabledModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = FSM.objects.filter(is_deleted=False)
-    ordering_fields = ['order_in_program']
-    ordering = ['-order_in_program']
+    ordering_fields = ['order']
+    ordering = ['-order']
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_class = FSMFilter

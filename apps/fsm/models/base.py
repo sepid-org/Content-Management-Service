@@ -10,6 +10,8 @@ class Object(PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
+    is_private = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
 
 
 class Position(models.Model):
@@ -32,6 +34,26 @@ class ObjectMixin:
                 title=f'{self.__class__.__name__}-{self.id}')
             self.save()
         return self._object
+
+    @property
+    def created_at(self):
+        return getattr(self.object, 'created_at', None)
+
+    @property
+    def updated_at(self):
+        return getattr(self.object, 'updated_at', None)
+
+    @property
+    def title(self):
+        return getattr(self.object, 'title', None)
+
+    @property
+    def order(self):
+        return getattr(self.object, 'order', None)
+
+    @property
+    def is_private(self):
+        return getattr(self.object, 'is_private', None)
 
     @property
     def position(self):
