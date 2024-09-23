@@ -3,25 +3,25 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from apps.fsm.models import Position, Paper, Widget
+from apps.fsm.models import Object, Position, Paper, Widget
+from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.serializers.position_serializer import PositionSerializer
 
 
-class PositionViewSet(viewsets.ModelViewSet):
-    queryset = Position.objects.all()
-    serializer_class = PositionSerializer
+class ObjectViewSet(viewsets.ModelViewSet):
+    queryset = Object.objects.all()
+    serializer_class = ObjectSerializer
 
     @action(detail=False, methods=['get'], url_path='by-paper/(?P<paper_id>\d+)')
     def by_paper(self, request, paper_id=None):
         paper = get_object_or_404(Paper, id=paper_id)
-        positions = Position.objects.filter(
-            object__widget__paper=paper).distinct()
+        positions = self.get_queryset().filter(widget__paper=paper).distinct()
         serializer = self.get_serializer(positions, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'], url_path='save-positions')
+    @action(detail=False, methods=['post'], url_path='update-positions')
     @transaction.atomic
-    def save_positions(self, request):
+    def update_positions(self, request):
         positions_data = request.data.get('positions', [])
         self._update_positions(positions_data)
         return Response(status=status.HTTP_200_OK)

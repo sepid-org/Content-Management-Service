@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from apps.fsm.views.paper_view import PaperViewSet
-from apps.fsm.views.position_view import PositionViewSet
+from apps.fsm.views.object_view import ObjectViewSet
 
 from .views.article_view import ArticleViewSet
 from .views.program_view import ProgramViewSet
@@ -34,7 +34,7 @@ router.register(r'state', StateViewSet, basename='states')
 router.register(r'paper', PaperViewSet, basename='papers')
 router.register(r'edge', EdgeViewSet, basename='edges')
 router.register(r'hint', HintViewSet, basename='hints')
-router.register(r'positions', PositionViewSet)
+router.register(r'objects', ObjectViewSet, basename='objects')
 router.register(r'player', PlayerViewSet, basename='players')
 
 urlpatterns = [
