@@ -40,8 +40,7 @@ CACHES = {
     }
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, get_environment_var(
-    'STATIC_ROOT_FILE_NAME', 'staticfiles'))
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # STATICFILES_DIRS = (
 #     os.path.join(BASE_DIR, 'media'),
 # )

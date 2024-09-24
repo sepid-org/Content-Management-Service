@@ -7,7 +7,7 @@ load_dotenv()
 
 def get_environment_var(var_name, default, prefixed=True):
     if prefixed:
-        var_name = 'MANAGE_CONTENT_SERVICE_%s' % var_name
+        var_name = 'CONTENT_MANAGEMENT_SERVICE_%s' % var_name
     return os.getenv(var_name, default)
 
 
