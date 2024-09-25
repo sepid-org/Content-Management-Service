@@ -11,6 +11,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
+from apps.fsm.models.form import RegistrationFormC
 from apps.fsm.utils import get_django_file
 
 
@@ -104,9 +105,12 @@ class RegistrationFormAdmin(admin.ModelAdmin):
             # TODO: fix bug
             return HttpResponseRedirect(f'/api/admin/export_registration_data/?q={selected}')
 
+    def participants_count(self, obj):
+        return len(obj.registration_receipts.all())
+
     model = RegistrationForm
     list_display = ['id', 'program_or_fsm', 'accepting_status',
-                    'min_grade', 'max_grade', 'audience_type']
+                    'min_grade', 'max_grade', 'audience_type', 'participants_count']
     list_display_links = ['id', 'program_or_fsm']
     actions = [get_registration_status_for_users]
 
@@ -539,7 +543,7 @@ admin.site.register(Tag)
 
 
 @admin.register(Position)
-class PositionAdmin(admin.ModelAdmin):
+class RegistrationFormCAdmin(admin.ModelAdmin):
     list_display = ('object', 'x', 'y', 'width', 'height')
     search_fields = ('object__title',)
 
@@ -548,3 +552,13 @@ class PositionAdmin(admin.ModelAdmin):
 class ObjectAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'updated_at')
     search_fields = ('title',)
+
+
+@admin.register(RegistrationFormC)
+class RegistrationFormCAdmin(admin.ModelAdmin):
+    list_display = ('id', 'since', 'till',
+                    'audience_type', 'participants_count')
+    search_fields = ('object__title',)
+
+    def participants_count(self, obj):
+        return len(obj.registration_receipts.all())

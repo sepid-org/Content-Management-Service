@@ -87,7 +87,7 @@ class Program(models.Model):
 
     @property
     def initial_participants(self):
-        return self.registration_form.registration_receipts.filter()
+        return self.registration_form.registration_receipts.all()
 
     @property
     def final_participants(self):
