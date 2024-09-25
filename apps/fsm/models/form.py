@@ -1,6 +1,6 @@
-from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import QuerySet
 from datetime import datetime
 from polymorphic.models import PolymorphicModel
 from apps.accounts.models import Purchase
@@ -67,8 +67,10 @@ class RegistrationForm2(Form):
     certificates_ready = models.BooleanField(default=False)
 
     @property
-    def registration_receipts(self):
-        return self.answer_sheets
+    def registration_receipts(self) -> QuerySet['RegistrationReceipt']:
+        return RegistrationReceipt.objects.filter(
+            id__in=self.answer_sheets.values_list('id', flat=True)
+        )
 
     @property
     def program_or_fsm(self):
@@ -180,8 +182,10 @@ class RegistrationForm(Paper):
     till = models.DateTimeField(null=True, blank=True)
 
     @property
-    def registration_receipts(self):
-        return self.answer_sheets
+    def registration_receipts(self) -> QuerySet['RegistrationReceipt']:
+        return RegistrationReceipt.objects.filter(
+            id__in=self.answer_sheets.values_list('id', flat=True)
+        )
 
     @property
     def program_or_fsm(self):
