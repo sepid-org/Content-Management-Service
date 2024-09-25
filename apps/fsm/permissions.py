@@ -226,7 +226,7 @@ class CanAnswerWidget(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Problem):
             if isinstance(obj.paper, State):
-                registration_form = obj.paper.fsm.registration_form or obj.paper.fsm.program.registration_form
+                registration_form = obj.paper.fsm.program.registration_form
                 receipt = RegistrationReceipt.objects.filter(form=registration_form, user=request.user,
                                                              is_participating=True).first()
                 if receipt is not None:

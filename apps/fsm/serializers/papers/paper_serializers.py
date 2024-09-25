@@ -58,15 +58,11 @@ class RegistrationFormSerializer(PaperSerializer):
     @transaction.atomic
     def create(self, validated_data):
         program = validated_data.get('program', None)
-        fsm = validated_data.get('fsm', None)
         instance = super(RegistrationFormSerializer,
                          self).create(validated_data)
         if program is not None:
             program.registration_form = instance
             program.save()
-        elif fsm is not None:
-            fsm.registration_form = instance
-            fsm.save()
 
         return instance
 

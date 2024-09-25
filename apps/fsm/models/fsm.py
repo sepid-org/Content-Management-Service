@@ -38,8 +38,6 @@ class FSM(models.Model, ObjectMixin):
 
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
                                 blank=True)
-    registration_form = models.OneToOneField('fsm.RegistrationForm', related_name='fsm', on_delete=models.SET_NULL, null=True,
-                                             blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
                                 blank=True)
     mentors = models.ManyToManyField(

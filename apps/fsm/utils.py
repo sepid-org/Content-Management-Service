@@ -54,9 +54,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_receipt(user, fsm) -> RegistrationReceipt:
-    if fsm.registration_form and fsm.program.registration_form:
-        raise ParseError(serialize_error('4077'))
-    registration_form = fsm.registration_form or fsm.program.registration_form
+    registration_form = fsm.program.registration_form
     return RegistrationReceipt.objects.filter(user=user, form=registration_form,
                                               is_participating=True).first()
 

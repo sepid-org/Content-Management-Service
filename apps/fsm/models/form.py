@@ -26,7 +26,7 @@ class Form(Paper):
         return f'<{self.id}-{self.paper_type}>'
 
 
-class RegistrationForm2(Form):
+class RegistrationForm(Form):
     class AcceptingStatus(models.TextChoices):
         AutoAccept = 'AutoAccept'
         CorrectAccept = 'CorrectAccept'
@@ -136,7 +136,7 @@ class RegistrationForm2(Form):
         return f'<{self.id}-{self.paper_type}>:{self.program_or_fsm.name if self.program_or_fsm else None}'
 
 
-class RegistrationForm(Paper):
+class RegistrationFormC(Paper):
     class AcceptingStatus(models.TextChoices):
         AutoAccept = 'AutoAccept'
         CorrectAccept = 'CorrectAccept'
@@ -260,9 +260,9 @@ class AnswerSheet(PolymorphicModel):
     answer_sheet_type = models.CharField(
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
     formc = models.ForeignKey(
-        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
+        RegistrationFormC, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
     form = models.ForeignKey(
-        RegistrationForm2, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
+        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
 
     def delete(self):
         self.answers.clear()
