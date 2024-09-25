@@ -34,6 +34,13 @@ class PaperSerializer(serializers.ModelSerializer):
                 serializer.save()
         return instance
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if representation.get('widgets'):
+            representation['widgets'] = sorted(
+                representation['widgets'], key=lambda x: x['id'])
+        return representation
+
     class Meta:
         model = Paper
         fields = ['id', 'widgets', 'template']
