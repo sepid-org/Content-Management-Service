@@ -7,85 +7,6 @@ from apps.accounts.models import Purchase
 from apps.fsm.models.base import Paper
 
 
-class AnswerSheet(PolymorphicModel):
-    class AnswerSheetType(models.TextChoices):
-        RegistrationReceipt = "RegistrationReceipt"
-        StateAnswerSheet = "StateAnswerSheet"
-
-    answer_sheet_type = models.CharField(
-        max_length=25, blank=False, choices=AnswerSheetType.choices)
-
-    def delete(self):
-        self.answers.clear()
-        return super(AnswerSheet, self).delete()
-
-
-class RegistrationReceipt(AnswerSheet):
-    class RegistrationStatus(models.TextChoices):
-        Accepted = "Accepted"
-        Rejected = "Rejected"
-        Waiting = "Waiting"
-
-    class CorrectionStatus(models.TextChoices):
-        Correct = "Correct"
-        Wrong = "Wrong"
-        ManualCorrectionRequired = "ManualCorrectionRequired"
-        NoCorrectionRequired = "NoCorrectionRequired"
-        NoSolutionAvailable = "NoSolutionAvailable"
-        Other = "Other"
-
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    form = models.ForeignKey(
-        'fsm.RegistrationForm', related_name='registration_receipts', on_delete=models.PROTECT)
-    user = models.ForeignKey(
-        'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
-    status = models.CharField(max_length=25, blank=False,
-                              default='Waiting', choices=RegistrationStatus.choices)
-    is_participating = models.BooleanField(default=False)
-    certificate = models.FileField(
-        upload_to='certificates/', null=True, blank=True, default=None)
-
-    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
-                             related_name='members', null=True, blank=True)
-
-    def get_player_of(self, fsm):
-        return self.players.filter(fsm=fsm).first()
-
-    @property
-    def purchases(self):
-        purchases = []
-        merchandises = self.form.program.merchandises
-        if merchandises:
-            for merchandise in merchandises:
-                purchases.append(*merchandise.purchases.filter(user=self.user))
-            return purchases
-        return Purchase.objects.none()
-
-    @property
-    def is_paid(self):
-        return len(self.purchases.filter(
-            status=Purchase.Status.Success)) > 0 if self.form.program_or_fsm.merchandise else True
-
-    class Meta:
-        unique_together = ('form', 'user')
-
-    def correction_status(self):
-        from apps.fsm.models.response import MultiChoiceAnswer, SmallAnswer
-        for a in self.answers.all():
-            if isinstance(a, (SmallAnswer, MultiChoiceAnswer)):
-                correction_status = a.correction_status()
-                if correction_status == self.CorrectionStatus.Wrong:
-                    return self.CorrectionStatus.Wrong
-                elif correction_status != self.CorrectionStatus.Correct:
-                    return self.CorrectionStatus.NoCorrectionRequired
-            else:
-                return self.CorrectionStatus.ManualCorrectionRequired
-        return self.CorrectionStatus.Correct
-
-    def __str__(self):
-        return f'{self.id}:{self.user.full_name}{"+" if self.is_participating else "x"}'
-
-
 class RegistrationForm(Paper):
     class AcceptingStatus(models.TextChoices):
         AutoAccept = 'AutoAccept'
@@ -193,3 +114,82 @@ class RegistrationForm(Paper):
 
     def __str__(self):
         return f'<{self.id}-{self.paper_type}>:{self.program_or_fsm.name if self.program_or_fsm else None}'
+
+
+class AnswerSheet(PolymorphicModel):
+    class AnswerSheetType(models.TextChoices):
+        RegistrationReceipt = "RegistrationReceipt"
+        StateAnswerSheet = "StateAnswerSheet"
+        General = "General"
+
+    answer_sheet_type = models.CharField(
+        max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
+    form2 = models.ForeignKey(
+        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
+
+    def delete(self):
+        self.answers.clear()
+        return super(AnswerSheet, self).delete()
+
+
+class RegistrationReceipt(AnswerSheet):
+    class RegistrationStatus(models.TextChoices):
+        Accepted = "Accepted"
+        Rejected = "Rejected"
+        Waiting = "Waiting"
+
+    class CorrectionStatus(models.TextChoices):
+        Correct = "Correct"
+        Wrong = "Wrong"
+        ManualCorrectionRequired = "ManualCorrectionRequired"
+        NoCorrectionRequired = "NoCorrectionRequired"
+        NoSolutionAvailable = "NoSolutionAvailable"
+        Other = "Other"
+
+    form = models.ForeignKey(
+        RegistrationForm, related_name='registration_receipts', on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    user = models.ForeignKey(
+        'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
+    status = models.CharField(max_length=25, blank=False,
+                              default='Waiting', choices=RegistrationStatus.choices)
+    is_participating = models.BooleanField(default=False)
+    certificate = models.FileField(
+        upload_to='certificates/', null=True, blank=True, default=None)
+
+    team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
+                             related_name='members', null=True, blank=True)
+
+    def get_player_of(self, fsm):
+        return self.players.filter(fsm=fsm).first()
+
+    @property
+    def purchases(self):
+        purchases = []
+        merchandises = self.form.program.merchandises
+        if merchandises:
+            for merchandise in merchandises:
+                purchases.append(*merchandise.purchases.filter(user=self.user))
+            return purchases
+        return Purchase.objects.none()
+
+    @property
+    def is_paid(self):
+        return len(self.purchases.filter(
+            status=Purchase.Status.Success)) > 0 if self.form.program_or_fsm.merchandise else True
+
+    def correction_status(self):
+        from apps.fsm.models.response import MultiChoiceAnswer, SmallAnswer
+        for a in self.answers.all():
+            if isinstance(a, (SmallAnswer, MultiChoiceAnswer)):
+                correction_status = a.correction_status()
+                if correction_status == self.CorrectionStatus.Wrong:
+                    return self.CorrectionStatus.Wrong
+                elif correction_status != self.CorrectionStatus.Correct:
+                    return self.CorrectionStatus.NoCorrectionRequired
+            else:
+                return self.CorrectionStatus.ManualCorrectionRequired
+        return self.CorrectionStatus.Correct
+
+    def __str__(self):
+        return f'{self.id}:{self.user.full_name}{"+" if self.is_participating else "x"}'
