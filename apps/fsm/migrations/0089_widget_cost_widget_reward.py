@@ -11,14 +11,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='widget',
-            name='cost',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='scoring.cost'),
-        ),
-        migrations.AddField(
-            model_name='widget',
-            name='reward',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='scoring.reward'),
-        ),
+
     ]

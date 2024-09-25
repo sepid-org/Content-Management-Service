@@ -11,9 +11,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='paper',
-            name='criteria',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='paper', to='scoring.criteria'),
-        ),
     ]

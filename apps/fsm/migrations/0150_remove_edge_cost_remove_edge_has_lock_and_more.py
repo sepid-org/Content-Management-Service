@@ -13,10 +13,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='edge',
-            name='cost',
-        ),
-        migrations.RemoveField(
-            model_name='edge',
             name='has_lock',
         ),
         migrations.RemoveField(
@@ -30,14 +26,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='fsm',
             name='lock',
-        ),
-        migrations.RemoveField(
-            model_name='widget',
-            name='cost',
-        ),
-        migrations.RemoveField(
-            model_name='widget',
-            name='reward',
         ),
         migrations.AddField(
             model_name='edge',
