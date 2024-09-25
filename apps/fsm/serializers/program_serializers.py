@@ -73,8 +73,8 @@ class ProgramSerializer(serializers.ModelSerializer):
         representation['final_participants_count'] = len(instance.final_participants)
         representation['has_certificate'] = registration_form.has_certificate
         representation['certificates_ready'] = registration_form.certificates_ready
-        representation['registration_since'] = registration_form.since
-        representation['registration_till'] = registration_form.till
+        representation['registration_start_date'] = registration_form.start_date
+        representation['registration_end_date'] = registration_form.end_date
         representation['audience_type'] = registration_form.audience_type
         representation['is_free'] = instance.is_free        
         return representation
