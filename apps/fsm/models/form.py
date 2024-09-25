@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from datetime import datetime
@@ -51,6 +52,10 @@ class RegistrationForm(Paper):
     certificates_ready = models.BooleanField(default=False)
     since = models.DateTimeField(null=True, blank=True)
     till = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def registration_receipts(self):
+        return self.answer_sheets
 
     @property
     def program_or_fsm(self):
