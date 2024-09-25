@@ -124,7 +124,7 @@ class AnswerSheet(PolymorphicModel):
 
     answer_sheet_type = models.CharField(
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
-    form2 = models.ForeignKey(
+    form = models.ForeignKey(
         RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
 
     def delete(self):
@@ -146,8 +146,6 @@ class RegistrationReceipt(AnswerSheet):
         NoSolutionAvailable = "NoSolutionAvailable"
         Other = "Other"
 
-    form = models.ForeignKey(
-        RegistrationForm, related_name='registration_receipts', on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     user = models.ForeignKey(
         'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
