@@ -36,9 +36,9 @@ class Program(models.Model):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    registration_form = models.OneToOneField(
+    registration_formc = models.OneToOneField(
         'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
-    registration_form2 = models.OneToOneField(
+    registration_form = models.OneToOneField(
         'fsm.RegistrationForm2', related_name='program', on_delete=models.SET_NULL, null=True)
 
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
