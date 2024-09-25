@@ -38,6 +38,9 @@ class Program(models.Model):
 
     registration_form = models.OneToOneField(
         'fsm.RegistrationForm', related_name='program', on_delete=models.PROTECT)
+    registration_form2 = models.OneToOneField(
+        'fsm.RegistrationForm2', related_name='program', on_delete=models.SET_NULL, null=True)
+
     creator = models.ForeignKey('accounts.User', related_name='programs', on_delete=models.SET_NULL, null=True,
                                 blank=True)
 
