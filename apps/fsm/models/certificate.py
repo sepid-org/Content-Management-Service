@@ -1,7 +1,7 @@
 
 from django.db import models
 
-from apps.fsm.models.form import RegistrationForm
+from apps.fsm.models.form import RegistrationForm, RegistrationForm2
 
 
 class Font(models.Model):
@@ -24,6 +24,9 @@ class CertificateTemplate(models.Model):
     name_Y_percentage = models.FloatField(null=True, blank=True, default=None)
     registration_form = models.ForeignKey(RegistrationForm, on_delete=models.CASCADE,
                                           related_name='certificate_templates')
+    registration_form2 = models.ForeignKey(RegistrationForm2, on_delete=models.CASCADE,
+                                           related_name='certificate_templates', null=True)
+
     font = models.ForeignKey(
         Font, on_delete=models.SET_NULL, related_name='templates', null=True)
     font_size = models.IntegerField(default=100)

@@ -261,6 +261,8 @@ class AnswerSheet(PolymorphicModel):
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
     form = models.ForeignKey(
         RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
+    form22 = models.ForeignKey(
+        RegistrationForm2, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
 
     def delete(self):
         self.answers.clear()
