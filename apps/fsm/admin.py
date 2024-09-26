@@ -11,7 +11,6 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
-from apps.fsm.models.form import RegistrationFormC
 from apps.fsm.utils import get_django_file
 
 
@@ -552,13 +551,3 @@ class RegistrationFormCAdmin(admin.ModelAdmin):
 class ObjectAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'updated_at')
     search_fields = ('title',)
-
-
-@admin.register(RegistrationFormC)
-class RegistrationFormCAdmin(admin.ModelAdmin):
-    list_display = ('id', 'since', 'till',
-                    'audience_type', 'participants_count')
-    search_fields = ('object__title',)
-
-    def participants_count(self, obj):
-        return len(obj.registration_receipts.all())

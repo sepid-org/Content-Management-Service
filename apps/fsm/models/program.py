@@ -2,7 +2,7 @@
 
 from django.db import models
 from apps.accounts.models import User
-from apps.fsm.models.form import RegistrationForm, RegistrationFormC
+from apps.fsm.models.form import RegistrationForm
 
 
 class Program(models.Model):
@@ -37,8 +37,6 @@ class Program(models.Model):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    registration_formc = models.OneToOneField(
-        RegistrationFormC, related_name='programc', on_delete=models.PROTECT)
     registration_form = models.OneToOneField(
         RegistrationForm, related_name='program', on_delete=models.SET_NULL, null=True)
 
