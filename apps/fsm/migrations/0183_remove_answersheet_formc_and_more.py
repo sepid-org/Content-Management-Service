@@ -19,10 +19,6 @@ class Migration(migrations.Migration):
             name='registration_formc',
         ),
         migrations.RemoveField(
-            model_name='edge',
-            name='cost',
-        ),
-        migrations.RemoveField(
             model_name='program',
             name='registration_formc',
         ),
