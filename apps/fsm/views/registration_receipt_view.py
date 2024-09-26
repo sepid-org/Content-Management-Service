@@ -120,9 +120,9 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     def my_receipt(self, request, pk=None):
         form_id = request.GET.get('form')
         user = request.user
-        receipt = None
+        answer_sheet = None
         try:
-            receipt = user.registration_receipts.get(form__id=form_id)
-            return Response(RegistrationReceiptSerializer(receipt).data)
+            answer_sheet = user.answer_sheets.get(form__id=form_id)
+            return Response(RegistrationReceiptSerializer(answer_sheet).data)
         except:
             return Response({})
