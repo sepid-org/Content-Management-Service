@@ -142,12 +142,12 @@ class AnswerSheet(PolymorphicModel):
         StateAnswerSheet = "StateAnswerSheet"
         General = "General"
 
-    created_at2 = models.DateTimeField(auto_now_add=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     answer_sheet_type = models.CharField(
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
-    user2 = models.ForeignKey(
-        User, related_name='answer_sheets', on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(
+        User, related_name='answer_sheets', on_delete=models.CASCADE)
     form = models.ForeignKey(
         RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
 
@@ -170,15 +170,11 @@ class RegistrationReceipt(AnswerSheet):
         NoSolutionAvailable = "NoSolutionAvailable"
         Other = "Other"
 
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    user = models.ForeignKey(
-        'accounts.User', related_name='registration_receipts', on_delete=models.CASCADE)
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
     is_participating = models.BooleanField(default=False)
     certificate = models.FileField(
         upload_to='certificates/', null=True, blank=True, default=None)
-
     team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
                              related_name='members', null=True, blank=True)
 
