@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from apps.fsm.models import WidgetHint
-from apps.widgets.serializers.widget_hint_serializers import WidgetHintSerializer
+from apps.widgets.serializers.widget_hint_serializer import WidgetHintSerializer
 
 
 class WidgetHintViewSet(viewsets.ModelViewSet):

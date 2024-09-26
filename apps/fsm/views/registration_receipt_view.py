@@ -21,10 +21,6 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     queryset = RegistrationReceipt.objects.all()
     my_tags = ['registration']
 
-    serializer_action_classes = {
-        'validate_receipt': RegistrationStatusSerializer
-    }
-
     def get_permissions(self):
         if self.action in ['destroy', 'get_certificate']:
             permission_classes = [IsRegistrationReceiptOwner]

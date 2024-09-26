@@ -8,7 +8,8 @@ from rest_framework.response import Response
 
 from apps.fsm.models import Article
 from apps.fsm.permissions import IsArticleModifier
-from apps.fsm.serializers.papers.paper_serializers import ArticleSerializer, ChangeWidgetOrderSerializer
+from apps.fsm.serializers.papers.article_serializer import ArticleSerializer
+from apps.fsm.serializers.papers.paper_serializer import ChangeWidgetOrderSerializer
 from apps.fsm.utils import SafeTokenAuthentication
 
 

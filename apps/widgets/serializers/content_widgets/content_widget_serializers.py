@@ -74,7 +74,7 @@ class DetailBoxWidgetSerializer(ContentWidgetSerializer):
     details = serializers.SerializerMethodField()
 
     def get_details(self, obj):
-        from apps.fsm.serializers.papers.paper_serializers import PaperMinimalSerializer
+        from apps.fsm.serializers.papers.paper_serializer import PaperMinimalSerializer
         return PaperMinimalSerializer(obj.details).data
 
     def create(self, validated_data):

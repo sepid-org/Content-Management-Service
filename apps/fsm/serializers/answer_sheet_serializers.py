@@ -1,6 +1,7 @@
 
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
+from django.contrib.auth.models import AnonymousUser
 
 from apps.accounts.serializers.user_serializer import AcademicStudentshipReadOnlySerializer, SchoolStudentshipReadOnlySerializer, UserRegistrationReceiptInfoSerializer
 from errors.error_codes import serialize_error
@@ -12,21 +13,27 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         answers = self.initial_data.get('answers', [])
-        registration_receipt = super().create({
-            'user': self.context.get('user'),
+        user = self.context.get('user', None)
+        if isinstance(user, AnonymousUser):
+            user = None
+        else:
+            user = user
+
+        answer_sheet = super().create({
+            'user': user,
             'form': self.context.get('form'),
             **validated_data
         })
 
         for answer in answers:
             serializer = AnswerPolymorphicSerializer(data={
-                'answer_sheet': registration_receipt.id,
+                'answer_sheet': answer_sheet.id,
                 **answer
             }, context=self.context)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-        return registration_receipt
+        return answer_sheet
 
     def validate(self, attrs):
         answers = self.initial_data.get('answers', [])
@@ -38,6 +45,11 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
                     raise ParseError(serialize_error(
                         '4029', {'problem': widget}))
         return attrs
+
+    class Meta:
+        model = AnswerSheet
+        fields = ['id', 'answer_sheet_type', 'form', 'user']
+        read_only_fields = ['id', 'answer_sheet_type', 'user', 'form']
 
 
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
@@ -63,12 +75,13 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
         })
         return registration_receipt
 
-    class Meta:
+    class Meta(AnswerSheetSerializer.Meta):
         model = RegistrationReceipt
-        fields = ['id', 'user', 'form', 'status', 'is_participating', 'team',
-                  'certificate', 'school_studentship', 'academic_studentship']
-        read_only_fields = ['id', 'user', 'status', 'form',
-                            'is_participating', 'team', 'certificate']
+        fields = AnswerSheetSerializer.Meta.fields + \
+            ['status', 'is_participating', 'team', 'certificate',
+                'school_studentship', 'academic_studentship']
+        read_only_fields = AnswerSheetSerializer.Meta.read_only_fields + \
+            ['status', 'is_participating', 'team', 'certificate']
 
     def validate(self, attrs):
         user = self.context.get('user', None)
@@ -87,11 +100,6 @@ class MyRegistrationReceiptSerializer(AnswerSheetSerializer):
         fields = ['id', 'user', 'answer_sheet_type',
                   'form', 'status', 'is_participating']
         read_only_fields = ['id']
-
-
-class RegistrationPerCitySerializer(serializers.Serializer):
-    city = serializers.CharField(max_length=50)
-    registration_count = serializers.IntegerField(min_value=0)
 
 
 class RegistrationStatusSerializer(serializers.Serializer):

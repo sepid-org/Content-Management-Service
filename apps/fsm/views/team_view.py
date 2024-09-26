@@ -1,5 +1,4 @@
 from django.db import transaction
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework import mixins
@@ -14,7 +13,7 @@ from apps.accounts.serializers.user_serializer import PhoneNumberSerializer
 from apps.accounts.utils import find_user_in_website
 from errors.error_codes import serialize_error
 from apps.fsm import permissions as customPermissions
-from apps.fsm.models import Team, Invitation, RegistrationReceipt, AnswerSheet
+from apps.fsm.models import Team, Invitation, RegistrationReceipt
 from apps.fsm.permissions import IsInvitationInvitee
 from apps.fsm.serializers.answer_sheet_serializers import ReceiptGetSerializer
 from apps.fsm.serializers.team_serializer import TeamSerializer, InvitationSerializer, InvitationResponseSerializer

@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from apps.fsm.serializers.papers.paper_serializers import PaperSerializer
+from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
 from apps.fsm.models import WidgetHint
 
 

@@ -4,7 +4,10 @@ from django.db.models import QuerySet
 from datetime import datetime
 from polymorphic.models import PolymorphicModel
 from apps.accounts.models import Purchase, User
+from rest_framework.exceptions import ParseError, PermissionDenied
 
+from errors.error_codes import serialize_error
+from apps.accounts.models import Purchase, User
 from apps.fsm.models.base import Paper
 
 
@@ -23,7 +26,7 @@ class Form(Paper):
     end_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f'<{self.id}-{self.paper_type}>'
+        return f'{self.id}: {self.paper_type}'
 
 
 class RegistrationForm(Form):
@@ -84,7 +87,7 @@ class RegistrationForm(Form):
             except:
                 return None
 
-    def get_user_permission_status(self, user):
+    def get_user_registration_permission_status(self, user):
         if user.is_authenticated == False:
             return self.RegisterPermissionStatus.NotPermitted
 
@@ -119,6 +122,29 @@ class RegistrationForm(Form):
 
         return self.RegisterPermissionStatus.Permitted
 
+    def validate_user_registration_permission_status(self, user):
+        register_permission_status = self.get_user_registration_permission_status(
+            user)
+        if register_permission_status == RegistrationForm.RegisterPermissionStatus.DeadlineMissed:
+            raise ParseError(serialize_error('4036'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotStarted:
+            raise ParseError(serialize_error('4100'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataIncomplete:
+            raise PermissionDenied(serialize_error('4057'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotPermitted:
+            raise PermissionDenied(serialize_error('4032'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
+            raise ParseError(serialize_error('4033'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotSuitable:
+            raise ParseError(serialize_error('6004'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
+            raise ParseError(serialize_error('4034'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:
+            raise ParseError(serialize_error('4109'))
+        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.Permitted:
+            # its ok
+            pass
+
     def check_time(self):
         if self.end_date and datetime.now(self.end_date.tzinfo) > self.end_date:
             return self.RegisterPermissionStatus.DeadlineMissed
@@ -147,9 +173,14 @@ class AnswerSheet(PolymorphicModel):
     answer_sheet_type = models.CharField(
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
     user = models.ForeignKey(
-        User, related_name='answer_sheets', on_delete=models.CASCADE)
+        User,
+        related_name='answer_sheets',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     form = models.ForeignKey(
-        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
+        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT)
 
     def delete(self):
         self.answers.clear()
@@ -178,9 +209,6 @@ class RegistrationReceipt(AnswerSheet):
     team = models.ForeignKey('fsm.Team', on_delete=models.SET_NULL,
                              related_name='members', null=True, blank=True)
 
-    def get_player_of(self, fsm):
-        return self.players.filter(fsm=fsm).first()
-
     @property
     def purchases(self):
         purchases = []
@@ -196,6 +224,9 @@ class RegistrationReceipt(AnswerSheet):
         return len(self.purchases.filter(
             status=Purchase.Status.Success)) > 0 if self.form.program_or_fsm.merchandise else True
 
+    def get_player_of(self, fsm):
+        return self.players.filter(fsm=fsm).first()
+
     def correction_status(self):
         from apps.fsm.models.response import MultiChoiceAnswer, SmallAnswer
         for a in self.answers.all():
@@ -208,6 +239,27 @@ class RegistrationReceipt(AnswerSheet):
             else:
                 return self.CorrectionStatus.ManualCorrectionRequired
         return self.CorrectionStatus.Correct
+
+    def register_in_form(self, registration_form):
+        program = registration_form.program
+        if not program:
+            return
+        if program.maximum_participant is None or len(program.final_participants) < program.maximum_participant:
+            if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
+                self.status = RegistrationReceipt.RegistrationStatus.Accepted
+                if program.is_free:
+                    self.is_participating = True
+                self.save()
+            elif registration_form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
+                if self.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
+                    self.status = RegistrationReceipt.RegistrationStatus.Accepted
+                    if program.is_free:
+                        self.is_participating = True
+                    self.save()
+        else:
+            self.status = RegistrationReceipt.RegistrationStatus.Rejected
+            self.save()
+            raise ParseError(serialize_error('4035'))
 
     def __str__(self):
         return f'{self.id}:{self.user.full_name}{"+" if self.is_participating else "x"}'

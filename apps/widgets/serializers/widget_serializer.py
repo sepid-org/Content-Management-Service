@@ -19,7 +19,7 @@ class WidgetSerializer(serializers.ModelSerializer):
     hints = serializers.SerializerMethodField()
 
     def get_hints(self, obj):
-        from apps.widgets.serializers.widget_hint_serializers import WidgetHintSerializer
+        from apps.widgets.serializers.widget_hint_serializer import WidgetHintSerializer
         return WidgetHintSerializer(obj.hints if hasattr(obj, 'hints') else [], many=True).data
 
     def create(self, validated_data):

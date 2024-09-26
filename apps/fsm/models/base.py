@@ -147,7 +147,7 @@ class Paper(PolymorphicModel, ObjectMixin):
         return super(Paper, self).delete()
 
     def __str__(self):
-        return f"{self.paper_type}"
+        return f"{self.id}: {self.paper_type}"
 
 
 class Widget(PolymorphicModel, ObjectMixin):
