@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import QuerySet
 from datetime import datetime
 from polymorphic.models import PolymorphicModel
-from apps.accounts.models import Purchase
+from apps.accounts.models import Purchase, User
 
 from apps.fsm.models.base import Paper
 
@@ -142,8 +142,12 @@ class AnswerSheet(PolymorphicModel):
         StateAnswerSheet = "StateAnswerSheet"
         General = "General"
 
+    created_at2 = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
     answer_sheet_type = models.CharField(
         max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
+    user2 = models.ForeignKey(
+        User, related_name='answer_sheets', on_delete=models.CASCADE, null=True)
     form = models.ForeignKey(
         RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT, null=True)
 
