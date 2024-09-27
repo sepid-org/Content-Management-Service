@@ -30,10 +30,12 @@ class FormViewSet(ModelViewSet):
         serializer = AnswerSheetSerializer(
             data={
                 'answer_sheet_type': 'General',
-                'form': form.pk,
                 **request.data,
             },
-            context={'user': request.user}
+            context={
+                'user': request.user,
+                'form': form,
+            }
         )
         serializer.is_valid(raise_exception=True)
         answer_sheet = serializer.save()

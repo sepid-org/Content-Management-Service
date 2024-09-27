@@ -7,8 +7,7 @@ from apps.accounts.models import User, UserWebsite
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
-from apps.fsm.serializers.answer_sheet_serializers import MyRegistrationReceiptSerializer
-from proxies.email_service.main import EmailServiceProxy
+from apps.fsm.serializers.answer_sheet_serializers import MinimalRegistrationReceiptSerializer
 from proxies.instant_messaging_service.main import InstantMessagingServiceProxy
 
 
@@ -99,7 +98,7 @@ def find_registration_receipt(user, registration_form):
 
 
 def update_or_create_registration_receipt(user: User, registration_form: RegistrationForm):
-    serializer = MyRegistrationReceiptSerializer(data={
+    serializer = MinimalRegistrationReceiptSerializer(data={
         'form': registration_form.id,
         'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
         'user': user.id,

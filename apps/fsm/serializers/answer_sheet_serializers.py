@@ -15,12 +15,12 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         answers = self.initial_data.get('answers', [])
         user = self.context.get('user', None)
         if isinstance(user, AnonymousUser):
-            user = None
+            self.context['user'] = None
         else:
-            user = user
+            self.context['user'] = user
 
         answer_sheet = super().create({
-            'user': user,
+            'user': self.context.get('user'),
             'form': self.context.get('form'),
             **validated_data
         })
@@ -64,24 +64,11 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
         return AcademicStudentshipReadOnlySerializer(obj.user.academic_studentship).data
 
     def create(self, validated_data):
-        user = self.context.get('user')
-        form = self.context.get('form')
-        if len(RegistrationReceipt.objects.filter(user=user, form=form)) > 0:
-            raise ParseError(serialize_error('6003'))
-
         registration_receipt = super().create({
             'answer_sheet_type': AnswerSheet.AnswerSheetType.RegistrationReceipt,
             **validated_data
         })
         return registration_receipt
-
-    class Meta(AnswerSheetSerializer.Meta):
-        model = RegistrationReceipt
-        fields = AnswerSheetSerializer.Meta.fields + \
-            ['status', 'is_participating', 'team', 'certificate',
-                'school_studentship', 'academic_studentship']
-        read_only_fields = AnswerSheetSerializer.Meta.read_only_fields + \
-            ['status', 'is_participating', 'team', 'certificate']
 
     def validate(self, attrs):
         user = self.context.get('user', None)
@@ -92,14 +79,21 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
                 raise ParseError(serialize_error('4028'))
         return super().validate(attrs)
 
-
-# TODO: fix class name
-class MyRegistrationReceiptSerializer(AnswerSheetSerializer):
-    class Meta:
+    class Meta(AnswerSheetSerializer.Meta):
         model = RegistrationReceipt
-        fields = ['id', 'user', 'answer_sheet_type',
-                  'form', 'status', 'is_participating']
-        read_only_fields = ['id']
+        fields = AnswerSheetSerializer.Meta.fields + \
+            ['status', 'is_participating', 'team', 'certificate',
+                'school_studentship', 'academic_studentship']
+        read_only_fields = AnswerSheetSerializer.Meta.read_only_fields + \
+            ['status', 'is_participating', 'team', 'certificate']
+
+
+class MinimalRegistrationReceiptSerializer(AnswerSheetSerializer):
+    class Meta(AnswerSheetSerializer.Meta):
+        model = RegistrationReceipt
+        fields = AnswerSheetSerializer.Meta.fields + \
+            ['status', 'is_participating']
+        read_only_fields = AnswerSheetSerializer.Meta.read_only_fields + []
 
 
 class RegistrationStatusSerializer(serializers.Serializer):
