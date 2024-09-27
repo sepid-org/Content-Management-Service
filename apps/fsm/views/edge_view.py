@@ -1,5 +1,3 @@
-import logging
-
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -8,6 +6,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.fsm.views.object_view import ObjectViewSet
 from errors.error_codes import serialize_error
 from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
@@ -15,10 +14,8 @@ from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, 
 from apps.fsm.serializers.player_serializer import PlayerStateSerializer
 from apps.fsm.utils import get_player, transit_player_in_fsm, transit_team_in_fsm
 
-logger = logging.getLogger(__name__)
 
-
-class EdgeViewSet(ModelViewSet):
+class EdgeViewSet(ObjectViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Edge.objects.all()
     serializer_class = EdgeSerializer

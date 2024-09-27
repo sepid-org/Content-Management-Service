@@ -1,12 +1,12 @@
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from apps.fsm.models import Paper
 from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
+from apps.fsm.views.object_view import ObjectViewSet
 
 
-class PaperViewSet(viewsets.ModelViewSet):
+class PaperViewSet(ObjectViewSet):
     serializer_class = PaperSerializer
     queryset = Paper.objects.all()
     my_tags = ['paper']
