@@ -27,6 +27,16 @@ class Position(models.Model):
         return f"{self.object} at ({self.x}, {self.y})"
 
 
+def generate_properties(properties):
+    def decorator(cls):
+        for prop in properties:
+            setattr(cls, prop, property(lambda self,
+                    p=prop: getattr(self.object, p, None)))
+        return cls
+    return decorator
+
+
+@generate_properties(['created_at', 'updated_at', 'title', 'name', 'order', 'is_private', 'position'])
 class ObjectMixin:
     @property
     def object(self):
@@ -35,30 +45,6 @@ class ObjectMixin:
                 title=f'{self.__class__.__name__}-{self.id}')
             self.save()
         return self._object
-
-    @property
-    def created_at(self):
-        return getattr(self.object, 'created_at', None)
-
-    @property
-    def updated_at(self):
-        return getattr(self.object, 'updated_at', None)
-
-    @property
-    def title(self):
-        return getattr(self.object, 'title', None)
-
-    @property
-    def order(self):
-        return getattr(self.object, 'order', None)
-
-    @property
-    def is_private(self):
-        return getattr(self.object, 'is_private', None)
-
-    @property
-    def position(self):
-        return getattr(self.object, 'position', None)
 
     @property
     def attributes(self):
