@@ -10,7 +10,7 @@ class ObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Object
-        fields = ['id', 'title', 'created_at', 'updated_at',
+        fields = ['id', 'name', 'title', 'created_at', 'updated_at',
                   'attributes', 'order', 'is_private', 'position']
         read_only_fields = ['created_at', 'updated_at', 'attributes']
 

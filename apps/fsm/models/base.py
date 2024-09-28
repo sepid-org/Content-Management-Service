@@ -7,6 +7,7 @@ from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAct
 
 class Object(PolymorphicModel):
     title = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
