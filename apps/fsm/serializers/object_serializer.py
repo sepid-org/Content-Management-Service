@@ -6,13 +6,13 @@ from apps.fsm.serializers.position_serializer import PositionSerializer
 
 
 class ObjectSerializer(serializers.ModelSerializer):
-    position = PositionSerializer(required=False)
+    position = PositionSerializer(required=False, allow_null=True)
 
     class Meta:
         model = Object
-        fields = ['id', 'name', 'title', 'created_at', 'updated_at',
+        fields = ['name', 'title', 'created_at', 'updated_at',
                   'attributes', 'order', 'is_private', 'position', 'is_hidden']
-        read_only_fields = ['created_at', 'updated_at', 'attributes']
+        read_only_fields = ['created_at', 'attributes', 'position']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

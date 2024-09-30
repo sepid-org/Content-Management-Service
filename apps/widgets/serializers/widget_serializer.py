@@ -6,7 +6,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import Player, Problem, State, Hint, Widget
 
 
-class WidgetSerializer(ObjectSerializer):
+class WidgetSerializer(serializers.ModelSerializer):
     widget_type = serializers.ChoiceField(
         choices=Widget.WidgetTypes.choices, required=True)
     hints = serializers.SerializerMethodField()
@@ -15,12 +15,20 @@ class WidgetSerializer(ObjectSerializer):
         from apps.widgets.serializers.widget_hint_serializer import WidgetHintSerializer
         return WidgetHintSerializer(obj.hints if hasattr(obj, 'hints') else [], many=True).data
 
+    def to_internal_value(self, data):
+        # update object
+        widget_id = data.get('id')
+        widget_instance = Widget.objects.get(id=widget_id)
+        object_instance = widget_instance.object
+        serializer = ObjectSerializer(object_instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return super().to_internal_value(data)
+
     def create(self, validated_data):
         validated_data['creator'] = self.context.get('user', None)
         return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
 
     def validate(self, attrs):
         user = self.context.get('user', None)
@@ -35,8 +43,15 @@ class WidgetSerializer(ObjectSerializer):
         return super(WidgetSerializer, self).validate(attrs)
 
     def to_representation(self, instance):
-        representation = super(
-            WidgetSerializer, self).to_representation(instance)
+        # add object fields to representation
+        representation = super().to_representation(instance)
+        object_instance = instance.object
+        object_serializer = ObjectSerializer()
+        representation = {
+            **representation,
+            **object_serializer.to_representation(object_instance)
+        }
+
         if isinstance(instance, Problem):
             user = self.context.get('user', None)
 
@@ -49,9 +64,7 @@ class WidgetSerializer(ObjectSerializer):
                 user = Player.objects.filter(id=player_id).first().user
         return representation
 
-    class Meta(ObjectSerializer.Meta):
+    class Meta:
         model = Widget
-        fields = ObjectSerializer.Meta.fields + \
-            ['id', 'paper', 'creator', 'widget_type', 'hints']
-        read_only_fields = ObjectSerializer.Meta.read_only_fields + \
-            ['id', 'creator']
+        fields = ['id', 'paper', 'creator', 'widget_type', 'hints']
+        read_only_fields = ['id', 'creator']

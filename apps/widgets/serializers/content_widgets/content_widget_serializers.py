@@ -6,7 +6,7 @@ from apps.fsm.models import DetailBoxWidget, Paper, Iframe, Video, Image, TextWi
 
 class ContentWidgetSerializer(WidgetSerializer):
     class Meta(WidgetSerializer.Meta):
-        fields = WidgetSerializer.Meta.fields + ['name']
+        fields = WidgetSerializer.Meta.fields + []
         read_only_fields = WidgetSerializer.Meta.read_only_fields + []
 
 
