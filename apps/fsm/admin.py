@@ -85,9 +85,9 @@ class DetailBoxWidgetAdmin(admin.ModelAdmin):
 
 class WidgetAdmin(admin.ModelAdmin):
     model = Widget
-    list_display = ['id', 'widget_type', 'paper', 'name']
-    list_filter = ['widget_type', 'name']
-    search_fields = ['name']
+    list_display = ['id', 'widget_type', 'paper', 'file']
+    list_filter = ['widget_type']
+    search_fields = []
 
 
 class PaperAdmin(admin.ModelAdmin):
@@ -237,9 +237,9 @@ class StateAdmin(admin.ModelAdmin):
 
 
 class SmallAnswerProblemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'paper', 'widget_type', 'creator']
+    list_display = ['paper', 'widget_type', 'creator']
     list_filter = ['widget_type']
-    search_fields = ['name']
+    search_fields = []
 
     def solution_csv(self, request, queryset):
 
@@ -271,9 +271,9 @@ class SmallAnswerProblemAdmin(admin.ModelAdmin):
 
 
 class BigAnswerProblemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'paper', 'widget_type', 'creator']
+    list_display = ['paper', 'widget_type', 'creator']
     list_filter = ['widget_type']
-    search_fields = ['name']
+    search_fields = []
 
     def solution_csv(self, request, queryset):
 
@@ -314,11 +314,11 @@ class AnswerSheetCustomAdmin(admin.ModelAdmin):
 
 @admin.register(Problem)
 class ProblemCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type',
+    list_display = ['id', 'paper', 'widget_type',
                     'creator', 'is_required']
-    list_display_links = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name', 'widget_type', 'is_required']
-    search_fields = ['name']
+    list_display_links = ['id', 'paper', 'widget_type', 'creator']
+    list_filter = ['widget_type', 'is_required']
+    search_fields = []
 
     def download_final_answers_scores(self, request, queryset):
         score_types = set()
@@ -392,10 +392,10 @@ class ChoiceInline(admin.TabularInline):
 
 @admin.register(MultiChoiceProblem)
 class MultiChoiceProblemCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_display_links = ['id', 'name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_display_links = ['id']
     list_filter = ['widget_type']
-    search_fields = ['name']
+    search_fields = []
     inlines = [ChoiceInline]
 
 
@@ -410,7 +410,7 @@ class AnswerCustomAdmin(admin.ModelAdmin):
 
 @admin.register(BigAnswer)
 class BigAnswerCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'is_final_answer']
+    list_display = ['id', 'is_final_answer']
     list_filter = ['problem', 'is_final_answer']
 
     def name(self, obj):
@@ -425,8 +425,8 @@ class BigAnswerCustomAdmin(admin.ModelAdmin):
 
 @admin.register(SmallAnswer)
 class SmallAnswerCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'widget_type', 'creator']
-    list_filter = ['problem__name']
+    list_display = ['id', 'widget_type', 'creator']
+    list_filter = []
 
     def name(self, obj):
         return obj.problem.name
@@ -468,31 +468,31 @@ def download_files_from_links(self, request, queryset):
 
 @admin.register(Video)
 class VideoCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_filter = []
+    search_fields = []
     actions = [download_files_from_links]
 
 
 @admin.register(Audio)
 class AudioCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_filter = []
+    search_fields = []
 
 
 @admin.register(Aparat)
 class AparatCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_filter = []
+    search_fields = []
 
 
 @admin.register(Image)
 class ImageCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_filter = []
+    search_fields = []
     actions = [download_files_from_links]
 
 
@@ -516,10 +516,10 @@ class ProgramCustomAdmin(admin.ModelAdmin):
 
 @admin.register(UploadFileProblem)
 class UploadFileProblemCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'paper', 'widget_type', 'creator']
-    list_display_links = ['id', 'name']
+    list_display = ['id', 'paper', 'widget_type', 'creator']
+    list_display_links = ['id']
     list_filter = ['widget_type']
-    search_fields = ['name']
+    search_fields = []
 
 
 admin.site.register(Paper, PaperAdmin)
