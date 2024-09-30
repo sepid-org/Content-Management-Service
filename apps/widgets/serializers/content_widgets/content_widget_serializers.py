@@ -13,7 +13,8 @@ class ContentWidgetSerializer(WidgetSerializer):
 class IframeSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
-        return super(IframeSerializer, self).create({'widget_type': Widget.WidgetTypes.Iframe, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.Iframe
+        return super(IframeSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Iframe
@@ -23,7 +24,8 @@ class IframeSerializer(ContentWidgetSerializer):
 class VideoSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
-        return super(VideoSerializer, self).create({'widget_type': Widget.WidgetTypes.Video, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.Video
+        return super(VideoSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Video
@@ -33,7 +35,8 @@ class VideoSerializer(ContentWidgetSerializer):
 class AudioSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
-        return super(AudioSerializer, self).create({'widget_type': Widget.WidgetTypes.Audio, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.Audio
+        return super(AudioSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Audio
@@ -42,7 +45,8 @@ class AudioSerializer(ContentWidgetSerializer):
 
 class AparatSerializer(ContentWidgetSerializer):
     def create(self, validated_data):
-        return super(AparatSerializer, self).create({'widget_type': Widget.WidgetTypes.Aparat, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.Aparat
+        return super(AparatSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Aparat
@@ -52,7 +56,8 @@ class AparatSerializer(ContentWidgetSerializer):
 class ImageSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
-        return super(ImageSerializer, self).create({'widget_type': Widget.WidgetTypes.Image, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.Image
+        return super(ImageSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Image
@@ -62,8 +67,8 @@ class ImageSerializer(ContentWidgetSerializer):
 class TextWidgetSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
-        return super(TextWidgetSerializer, self).create(
-            {'widget_type': Widget.WidgetTypes.TextWidget, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.TextWidget
+        return super(TextWidgetSerializer, self).create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = TextWidget

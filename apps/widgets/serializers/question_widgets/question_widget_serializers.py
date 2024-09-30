@@ -26,8 +26,8 @@ class SmallAnswerProblemSerializer(QuestionWidgetSerializer):
         has_answer = 'correct_answer' in validated_data.keys()
         if has_answer:
             answer = validated_data.pop('correct_answer')
-        instance = super().create(
-            {'widget_type': Widget.WidgetTypes.SmallAnswerProblem, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.SmallAnswerProblem
+        instance = super().create(validated_data)
         if has_answer:
             serializer = SmallAnswerSerializer(data={'problem': instance,
                                                      'is_final_answer': True,
@@ -71,8 +71,8 @@ class BigAnswerProblemSerializer(QuestionWidgetSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        instance = super().create(
-            {'widget_type': Widget.WidgetTypes.BigAnswerProblem, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.BigAnswerProblem
+        instance = super().create(validated_data)
         return instance
 
 
@@ -86,8 +86,8 @@ class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices')
-        multi_choice_question_instance = super().create(
-            {'widget_type': Widget.WidgetTypes.MultiChoiceProblem, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.MultiChoiceProblem
+        multi_choice_question_instance = super().create(validated_data)
         choices_instances = [Choice.create_instance(multi_choice_question_instance, choice_data)
                              for choice_data in choices_data]
         multi_choice_question_instance.choices.add(*choices_instances)
@@ -157,6 +157,6 @@ class UploadFileProblemSerializer(WidgetSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        instance = super().create(
-            {'widget_type': Widget.WidgetTypes.UploadFileProblem, **validated_data})
+        validated_data['widget_type'] = Widget.WidgetTypes.UploadFileProblem
+        instance = super().create(validated_data)
         return instance
