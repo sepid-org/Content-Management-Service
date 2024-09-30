@@ -155,7 +155,6 @@ class Widget(PolymorphicModel, ObjectMixin):
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
 
-    file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)

@@ -85,7 +85,7 @@ class DetailBoxWidgetAdmin(admin.ModelAdmin):
 
 class WidgetAdmin(admin.ModelAdmin):
     model = Widget
-    list_display = ['id', 'widget_type', 'paper', 'file']
+    list_display = ['id', 'widget_type', 'paper']
     list_filter = ['widget_type']
     search_fields = []
 
