@@ -13,6 +13,7 @@ class Object(PolymorphicModel):
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
     is_private = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
+    is_hidden = models.BooleanField(default=False)
 
 
 class Position(models.Model):
@@ -36,7 +37,7 @@ def generate_properties(properties):
     return decorator
 
 
-@generate_properties(['created_at', 'updated_at', 'title', 'name', 'order', 'is_private', 'position'])
+@generate_properties(['created_at', 'updated_at', 'title', 'name', 'order', 'is_private', 'position', 'is_hidden'])
 class ObjectMixin:
     @property
     def object(self):
@@ -154,14 +155,12 @@ class Widget(PolymorphicModel, ObjectMixin):
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
 
-    name = models.CharField(max_length=100, null=True, blank=True)
     file = models.FileField(null=True, blank=True, upload_to='events/')
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
     creator = models.ForeignKey('accounts.User', related_name='widgets', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    is_hidden = models.BooleanField(default=False)
 
     @abstractmethod
     def clone(self, paper):
