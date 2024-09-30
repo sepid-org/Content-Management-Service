@@ -1,19 +1,12 @@
-import os
 import re
-import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
+from apps.fsm.serializers.object_serializer import ObjectSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Player, Problem, State, Hint, Widget
 
 
-def add_datetime_to_filename(file):
-    filename, extension = os.path.splitext(file.name)
-    file.name = f'{filename}_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}{extension}'
-    return file
-
-
-class WidgetSerializer(serializers.ModelSerializer):
+class WidgetSerializer(ObjectSerializer):
     widget_type = serializers.ChoiceField(
         choices=Widget.WidgetTypes.choices, required=True)
     hints = serializers.SerializerMethodField()
@@ -23,15 +16,10 @@ class WidgetSerializer(serializers.ModelSerializer):
         return WidgetHintSerializer(obj.hints if hasattr(obj, 'hints') else [], many=True).data
 
     def create(self, validated_data):
-        if validated_data.get('file'):
-            validated_data['file'] = add_datetime_to_filename(
-                validated_data['file'])
-        return super().create({'creator': self.context.get('user', None), **validated_data})
+        validated_data['creator'] = self.context.get('user', None)
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        if validated_data.get('file'):
-            validated_data['file'] = add_datetime_to_filename(
-                validated_data['file'])
         return super().update(instance, validated_data)
 
     def validate(self, attrs):
@@ -61,8 +49,9 @@ class WidgetSerializer(serializers.ModelSerializer):
                 user = Player.objects.filter(id=player_id).first().user
         return representation
 
-    class Meta:
+    class Meta(ObjectSerializer.Meta):
         model = Widget
-        fields = ['id', 'name', 'paper', 'creator',
-                  'widget_type', 'hints', 'is_hidden']
-        read_only_fields = ['id', 'creator']
+        fields = ObjectSerializer.Meta.fields + \
+            ['id', 'paper', 'creator', 'widget_type', 'hints']
+        read_only_fields = ObjectSerializer.Meta.read_only_fields + \
+            ['id', 'creator']

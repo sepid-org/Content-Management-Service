@@ -11,7 +11,7 @@ class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
         fields = ['id', 'name', 'title', 'created_at', 'updated_at',
-                  'attributes', 'order', 'is_private', 'position']
+                  'attributes', 'order', 'is_private', 'position', 'is_hidden']
         read_only_fields = ['created_at', 'updated_at', 'attributes']
 
     def to_representation(self, instance):
