@@ -1,15 +1,9 @@
-from django.db import transaction
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from apps.fsm.models import Hint
 from apps.fsm.permissions import IsHintModifier
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
-from apps.fsm.serializers.papers.paper_serializer import ChangeWidgetOrderSerializer
-from apps.fsm.serializers.papers.state_serializer import StateSerializer
 
 
 class HintViewSet(viewsets.ModelViewSet):
@@ -36,12 +30,3 @@ class HintViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsHintModifier]
         return [permission() for permission in permission_classes]
-
-    @swagger_auto_schema(responses={200: HintSerializer})
-    @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=ChangeWidgetOrderSerializer)
-    def change_order(self, request, pk=None):
-        serializer = ChangeWidgetOrderSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            self.get_object().set_widget_order(serializer.validated_data.get('order'))
-        return Response(data=StateSerializer(self.get_object()).data, status=status.HTTP_200_OK)

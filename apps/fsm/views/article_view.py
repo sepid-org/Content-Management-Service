@@ -1,15 +1,10 @@
-from django.db import transaction
 from django.forms import ValidationError
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
 from apps.fsm.models import Article
 from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.papers.article_serializer import ArticleSerializer
-from apps.fsm.serializers.papers.paper_serializer import ChangeWidgetOrderSerializer
 from apps.fsm.utils import SafeTokenAuthentication
 
 
@@ -53,15 +48,3 @@ class ArticleViewSet(viewsets.ModelViewSet):
         context.update(
             {'domain': self.request.build_absolute_uri('/api/')[:-5]})
         return context
-
-    @swagger_auto_schema(responses={200: ArticleSerializer})
-    @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=ChangeWidgetOrderSerializer)
-    def change_order(self, request, pk=None):
-        serializer = ChangeWidgetOrderSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            self.get_object().set_widget_order(serializer.validated_data.get('order'))
-        return Response(data=ArticleSerializer(self.get_object()).data, status=status.HTTP_200_OK)
-
-    def list(self, request, *args, **kwargs):
-        return super().list(self, request, *args, **kwargs)
