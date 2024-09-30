@@ -8,6 +8,7 @@ from django.db import transaction
 from drf_yasg import openapi
 
 from apps.fsm.models import *
+from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 
@@ -39,17 +40,31 @@ class WidgetViewSet(viewsets.ModelViewSet):
             data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         widget_instance = serializer.save()
+
+        object_instance = widget_instance.object
+        serializer = ObjectSerializer(
+            object_instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
     def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
+        widget_instance = self.get_object()
         serializer = WidgetPolymorphicSerializer(
-            instance, data=request.data, partial=True, context=self.get_serializer_context())
+            widget_instance, data=request.data, partial=True, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(WidgetPolymorphicSerializer(instance).data, status=status.HTTP_200_OK)
+        serializer.save()
+
+        object_instance = widget_instance.object
+        serializer = ObjectSerializer(
+            object_instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         method='post',

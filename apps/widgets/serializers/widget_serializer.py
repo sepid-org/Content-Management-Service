@@ -15,17 +15,6 @@ class WidgetSerializer(serializers.ModelSerializer):
         from apps.widgets.serializers.widget_hint_serializer import WidgetHintSerializer
         return WidgetHintSerializer(obj.hints if hasattr(obj, 'hints') else [], many=True).data
 
-    def to_internal_value(self, data):
-        # update object
-        widget_id = data.get('id')
-        widget_instance = Widget.objects.get(id=widget_id)
-        object_instance = widget_instance.object
-        serializer = ObjectSerializer(object_instance, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return super().to_internal_value(data)
-
     def create(self, validated_data):
         validated_data['creator'] = self.context.get('user', None)
         return super().create(validated_data)
