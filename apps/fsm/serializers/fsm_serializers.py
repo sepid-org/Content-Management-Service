@@ -112,12 +112,20 @@ class EdgeSerializer(ObjectSerializer):
             context=self.context).to_representation(instance.tail)
         representation['head'] = StateSimpleSerializer(
             context=self.context).to_representation(instance.head)
+
+        object_instance = instance.object
+        object_serializer = ObjectSerializer()
+        representation = {
+            **representation,
+            **object_serializer.to_representation(object_instance)
+        }
+
         return representation
 
-    class Meta(ObjectSerializer.Meta):
+    class Meta:
         model = Edge
-        fields = ObjectSerializer.Meta.fields + \
-            ['tail', 'head', 'is_back_enabled', 'is_visible', 'text']
+        fields = ['id', 'tail', 'head',
+                  'is_back_enabled', 'is_visible', 'text']
 
 
 class KeySerializer(serializers.Serializer):
