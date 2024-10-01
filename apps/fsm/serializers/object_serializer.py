@@ -6,7 +6,7 @@ from apps.fsm.serializers.position_serializer import PositionSerializer
 
 
 class ObjectSerializer(serializers.ModelSerializer):
-    position = PositionSerializer(required=False, allow_null=True)
+    position = PositionSerializer(required=False, read_only=True)
 
     class Meta:
         model = Object
