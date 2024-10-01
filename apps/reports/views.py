@@ -11,6 +11,8 @@ url = settings.METABASE_URL
 Metabase_proxy = MetabaseProxy()
 
 
+
+
 def get_form_respondents_info_file(form_id):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
@@ -93,3 +95,86 @@ def get_program_merchandises_purchases(request):
     # todo: EHSAN: this function should not get form_id. It should get program_id as input
     file_content = get_program_merchandises_purchases_file(form_id=program_id)
     return Response(file_content)
+
+import pandas as pd
+import os
+from apps.fsm.models.form import Form , AnswerSheet
+from apps.fsm.models.question_widget import Problem, BigAnswer , SmallAnswer
+import os
+import pandas as pd
+from django.conf import settings
+from apps.fsm.models.form import Form, AnswerSheet
+from apps.fsm.models.question_widget import Widget
+from apps.fsm.models.question_widget import Problem, BigAnswer , BigAnswerProblem , MultiChoiceProblem , UploadFileProblem, SmallAnswerProblem, SmallAnswer,MultiChoiceAnswer, Choice
+from django.utils.timezone import make_naive
+
+
+def get_answer_sheets_by_form_id(form_id):
+    answer_sheets = AnswerSheet.objects.filter(form__id=form_id)
+
+    widgets = Widget.objects.filter(
+        paper__id=form_id,
+        widget_type__in=[
+            Widget.WidgetTypes.SmallAnswerProblem,
+            Widget.WidgetTypes.BigAnswerProblem,
+            Widget.WidgetTypes.MultiChoiceProblem,
+            Widget.WidgetTypes.UploadFileProblem
+        ]
+    )
+
+    data = []
+
+    problem_headers = {}
+
+    for widget in widgets:
+        if widget.widget_type == Widget.WidgetTypes.SmallAnswerProblem:
+            problems = SmallAnswerProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.BigAnswerProblem:
+            problems = BigAnswerProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.MultiChoiceProblem:
+            problems = MultiChoiceProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.UploadFileProblem:
+            problems = UploadFileProblem.objects.filter(pk=widget.id)
+        else:
+            continue
+
+        for problem in problems:
+            problem_headers[f'Problem {problem.id}'] = problem.text[:30]
+
+    for sheet in answer_sheets:
+        answer_data = {
+            'AnswerSheet ID': sheet.id,
+            'User': sheet.user.username if sheet.user else None,
+            'Created At': make_naive(sheet.created_at),
+            'Updated At': make_naive(sheet.updated_at),
+        }
+
+        for problem_header in problem_headers:
+            answer_data[problem_header] = None
+
+        small_answers = SmallAnswer.objects.filter(answer_sheet=sheet)
+        big_answers = BigAnswer.objects.filter(answer_sheet=sheet)
+        for answer in small_answers:
+            problem_column = f'Problem {answer.problem.id}'
+            answer_data[problem_column] = answer.text
+
+        for answer in big_answers:
+            problem_column = f'Problem {answer.problem.id}'
+            answer_data[problem_column] = answer.text
+
+        data.append(answer_data)
+
+    df = pd.DataFrame(data)
+
+    df.columns = ['AnswerSheet ID', 'User', 'Created At', 'Updated At'] + list(problem_headers.values())
+    media_path = os.path.join(settings.MEDIA_ROOT, 'answers', f'form_{form_id}_answers.xlsx')
+    os.makedirs(os.path.dirname(media_path), exist_ok=True)  # Ensure directory exists
+    df.to_excel(media_path, index=False)
+
+    return df
+
+
+# Example usage
+def get_form_id_give_answer(request):
+    form_id = 2790
+    answer_sheets_df = get_answer_sheets_by_form_id(form_id)
