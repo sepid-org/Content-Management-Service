@@ -149,6 +149,7 @@ class Widget(PolymorphicModel, ObjectMixin):
         Aparat = 'Aparat'
         Audio = 'Audio'
         TextWidget = 'TextWidget'
+        BoxWidget = 'BoxWidget'
         DetailBoxWidget = 'DetailBoxWidget'
         SmallAnswerProblem = 'SmallAnswerProblem'
         BigAnswerProblem = 'BigAnswerProblem'

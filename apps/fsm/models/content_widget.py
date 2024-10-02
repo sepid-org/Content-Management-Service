@@ -5,6 +5,15 @@ from django.db import models
 from apps.fsm.models.base import Paper, Widget, clone_widget
 
 
+class BoxWidget(Widget):
+
+    def clone(self, paper):
+        return clone_widget(self, paper)
+
+    def __str__(self):
+        return f'<{self.id}-{self.widget_type}>:{self.name}'
+
+
 class TextWidget(Widget):
     text = models.TextField()
 

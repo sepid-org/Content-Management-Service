@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.fsm.models.content_widget import BoxWidget
 from apps.widgets.serializers.widget_serializer import WidgetSerializer
 
 from apps.fsm.models import DetailBoxWidget, Paper, Iframe, Video, Image, TextWidget, Widget, Aparat, Audio
@@ -73,6 +74,17 @@ class TextWidgetSerializer(ContentWidgetSerializer):
     class Meta(ContentWidgetSerializer.Meta):
         model = TextWidget
         fields = ContentWidgetSerializer.Meta.fields + ['text']
+
+
+class BoxWidgetSerializer(ContentWidgetSerializer):
+
+    def create(self, validated_data):
+        validated_data['widget_type'] = Widget.WidgetTypes.BoxWidget
+        return super(BoxWidgetSerializer, self).create(validated_data)
+
+    class Meta(ContentWidgetSerializer.Meta):
+        model = BoxWidget
+        fields = ContentWidgetSerializer.Meta.fields + []
 
 
 class DetailBoxWidgetSerializer(ContentWidgetSerializer):
