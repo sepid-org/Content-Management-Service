@@ -1,14 +1,23 @@
-from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+import os
+from io import BytesIO
+import pandas as pd
+from django.conf import settings
+from apps.fsm.models.form import Form, AnswerSheet
+from apps.fsm.models.question_widget import Widget
+from apps.fsm.models.question_widget import Problem, BigAnswer , BigAnswerProblem , MultiChoiceProblem , UploadFileProblem, SmallAnswerProblem, SmallAnswer,MultiChoiceAnswer, Choice
+from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from proxies.metabase.main import MetabaseProxy
+from .utils import *
 
 url = settings.METABASE_URL
 
 Metabase_proxy = MetabaseProxy()
+
+
 
 
 def get_form_respondents_info_file(form_id):
@@ -92,4 +101,82 @@ def get_program_merchandises_purchases(request):
     program_id = request.data.get('program_id')
     # todo: EHSAN: this function should not get form_id. It should get program_id as input
     file_content = get_program_merchandises_purchases_file(form_id=program_id)
+    return Response(file_content)
+
+
+
+
+def get_answer_sheets_by_form_id(form_id):
+    answer_sheets = AnswerSheet.objects.filter(form__id=form_id)
+
+    widgets = Widget.objects.filter(
+        paper__id=form_id,
+        widget_type__in=[
+            Widget.WidgetTypes.SmallAnswerProblem,
+            Widget.WidgetTypes.BigAnswerProblem,
+            Widget.WidgetTypes.MultiChoiceProblem,
+            Widget.WidgetTypes.UploadFileProblem
+        ]
+    )
+
+    data = []
+
+    problem_headers = {}
+
+    for widget in widgets:
+        if widget.widget_type == Widget.WidgetTypes.SmallAnswerProblem:
+            problems = SmallAnswerProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.BigAnswerProblem:
+            problems = BigAnswerProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.MultiChoiceProblem:
+            problems = MultiChoiceProblem.objects.filter(pk=widget.id)
+        elif widget.widget_type == Widget.WidgetTypes.UploadFileProblem:
+            problems = UploadFileProblem.objects.filter(pk=widget.id)
+        else:
+            continue
+
+        for problem in problems:
+            problem_headers[f'Problem {problem.id}'] = extract_content_from_html(problem.text)
+
+    for sheet in answer_sheets:
+        answer_data = {
+            'ID': sheet.id,
+            'User': sheet.user.username if sheet.user else None,
+            'Created At': gregorian_to_jalali(str(make_naive(sheet.created_at))),
+            'Updated At': gregorian_to_jalali(str(make_naive(sheet.updated_at))),
+        }
+
+        for problem_header in problem_headers:
+            answer_data[problem_header] = None
+
+        small_answers = SmallAnswer.objects.filter(answer_sheet=sheet)
+        big_answers = BigAnswer.objects.filter(answer_sheet=sheet)
+        for answer in small_answers:
+            problem_column = f'Problem {answer.problem.id}'
+            answer_data[problem_column] = answer.text
+
+        for answer in big_answers:
+            problem_column = f'Problem {answer.problem.id}'
+            answer_data[problem_column] = answer.text
+
+        data.append(answer_data)
+
+    df = pd.DataFrame(data)
+
+    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد', 'تاریخ بروزرسانی'] + list(problem_headers.values())
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    in_memory_file = SimpleUploadedFile(
+        f"form_{form_id}_answers.xlsx",buffer.read(), content_type='application/vnd.ms-excel')
+    file = FileSerializer(data={"file": in_memory_file})
+    file.is_valid(raise_exception=True)
+    file.save()
+    return file.data
+
+
+@api_view(["post"])
+def get_form_id_give_answer(request):
+    form_id =request.data.get("form_id")
+    file_content =  get_answer_sheets_by_form_id(form_id)
     return Response(file_content)
