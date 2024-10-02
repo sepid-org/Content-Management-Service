@@ -1,10 +1,17 @@
-from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+import os
+from io import BytesIO
+import pandas as pd
+from django.conf import settings
+from apps.fsm.models.form import Form, AnswerSheet
+from apps.fsm.models.question_widget import Widget
+from apps.fsm.models.question_widget import Problem, BigAnswer , BigAnswerProblem , MultiChoiceProblem , UploadFileProblem, SmallAnswerProblem, SmallAnswer,MultiChoiceAnswer, Choice
+from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from proxies.metabase.main import MetabaseProxy
+from .utils import *
 
 url = settings.METABASE_URL
 
@@ -96,17 +103,7 @@ def get_program_merchandises_purchases(request):
     file_content = get_program_merchandises_purchases_file(form_id=program_id)
     return Response(file_content)
 
-import pandas as pd
-import os
-from apps.fsm.models.form import Form , AnswerSheet
-from apps.fsm.models.question_widget import Problem, BigAnswer , SmallAnswer
-import os
-import pandas as pd
-from django.conf import settings
-from apps.fsm.models.form import Form, AnswerSheet
-from apps.fsm.models.question_widget import Widget
-from apps.fsm.models.question_widget import Problem, BigAnswer , BigAnswerProblem , MultiChoiceProblem , UploadFileProblem, SmallAnswerProblem, SmallAnswer,MultiChoiceAnswer, Choice
-from django.utils.timezone import make_naive
+
 
 
 def get_answer_sheets_by_form_id(form_id):
@@ -139,14 +136,14 @@ def get_answer_sheets_by_form_id(form_id):
             continue
 
         for problem in problems:
-            problem_headers[f'Problem {problem.id}'] = problem.text[:30]
+            problem_headers[f'Problem {problem.id}'] = extract_content_from_html(problem.text)
 
     for sheet in answer_sheets:
         answer_data = {
-            'AnswerSheet ID': sheet.id,
+            'ID': sheet.id,
             'User': sheet.user.username if sheet.user else None,
-            'Created At': make_naive(sheet.created_at),
-            'Updated At': make_naive(sheet.updated_at),
+            'Created At': gregorian_to_jalali(str(make_naive(sheet.created_at))),
+            'Updated At': gregorian_to_jalali(str(make_naive(sheet.updated_at))),
         }
 
         for problem_header in problem_headers:
@@ -166,15 +163,20 @@ def get_answer_sheets_by_form_id(form_id):
 
     df = pd.DataFrame(data)
 
-    df.columns = ['AnswerSheet ID', 'User', 'Created At', 'Updated At'] + list(problem_headers.values())
-    media_path = os.path.join(settings.MEDIA_ROOT, 'answers', f'form_{form_id}_answers.xlsx')
-    os.makedirs(os.path.dirname(media_path), exist_ok=True)  # Ensure directory exists
-    df.to_excel(media_path, index=False)
+    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد', 'تاریخ بروزرسانی'] + list(problem_headers.values())
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    in_memory_file = SimpleUploadedFile(
+        f"form_{form_id}_answers.xlsx",buffer.read(), content_type='application/vnd.ms-excel')
+    file = FileSerializer(data={"file": in_memory_file})
+    file.is_valid(raise_exception=True)
+    file.save()
+    return file.data
 
-    return df
 
-
-# Example usage
+@api_view(["post"])
 def get_form_id_give_answer(request):
-    form_id = 2790
-    answer_sheets_df = get_answer_sheets_by_form_id(form_id)
+    form_id =request.data.get("form_id")
+    file_content =  get_answer_sheets_by_form_id(form_id)
+    return Response(file_content)
