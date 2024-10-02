@@ -14,4 +14,8 @@ class Migration(migrations.Migration):
             model_name='widget',
             name='file',
         ),
+        migrations.RemoveField(
+            model_name='edge',
+            name='cost',
+        ),
     ]
