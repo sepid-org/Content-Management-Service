@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import get_form_respondents_info, get_program_merchandises_purchases , get_form_id_give_answer
+from .views import get_registration_receipts, get_program_merchandises_purchases, get_answer_sheets
 
 urlpatterns = [
-    path('form-respondents-info/', get_form_respondents_info,
-         name='form_respondents_info'),
-    path('form-respondents-answers/', get_form_id_give_answer),
+    path('registration-receipts/', get_registration_receipts,
+         name='registration-receipts-info'),
+    path('answer-sheets/', get_answer_sheets, name='answer-sheets-excel-file'),
     path('program-merchandises-purchases/',
          get_program_merchandises_purchases, name='program_merchandises_purchases'),
 ]

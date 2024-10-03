@@ -1,46 +1,23 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
-import os
 from io import BytesIO
 import pandas as pd
 from django.conf import settings
-from apps.fsm.models.form import Form, AnswerSheet
+from apps.fsm.models.form import AnswerSheet
 from apps.fsm.models.question_widget import Widget
-from apps.fsm.models.question_widget import Problem, BigAnswer , BigAnswerProblem , MultiChoiceProblem , UploadFileProblem, SmallAnswerProblem, SmallAnswer,MultiChoiceAnswer, Choice
+from apps.fsm.models.question_widget import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
+from apps.reports.utils import extract_content_from_html, gregorian_to_jalali
 from proxies.metabase.main import MetabaseProxy
-from .utils import *
 
 url = settings.METABASE_URL
 
 Metabase_proxy = MetabaseProxy()
 
 
-
-
-def get_form_respondents_info_file(form_id):
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {
-        "query": '{"database":2,"type":"query","query":{"source-table":60,"filter":["=",["field",779,null],' + f'{form_id}' + '],"joins":[{"fields":[["field",142,{"join-alias":"Accounts+User+-+User"}],["field",156,{"join-alias":"Accounts+User+-+User"}],["field",158,{"join-alias":"Accounts+User+-+User"}],["field",157,{"join-alias":"Accounts+User+-+User"}],["field",144,{"join-alias":"Accounts+User+-+User"}],["field",161,{"join-alias":"Accounts+User+-+User"}],["field",150,{"join-alias":"Accounts+User+-+User"}],["field",159,{"join-alias":"Accounts+User+-+User"}],["field",146,{"join-alias":"Accounts+User+-+User"}],["field",147,{"join-alias":"Accounts+User+-+User"}],["field",163,{"join-alias":"Accounts+User+-+User"}],["field",152,{"join-alias":"Accounts+User+-+User"}],["field",154,{"join-alias":"Accounts+User+-+User"}],["field",153,{"join-alias":"Accounts+User+-+User"}],["field",162,{"join-alias":"Accounts+User+-+User"}]],"source-table":32,"condition":["=",["field",443,null],["field",151,{"join-alias":"Accounts+User+-+User"}]],"alias":"Accounts+User+-+User"}],"fields":[["field",446,null],["field",444,null],["field",448,null],["field",447,null],["field",707,null]]},"middleware":{"js-int-to-string?":true,"add-default-userland-constraints?":true}}'
-    }
-    response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
-
-    if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile(
-            f"form{form_id}-respondents-info.xlsx", response.content)
-        file = FileSerializer(data={"file": in_memory_file})
-        file.is_valid(raise_exception=True)
-        file.save()
-        return file.data
-    else:
-        print(f"Failed to retrieve data. Status code: {response.status_code}")
-
-
-def get_form_respondents_answers_file(form_id):
+def _get_registration_receipts_excel_file(form_id):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
@@ -61,7 +38,7 @@ def get_form_respondents_answers_file(form_id):
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
 
-def get_program_merchandises_purchases_file(form_id):
+def _get_program_merchandises_purchases_file(form_id):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
@@ -82,31 +59,7 @@ def get_program_merchandises_purchases_file(form_id):
         print(f"Failed to retrieve data. Status code: {response.status_code}")
 
 
-@api_view(["post"])
-def get_form_respondents_info(request):
-    form_id = request.data.get('form_id')
-    file_content = get_form_respondents_info_file(form_id=form_id)
-    return Response(file_content)
-
-
-@api_view(["post"])
-def get_form_respondents_answers(request):
-    form_id = request.data.get('form_id')
-    file_content = get_form_respondents_answers_file(form_id=form_id)
-    return Response(file_content)
-
-
-@api_view(["post"])
-def get_program_merchandises_purchases(request):
-    program_id = request.data.get('program_id')
-    # todo: EHSAN: this function should not get form_id. It should get program_id as input
-    file_content = get_program_merchandises_purchases_file(form_id=program_id)
-    return Response(file_content)
-
-
-
-
-def get_answer_sheets_by_form_id(form_id):
+def _get_answer_sheets_excel_file_by_form_id(form_id):
     answer_sheets = AnswerSheet.objects.filter(form__id=form_id)
 
     widgets = Widget.objects.filter(
@@ -136,7 +89,8 @@ def get_answer_sheets_by_form_id(form_id):
             continue
 
         for problem in problems:
-            problem_headers[f'Problem {problem.id}'] = extract_content_from_html(problem.text)
+            problem_headers[f'Problem {problem.id}'] = extract_content_from_html(
+                problem.text)
 
     for sheet in answer_sheets:
         answer_data = {
@@ -163,20 +117,36 @@ def get_answer_sheets_by_form_id(form_id):
 
     df = pd.DataFrame(data)
 
-    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد', 'تاریخ بروزرسانی'] + list(problem_headers.values())
+    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد',
+                  'تاریخ بروزرسانی'] + list(problem_headers.values())
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
     buffer.seek(0)
     in_memory_file = SimpleUploadedFile(
-        f"form_{form_id}_answers.xlsx",buffer.read(), content_type='application/vnd.ms-excel')
+        f"form_{form_id}_answers.xlsx", buffer.read(), content_type='application/vnd.ms-excel')
     file = FileSerializer(data={"file": in_memory_file})
     file.is_valid(raise_exception=True)
     file.save()
     return file.data
 
 
-@api_view(["post"])
-def get_form_id_give_answer(request):
-    form_id =request.data.get("form_id")
-    file_content =  get_answer_sheets_by_form_id(form_id)
+@api_view(["get"])
+def get_registration_receipts(request):
+    registration_form_id = request.GET.get('registration_form_id')
+    file_content = _get_registration_receipts_excel_file(form_id=registration_form_id)
+    return Response(file_content)
+
+
+@api_view(["get"])
+def get_program_merchandises_purchases(request):
+    program_id = request.GET.get('program_id')
+    # todo: EHSAN: this function should not get form_id. It should get program_id as input
+    file_content = _get_program_merchandises_purchases_file(form_id=program_id)
+    return Response(file_content)
+
+
+@api_view(["get"])
+def get_answer_sheets(request):
+    form_id = request.GET.get("form_id")
+    file_content = _get_answer_sheets_excel_file_by_form_id(form_id)
     return Response(file_content)
