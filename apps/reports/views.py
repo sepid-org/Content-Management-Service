@@ -75,22 +75,22 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
     data = []
 
     problem_headers = {}
-
+    problems = []
     for widget in widgets:
         if widget.widget_type == Widget.WidgetTypes.SmallAnswerProblem:
-            problems = SmallAnswerProblem.objects.filter(pk=widget.id)
+            problems += SmallAnswerProblem.objects.filter(pk=widget.id)
         elif widget.widget_type == Widget.WidgetTypes.BigAnswerProblem:
-            problems = BigAnswerProblem.objects.filter(pk=widget.id)
+            problems += BigAnswerProblem.objects.filter(pk=widget.id)
         elif widget.widget_type == Widget.WidgetTypes.MultiChoiceProblem:
-            problems = MultiChoiceProblem.objects.filter(pk=widget.id)
+            problems += MultiChoiceProblem.objects.filter(pk=widget.id)
         elif widget.widget_type == Widget.WidgetTypes.UploadFileProblem:
-            problems = UploadFileProblem.objects.filter(pk=widget.id)
+            problems += UploadFileProblem.objects.filter(pk=widget.id)
         else:
             continue
-
-        for problem in problems:
-            problem_headers[f'Problem {problem.id}'] = extract_content_from_html(
-                problem.text)
+    sorted_problems = sorted(problems, key=lambda p: p.order, reverse=True)
+    for problem in sorted_problems:
+        problem_headers[f'Problem {problem.id}'] = extract_content_from_html(
+            problem.text)
 
     for sheet in answer_sheets:
         answer_data = {
