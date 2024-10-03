@@ -6,7 +6,7 @@ import pandas as pd
 from django.conf import settings
 from apps.fsm.models.form import AnswerSheet
 from apps.fsm.models.question_widget import Widget
-from apps.fsm.models.question_widget import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer
+from apps.fsm.models.question_widget import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer ,UploadFileAnswer , Choice , MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.reports.utils import extract_content_from_html, gregorian_to_jalali
@@ -97,28 +97,46 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
             'ID': sheet.id,
             'User': sheet.user.username if sheet.user else None,
             'Created At': gregorian_to_jalali(str(make_naive(sheet.created_at))),
+            "created At Hour" :sheet.created_at.strftime('%H:%M'),
             'Updated At': gregorian_to_jalali(str(make_naive(sheet.updated_at))),
+            "Updated At Hour": sheet.updated_at.strftime('%H:%M'),
         }
-
         for problem_header in problem_headers:
             answer_data[problem_header] = None
 
         small_answers = SmallAnswer.objects.filter(answer_sheet=sheet)
         big_answers = BigAnswer.objects.filter(answer_sheet=sheet)
+        choices = MultiChoiceAnswer.objects.filter(answer_sheet=sheet)
+        files = UploadFileAnswer.objects.filter(answer_sheet=sheet)
         for answer in small_answers:
             problem_column = f'Problem {answer.problem.id}'
             answer_data[problem_column] = answer.text
 
         for answer in big_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_data[problem_column] = answer.text
+            answer_data[problem_column] = extract_content_from_html(answer.text)
+        for answer in choices:
+            answer_choice = answer.choices.all()
+            problem_column = f'Problem {answer.problem.id}'
+            answer_text = ""
+            counter = 0
+            for i in answer_choice:
+                if counter == 0 :
+                    answer_text += str(i)
+                else:
+                    answer_text += str(i) + "\n"
+                counter += 1
+            answer_data[problem_column] = answer_text
+        for answer in files:
+            problem_column = f'Problem {answer.problem.id}'
+            answer_data[problem_column] = answer.answer_file
 
         data.append(answer_data)
 
     df = pd.DataFrame(data)
 
-    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد',
-                  'تاریخ بروزرسانی'] + list(problem_headers.values())
+    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد','زمان ساخت',
+                  'تاریخ بروزرسانی','زمان بروزرسانی'] + list(problem_headers.values())
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
     buffer.seek(0)
