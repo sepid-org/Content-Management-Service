@@ -124,7 +124,7 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
                 if counter == 0 :
                     answer_text += str(i)
                 else:
-                    answer_text += str(i) + "\n"
+                    answer_text += "\n" + str(i)
                 counter += 1
             answer_data[problem_column] = answer_text
         for answer in files:
@@ -134,9 +134,9 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
         data.append(answer_data)
 
     df = pd.DataFrame(data)
-
     df.columns = ['ID', 'کاربر', 'تاریخ ایجاد','زمان ساخت',
                   'تاریخ بروزرسانی','زمان بروزرسانی'] + list(problem_headers.values())
+    df = df.sort_values('ID')
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
     buffer.seek(0)
