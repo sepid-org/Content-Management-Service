@@ -5,7 +5,7 @@ from django.db import models
 from apps.fsm.models.base import Paper, Widget, clone_widget
 
 
-class BoxWidget(Widget):
+class Placeholder(Widget):
 
     def clone(self, paper):
         return clone_widget(self, paper)

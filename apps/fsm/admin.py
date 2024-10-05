@@ -11,7 +11,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
-from apps.fsm.models.content_widget import BoxWidget
+from apps.fsm.models.content_widget import Placeholder
 from apps.fsm.utils import get_django_file
 
 
@@ -554,7 +554,7 @@ class ObjectAdmin(admin.ModelAdmin):
     search_fields = ('title',)
 
 
-@admin.register(BoxWidget)
-class BoxAdmin(admin.ModelAdmin):
-    model = BoxWidget
+@admin.register(Placeholder)
+class PlaceholderAdmin(admin.ModelAdmin):
+    model = Placeholder
     list_display = ['id', 'name', 'title']
