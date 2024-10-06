@@ -17,7 +17,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, TeamGetSerializer
-from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerStateSerializer
+from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
@@ -46,7 +46,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
-                           'get_player_from_team', 'activate', 'players']:
+                           'get_player_from_team', 'players']:
             permission_classes = [FSMMentorPermission]
         elif self.action in ['enter', 'review']:
             permission_classes = [HasActiveRegistration]
@@ -99,9 +99,16 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
         # first time entering fsm
         if not player:
-            serializer = PlayerSerializer(data={'user': user.id, 'fsm': fsm.id, 'receipt': receipt.id,
-                                                'current_state': fsm.first_state.id, 'last_visit': timezone.now()},
-                                          context=self.get_serializer_context())
+            serializer = PlayerSerializer(
+                data={
+                    'user': user.id,
+                    'fsm': fsm.id,
+                    'receipt': receipt.id,
+                    'current_state': fsm.first_state.id,
+                    'last_visit': timezone.now(),
+                },
+                context=self.get_serializer_context()
+            )
             serializer.is_valid(raise_exception=True)
             player = serializer.save()
             transit_player_in_fsm(
@@ -121,7 +128,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm = self.get_object()
         user = request.user
         player = get_player(user, fsm)
-        return Response(PlayerStateSerializer(player).data, status=status.HTTP_200_OK)
+        return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
     @transaction.atomic
@@ -218,21 +225,6 @@ class FSMViewSet(CacheEnabledModelViewSet):
             team = serializer.validated_data['team']
             player = get_a_player_from_team(team, fsm)
         return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
-                        status=status.HTTP_200_OK)
-
-    @transaction.atomic
-    @action(detail=True, methods=['get'])
-    def activate(self, request, pk=None):
-        f = self.get_object()
-        previous_players = len(f.players.all())
-        for r in RegistrationReceipt.objects.filter(is_participating=True):
-            if len(Player.objects.filter(user=r.user, fsm=f, receipt=r)) <= 0:
-                p = Player.objects.create(user=r.user, fsm=f, receipt=r, current_state=f.first_state,
-                                          last_visit=timezone.now())
-                PlayerStateHistory.objects.create(
-                    player=p, state=f.first_state, start_time=p.last_visit)
-
-        return Response(data={'new_players_count': len(f.players.all()), 'previous_players_count': previous_players},
                         status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])

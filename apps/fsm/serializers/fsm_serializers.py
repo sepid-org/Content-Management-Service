@@ -9,7 +9,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import Program, FSM, Edge, Team
 
 
-class FSMMinimalSerializer(ObjectSerializer):
+class FSMMinimalSerializer(serializers.ModelSerializer):
 
     class Meta(ObjectSerializer.Meta):
         model = FSM
@@ -26,8 +26,6 @@ class FSMMinimalSerializer(ObjectSerializer):
 
 
 class FSMSerializer(serializers.ModelSerializer):
-    merchandise = MerchandiseSerializer(required=False)
-    mentors = MentorSerializer(many=True, read_only=True)
     program_slug = serializers.SerializerMethodField()
 
     def get_program_slug(self, obj):
@@ -76,33 +74,13 @@ class FSMSerializer(serializers.ModelSerializer):
                 instance.save()
         return instance
 
-    def to_representation(self, instance):
-        representation = super(FSMSerializer, self).to_representation(instance)
-        user = self.context.get('user', None)
-        player = user.players.filter(is_active=True, fsm=instance).first()
-        representation['player'] = player.id if player else 'NotStarted'
-        representation['state'] = player.current_state.name if player and player.current_state else 'NotStarted'
-        representation['last_visit'] = player.last_visit if player else 'NotStarted'
-        if player and player.receipt.team:
-            representation['team'] = player.receipt.team.id
-            if player.receipt.team.team_head:
-                representation['team_head_name'] = player.receipt.team.team_head.user.full_name
-                representation['is_team_head'] = player.receipt.team.team_head.id == player.receipt.id
-        else:
-            representation['team'] = 'TeamNotCreatedYet'
-            representation['team_head_name'] = None
-            representation['is_team_head'] = False
-
-        return representation
-
     class Meta:
         model = FSM
         fields = '__all__'
-        read_only_fields = ['id', 'creator', 'mentors',
-                            'first_state', 'registration_form']
+        read_only_fields = ['id', 'creator', 'mentors', 'first_state']
 
 
-class EdgeSerializer(ObjectSerializer):
+class EdgeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         from apps.fsm.serializers.papers.state_serializer import StateSimpleSerializer

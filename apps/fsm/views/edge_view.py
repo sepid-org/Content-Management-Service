@@ -11,7 +11,7 @@ from errors.error_codes import serialize_error
 from apps.fsm.models import Edge, FSM, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, KeySerializer, TeamGetSerializer
-from apps.fsm.serializers.player_serializer import PlayerStateSerializer
+from apps.fsm.serializers.player_serializer import PlayerSerializer
 from apps.fsm.utils import get_player, transit_player_in_fsm, transit_team_in_fsm
 
 
@@ -39,7 +39,7 @@ class EdgeViewSet(ObjectViewSet):
             permission_classes = [IsEdgeModifier]
         return [permission() for permission in permission_classes]
 
-    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['player'])
+    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
     def transit_player_on_edge(self, request, pk):
@@ -73,7 +73,7 @@ class EdgeViewSet(ObjectViewSet):
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
-    @swagger_auto_schema(responses={200: PlayerStateSerializer}, tags=['mentor'])
+    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=TeamGetSerializer)
     def mentor_move_forward(self, request, pk):

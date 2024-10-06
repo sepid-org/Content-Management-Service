@@ -11,18 +11,18 @@ class PlayerHistorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class PlayerSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Player
-        fields = '__all__'
-        read_only_fields = ['id']
-
-
-class PlayerStateSerializer(serializers.ModelSerializer):
+class PlayerMinimalSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
 
     class Meta:
         model = Player
         fields = ['id', 'team', 'current_state']
         read_only_fields = ['id', 'current_state', 'team']
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Player
+        fields = '__all__'
+        read_only_fields = ['id']
