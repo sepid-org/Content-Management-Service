@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
@@ -9,6 +10,10 @@ def get_environment_var(var_name, default, prefixed=True):
     if prefixed:
         var_name = 'CONTENT_MANAGEMENT_SERVICE_%s' % var_name
     return os.getenv(var_name, default)
+
+
+SECRET_KEY = get_environment_var(
+    'SECRET_KEY', '*z!3aidedw32xh&1ew(^&5dgd17(ynnmk=s*mo=v2l_(4t_ff(')
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -225,7 +230,7 @@ INSTANT_MESSAGE_URL = get_environment_var(
     'INSTANT_MESSAGE_URL', 'https://ims.sepid.org/')
 
 
-########## BAND AS A SERVICE ##########
+########## PROXIES ##########
 
 BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
 
@@ -251,3 +256,21 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Website',  # Add your custom header here
 ]
+
+
+########## JWT ##########
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}

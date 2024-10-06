@@ -1,10 +1,5 @@
 import sys
-from datetime import timedelta
-
 from manage_content_service.settings.base import *
-
-SECRET_KEY = get_environment_var(
-    'SECRET_KEY', '*z!3aidedw32xh&1ew(^&5dgd17(ynnmk=s*mo=v2l_(4t_ff(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -12,7 +7,6 @@ DEBUG = True
 SERVICE_DOMAIN = 'http://localhost:8000/'
 
 ALLOWED_HOSTS = ['*']
-
 
 
 # Database
@@ -63,21 +57,6 @@ LOGGING = {
 TESTING = sys.argv[1] == 'test'
 # TESTING = True
 STATIC_ROOT = get_environment_var('STATIC_ROOT', 'staticfiles')
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('JWT',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-}
 
 ZARINPAL_CONFIG = {
     'ROUTE_START_PAY': 'https://sandbox.zarinpal.com/pg/StartPay/',

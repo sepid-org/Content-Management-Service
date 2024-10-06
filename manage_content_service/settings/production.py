@@ -1,10 +1,6 @@
-from datetime import timedelta
 from manage_content_service.settings.base import *
 
 DEBUG = get_environment_var('DEBUG', 'False') == 'True'
-
-SECRET_KEY = get_environment_var(
-    'SECRET_KEY', '*z!3aidedw32xh&1ew(^&5dgd17(ynnmk=s*mo=v2l_(4t_ff(')
 
 ALLOWED_HOSTS = get_environment_var('ALLOWED_HOSTS', '*').split(',')
 
@@ -89,21 +85,6 @@ LOGGING = {
 
 TESTING = False
 
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('JWT',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-}
 
 ZARINPAL_CONFIG = {
     'ROUTE_START_PAY': 'https://www.zarinpal.com/pg/StartPay/',
