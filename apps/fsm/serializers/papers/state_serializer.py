@@ -1,4 +1,3 @@
-from apps.fsm.serializers.fsm_serializers import EdgeSerializer
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -18,8 +17,6 @@ class StateSimpleSerializer(serializers.ModelSerializer):
 
 class StateSerializer(PaperSerializer):
     hints = HintSerializer(many=True, read_only=True)
-    outward_edges = EdgeSerializer(many=True, read_only=True)
-    inward_edges = EdgeSerializer(many=True, read_only=True)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -45,7 +42,5 @@ class StateSerializer(PaperSerializer):
         ref_name = 'state'
 
         fields = PaperSerializer.Meta.get_fields() + \
-            ['name', 'fsm', 'hints', 'inward_edges',
-                'outward_edges', 'show_appbar', 'is_end']
-        read_only_fields = PaperSerializer.Meta.read_only_fields + \
-            ['hints', 'inward_edges', 'outward_edges']
+            ['name', 'fsm', 'hints', 'show_appbar', 'is_end']
+        read_only_fields = PaperSerializer.Meta.read_only_fields + ['hints']
