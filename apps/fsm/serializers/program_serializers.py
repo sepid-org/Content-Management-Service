@@ -10,10 +10,11 @@ from apps.fsm.models import Program, RegistrationForm
 class ProgramSummarySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
-        representation = super(ProgramSummarySerializer,
-                               self).to_representation(instance)
-        representation['initial_participants_count'] = len(instance.initial_participants)
-        representation['final_participants_count'] = len(instance.final_participants)
+        representation = super().to_representation(instance)
+        representation['initial_participants_count'] = len(
+            instance.initial_participants)
+        representation['final_participants_count'] = len(
+            instance.final_participants)
         return representation
 
     class Meta:
@@ -26,12 +27,12 @@ class ProgramSerializer(serializers.ModelSerializer):
     program_contact_info = ProgramContactInfoSerializer(required=False)
 
     def create(self, validated_data):
-        registration_form = RegistrationForm.objects.create(
-            **{'paper_type': RegistrationForm.PaperType.RegistrationForm})
-
+        registration_form = RegistrationForm.objects.create(validated_data)
         creator = self.context.get('user', None)
-        program = super(ProgramSerializer, self).create(
-            {'creator': creator, 'registration_form': registration_form, **validated_data})
+        validated_data['paper_type'] = RegistrationForm.PaperType.RegistrationForm
+        validated_data['creator'] = creator
+        validated_data['registration_form'] = registration_form
+        program = super().create(validated_data)
 
         add_admin_to_program(creator, program)
 
@@ -66,17 +67,12 @@ class ProgramSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        representation = super(
-            ProgramSerializer, self).to_representation(instance)
-        registration_form = instance.registration_form
-        representation['initial_participants_count'] = len(instance.initial_participants)
-        representation['final_participants_count'] = len(instance.final_participants)
-        representation['has_certificate'] = registration_form.has_certificate
-        representation['certificates_ready'] = registration_form.certificates_ready
-        representation['registration_start_date'] = registration_form.start_date
-        representation['registration_end_date'] = registration_form.end_date
-        representation['audience_type'] = registration_form.audience_type
-        representation['is_free'] = instance.is_free        
+        representation = super().to_representation(instance)
+        representation['initial_participants_count'] = len(
+            instance.initial_participants)
+        representation['final_participants_count'] = len(
+            instance.final_participants)
+        representation['is_free'] = instance.is_free
         return representation
 
     class Meta:

@@ -1,8 +1,7 @@
-from rest_framework.exceptions import ParseError, PermissionDenied
+from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 from apps.fsm.models import Player
 
-from apps.accounts.serializers.user_serializer import MentorSerializer
 from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.sales.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error

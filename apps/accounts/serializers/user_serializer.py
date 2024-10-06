@@ -100,12 +100,6 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class MentorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name']
-
-
 class StudentshipSerializer(serializers.ModelSerializer):
     university = serializers.PrimaryKeyRelatedField(
         many=False, queryset=University.objects.all(), required=False)
