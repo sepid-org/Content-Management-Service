@@ -155,6 +155,8 @@ class Widget(PolymorphicModel, ObjectMixin):
         BigAnswerProblem = 'BigAnswerProblem'
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
+        ButtonWidget = 'ButtonWidget'
+        CustomWidget = 'CustomWidget'
 
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')

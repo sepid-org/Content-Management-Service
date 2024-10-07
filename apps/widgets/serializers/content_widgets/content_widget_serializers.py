@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.fsm.models.content_widget import Placeholder
+from apps.fsm.models.content_widgets import Placeholder
 from apps.widgets.serializers.widget_serializer import WidgetSerializer
 
 from apps.fsm.models import DetailBoxWidget, Paper, Iframe, Video, Image, TextWidget, Widget, Aparat, Audio
