@@ -5,8 +5,8 @@ from io import BytesIO
 import pandas as pd
 from django.conf import settings
 from apps.fsm.models.form import AnswerSheet
-from apps.fsm.models.question_widget import Widget
-from apps.fsm.models.question_widget import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer ,UploadFileAnswer , Choice , MultiChoiceAnswer
+from apps.fsm.models.question_widgets import Widget
+from apps.fsm.models.question_widgets import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer ,UploadFileAnswer , Choice , MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.reports.utils import extract_content_from_html, gregorian_to_jalali

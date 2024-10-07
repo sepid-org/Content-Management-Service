@@ -11,7 +11,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
-from apps.fsm.models.content_widget import Placeholder
+from apps.fsm.models.content_widgets import Placeholder
 from apps.fsm.utils import get_django_file
 
 
