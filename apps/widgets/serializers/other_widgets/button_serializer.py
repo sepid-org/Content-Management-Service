@@ -8,7 +8,7 @@ class ButtonWidgetSerializer(WidgetSerializer):
         model = ButtonWidget
         fields = WidgetSerializer.Meta.fields + \
             ['label', 'background_image',
-                'destination_page_url', 'destination_state_ids']
+                'destination_page_url', 'edges_to_destination_states']
         read_only_fields = WidgetSerializer.Meta.read_only_fields + []
 
     def create(self, validated_data):
