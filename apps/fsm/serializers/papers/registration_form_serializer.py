@@ -1,3 +1,4 @@
+from apps.fsm.models.base import Paper
 from apps.fsm.serializers.form_serializer import FormSerializer
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
@@ -19,8 +20,8 @@ class RegistrationFormSerializer(FormSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        instance = super(RegistrationFormSerializer,
-                         self).create(validated_data)
+        validated_data['paper_type'] = Paper.PaperType.RegistrationForm
+        instance = super().create(validated_data)
         program = validated_data.get('program', None)
         if program is not None:
             program.registration_form = instance

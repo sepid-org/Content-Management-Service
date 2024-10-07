@@ -1,6 +1,7 @@
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
+from apps.fsm.serializers.papers.registration_form_serializer import RegistrationFormSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
@@ -27,9 +28,12 @@ class ProgramSerializer(serializers.ModelSerializer):
     program_contact_info = ProgramContactInfoSerializer(required=False)
 
     def create(self, validated_data):
-        registration_form = RegistrationForm.objects.create(validated_data)
+        registration_form_serializer = RegistrationFormSerializer(
+            data=validated_data)
+        registration_form_serializer.is_valid(raise_exception=True)
+        registration_form = registration_form_serializer.save()
+
         creator = self.context.get('user', None)
-        validated_data['paper_type'] = RegistrationForm.PaperType.RegistrationForm
         validated_data['creator'] = creator
         validated_data['registration_form'] = registration_form
         program = super().create(validated_data)

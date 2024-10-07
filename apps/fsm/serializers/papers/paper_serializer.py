@@ -39,7 +39,7 @@ class PaperSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paper
         fields = ['id', 'widgets', 'template', 'paper_type']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'paper_type']
 
         def get_fields():
             return [field for field in PaperSerializer.Meta.fields if field != 'widgets']
