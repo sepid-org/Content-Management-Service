@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.fsm.models import Hint
+from apps.fsm.models.base import Paper
 from apps.fsm.permissions import IsHintModifier
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
 
@@ -30,3 +31,7 @@ class HintViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsHintModifier]
         return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        request.data['paper_type'] = Paper.PaperType.Hint
+        return super().create(request, *args, **kwargs)
