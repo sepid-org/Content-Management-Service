@@ -7,12 +7,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from import_export.admin import ExportActionMixin
 
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
-    Invitation, CertificateTemplate, Font, FSM, State, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
+    Invitation, CertificateTemplate, Font, FSM, Statec, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
 from apps.fsm.models.content_widgets import Placeholder
-from apps.fsm.models.fsm import State2
+from apps.fsm.models.fsm import State
 from apps.fsm.utils import get_django_file
 
 
@@ -232,7 +232,7 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 class StateAdmin(admin.ModelAdmin):
-    model = State
+    model = Statec
     list_display = ['id', 'name', 'fsm']
     list_filter = ['name']
     search_fields = ['name']
@@ -531,7 +531,7 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Font)
 admin.site.register(FSM, FSMAdmin)
 admin.site.register(Edge, EdgeAdmin)
-admin.site.register(State, StateAdmin)
+admin.site.register(Statec, StateAdmin)
 admin.site.register(BigAnswerProblem, BigAnswerProblemAdmin)
 admin.site.register(SmallAnswerProblem, SmallAnswerProblemAdmin)
 admin.site.register(TextWidget, TextWidgetAdmin)
@@ -543,9 +543,9 @@ admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
 
 
-@admin.register(State2)
+@admin.register(State)
 class StateAdmin(admin.ModelAdmin):
-    model = State2
+    model = State
     list_display = ['id', 'name', 'fsm']
     list_filter = ['name']
     search_fields = ['name']

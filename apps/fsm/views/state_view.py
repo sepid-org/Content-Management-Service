@@ -22,10 +22,6 @@ class StateViewSet(ObjectViewSet):
         except (KeyError, AttributeError):
             return super().get_serializer_class()
 
-    def create(self, request, *args, **kwargs):
-        request.data['paper_type'] = Paper.PaperType.State
-        return super().create(request, *args, **kwargs)
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})

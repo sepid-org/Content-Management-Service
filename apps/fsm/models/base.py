@@ -179,10 +179,10 @@ class Widget(PolymorphicModel, ObjectMixin):
 
 
 class Hint(Paper):
+    referencec = models.ForeignKey(
+        'fsm.Statec', on_delete=models.CASCADE, related_name='hints')
     reference = models.ForeignKey(
-        'fsm.State', on_delete=models.CASCADE, related_name='hints')
-    reference2 = models.ForeignKey(
-        'fsm.State2', on_delete=models.SET_NULL, related_name='hints', null=True)
+        'fsm.State', on_delete=models.SET_NULL, related_name='hints', null=True)
 
     def clone(self, paper):
         return clone_hint(self, paper)

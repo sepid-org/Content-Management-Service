@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
 from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
 from errors.error_codes import serialize_error
@@ -15,14 +16,13 @@ class StateSimpleSerializer(serializers.ModelSerializer):
         read_only_fields = ['name']
 
 
-class StateSerializer(PaperSerializer):
+class StateSerializer(ObjectSerializer):
     hints = HintSerializer(many=True, read_only=True)
 
     @transaction.atomic
     def create(self, validated_data):
         fsm = validated_data.get('fsm', None)
-        instance = super(StateSerializer, self).create(
-            {'paper_type': 'State', **validated_data})
+        instance = super().create(validated_data)
         if fsm.first_state is None:
             fsm.first_state = instance
             fsm.save()
@@ -37,10 +37,10 @@ class StateSerializer(PaperSerializer):
 
         return super(StateSerializer, self).validate(attrs)
 
-    class Meta(PaperSerializer.Meta):
+    class Meta(ObjectSerializer.Meta):
         model = State
         ref_name = 'state'
 
-        fields = PaperSerializer.Meta.get_fields() + \
-            ['name', 'fsm', 'hints', 'show_appbar', 'is_end']
-        read_only_fields = PaperSerializer.Meta.read_only_fields + ['hints']
+        fields = ObjectSerializer.Meta.fields + \
+            ['id', 'papers', 'template', 'fsm', 'hints', 'show_appbar', 'is_end']
+        read_only_fields = ObjectSerializer.Meta.read_only_fields + ['hints']
