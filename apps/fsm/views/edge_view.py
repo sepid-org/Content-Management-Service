@@ -39,6 +39,13 @@ class EdgeViewSet(ObjectViewSet):
             permission_classes = [IsEdgeModifier]
         return [permission() for permission in permission_classes]
 
+    def create(self, request, *args, **kwargs):
+        head = request.data.get('head')
+        tail = request.data.get('tail')
+        if Edge.objects.filter(head=head, tail=tail).exists():
+            raise ParseError(serialize_error('4118'))
+        return super().create(request, *args, **kwargs)
+
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
     @action(detail=True, methods=['post'], serializer_class=KeySerializer)
