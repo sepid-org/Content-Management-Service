@@ -184,7 +184,9 @@ class IsEdgeModifier(permissions.BasePermission):
     message = 'you are not this edge\'s modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.tail.fsm.mentors.all() or request.user in obj.head.fsm.mentors.all()
+        tail_state_fsm_mentors = obj.tail.fsm.mentors.all() if obj.tail else []
+        head_state_fsm_mentors = obj.head.fsm.mentors.all() if obj.head else []
+        return request.user in tail_state_fsm_mentors or request.user in head_state_fsm_mentors
 
 
 class IsAnswerModifier(permissions.BasePermission):

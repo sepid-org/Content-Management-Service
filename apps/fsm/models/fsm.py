@@ -175,7 +175,7 @@ class State(Object):
         return cloned_state
 
     def __str__(self):
-        return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
+        return f'گام: {self.title} | کارگاه: {str(self.fsm)}'
 
 
 class Statec(Paper):
@@ -241,7 +241,7 @@ class Edge(models.Model, ObjectMixin):
         return cloned_edge
 
     def __str__(self):
-        return f'از {self.tail.name} به {self.head.name}'
+        return f'از {self.tail.title} به {self.head.title}'
 
 
 class PlayerTransition(models.Model):
@@ -276,4 +276,4 @@ class PlayerStateHistory(models.Model):
         PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_source_state_history')
 
     def __str__(self):
-        return f'{self.player} - {self.state.name if self.state else "DELETED"}'
+        return f'{self.player} - {self.state.title if self.state else "DELETED"}'
