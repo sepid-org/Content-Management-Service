@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from apps.fsm.models.base import Paper
 from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
 from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
@@ -21,11 +22,15 @@ class StateSerializer(ObjectSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        fsm = validated_data.get('fsm', None)
         instance = super().create(validated_data)
+
+        fsm = validated_data.get('fsm', None)
         if fsm.first_state is None:
             fsm.first_state = instance
             fsm.save()
+
+        paper = Paper.objects.create()
+        instance.papers.add(paper)
 
         return instance
 
