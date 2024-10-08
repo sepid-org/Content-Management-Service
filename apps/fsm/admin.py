@@ -546,9 +546,9 @@ admin.site.register(Tag)
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
     model = State
-    list_display = ['id', 'name', 'fsm']
-    list_filter = ['name']
-    search_fields = ['name']
+    list_display = ['id', 'title', 'name', 'fsm']
+    list_filter = ['title']
+    search_fields = ['title']
 
 
 @admin.register(Position)
