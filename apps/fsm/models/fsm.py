@@ -143,6 +143,12 @@ class State(Object):
         normal = 'normal'
         board = 'board'
 
+    papers = models.ManyToManyField(
+        to=Paper,
+        default=list,
+        through=StatePaper,
+        related_name='states',
+    )
     template = models.CharField(
         max_length=20, default=PaperTemplate.normal, choices=PaperTemplate.choices)
     fsm = models.ForeignKey(

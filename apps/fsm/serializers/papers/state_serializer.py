@@ -18,6 +18,11 @@ class StateSimpleSerializer(serializers.ModelSerializer):
 
 class StateSerializer(ObjectSerializer):
     hints = HintSerializer(many=True, read_only=True)
+    papers = serializers.SerializerMethodField()
+
+    def get_papers(self, obj):
+        papers = obj.papers.all().order_by('statepaper__order')
+        return [paper.id for paper in papers]
 
     @transaction.atomic
     def create(self, validated_data):
@@ -30,6 +35,7 @@ class StateSerializer(ObjectSerializer):
 
         paper = Paper.objects.create()
         instance.papers.add(paper)
+        # instance.papers2.add(paper)
 
         return instance
 

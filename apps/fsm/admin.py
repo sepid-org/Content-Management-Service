@@ -548,9 +548,15 @@ class StatePaperAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper']
 
 
+class StatePaperInline(admin.TabularInline):
+    model = StatePaper
+    extra = 1
+
+
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
     model = State
+    inlines = [StatePaperInline]
     list_display = ['id', 'title', 'name', 'fsm']
     list_filter = ['title']
     search_fields = ['title']
