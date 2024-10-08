@@ -28,7 +28,7 @@ class TestRoadmapViewsHealthCheck(TestCase):
         with patch('apps.roadmap.views.FSM.get_fsm') as mocked_get_fsm, \
                 patch('apps.roadmap.views._get_fsm_edges') as mocked_get_fsm_edges:
             fsm_instance = MagicMock()
-            fsm_instance.first_state.name = "First State"
+            fsm_instance.first_state.title = "First State"
             mocked_get_fsm.return_value = fsm_instance
             mocked_get_fsm_edges.return_value = [
                 MagicMock(tail=MagicMock(), head=MagicMock())]

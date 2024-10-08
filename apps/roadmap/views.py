@@ -22,4 +22,4 @@ def get_fsm_roadmap(request):
     fsm_id = request.GET.get('fsm', None)
     fsm = FSM.get_fsm(fsm_id)
     fsm_links = _get_fsm_links(fsm_id)
-    return Response(data={'first_state_name': fsm.first_state.name, 'links': LinkSerializer(fsm_links, many=True).data}, status=status.HTTP_200_OK)
+    return Response(data={'first_state_title': fsm.first_state.title, 'links': LinkSerializer(fsm_links, many=True).data}, status=status.HTTP_200_OK)
