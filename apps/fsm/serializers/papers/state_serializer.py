@@ -5,7 +5,6 @@ from rest_framework.exceptions import PermissionDenied
 from apps.fsm.models.base import Paper
 from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
-from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import State
 
@@ -13,8 +12,8 @@ from apps.fsm.models import State
 class StateSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        fields = ['name']
-        read_only_fields = ['name']
+        fields = ['name', 'title']
+        read_only_fields = ['name', 'title']
 
 
 class StateSerializer(ObjectSerializer):

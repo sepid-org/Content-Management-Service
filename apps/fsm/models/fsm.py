@@ -48,9 +48,9 @@ class FSM(models.Model, ObjectMixin):
     is_active = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=True)
     first_statec = models.OneToOneField('fsm.Statec', null=True, blank=True, on_delete=models.SET_NULL,
-                                       related_name='my_fsm')
-    first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                         related_name='my_fsm')
+    first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
+                                       related_name='my_fsm')
     fsm_learning_type = models.CharField(max_length=40, default=FSMLearningType.Unsupervised,
                                          choices=FSMLearningType.choices)
     fsm_p_type = models.CharField(
@@ -111,9 +111,9 @@ class Player(models.Model):
         'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
 
     current_statec = models.ForeignKey('fsm.Statec', null=True, blank=True, on_delete=models.SET_NULL,
-                                      related_name='players')
-    current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='players')
+    current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
+                                      related_name='players')
     last_visit = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -201,11 +201,11 @@ class Edge(models.Model, ObjectMixin):
         Object, on_delete=models.CASCADE, null=True, related_name='edge')
 
     tailc = models.ForeignKey(
-        Statec, on_delete=models.CASCADE, related_name='outward_edges')
+        Statec, on_delete=models.CASCADE, related_name='outward_edges', null=True)
     tail = models.ForeignKey(
         State, on_delete=models.SET_NULL, related_name='outward_edges', null=True)
     headc = models.ForeignKey(
-        Statec, on_delete=models.CASCADE, related_name='inward_edges')
+        Statec, on_delete=models.CASCADE, related_name='inward_edges', null=True)
     head = models.ForeignKey(
         State, on_delete=models.SET_NULL, related_name='inward_edges', null=True)
     is_back_enabled = models.BooleanField(default=True)
