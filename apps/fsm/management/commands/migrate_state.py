@@ -22,10 +22,10 @@ class Command(BaseCommand):
                 title=state.title,
                 name=state.name,
                 is_private=state.is_private,
-                creator=state.creator.id,
+                creator=state.creator.id if state.creator else None,
                 order=state.order,
                 is_hidden=state.is_hidden,
-                template=State2.PaperTemplate.normal,  # Or map to the correct template
+                template=state.template,
                 fsm=state.fsm,
                 show_appbar=state.show_appbar,
                 is_end=state.is_end
