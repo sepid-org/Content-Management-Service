@@ -214,11 +214,11 @@ class Edge(models.Model, ObjectMixin):
     tailc = models.ForeignKey(
         Statec, on_delete=models.CASCADE, related_name='outward_edges', null=True)
     tail = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='outward_edges', null=True)
+        State, on_delete=models.CASCADE, related_name='outward_edges')
     headc = models.ForeignKey(
         Statec, on_delete=models.CASCADE, related_name='inward_edges', null=True)
     head = models.ForeignKey(
-        State, on_delete=models.SET_NULL, related_name='inward_edges', null=True)
+        State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
