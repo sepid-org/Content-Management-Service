@@ -8,6 +8,7 @@ from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAct
 class Object(PolymorphicModel):
     title = models.CharField(max_length=200)
     name = models.CharField(max_length=200, null=True)
+    creator = models.UUIDField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     attributes = models.ManyToManyField(to=Attribute, null=True, blank=True)
@@ -180,6 +181,8 @@ class Widget(PolymorphicModel, ObjectMixin):
 class Hint(Paper):
     reference = models.ForeignKey(
         'fsm.State', on_delete=models.CASCADE, related_name='hints')
+    reference2 = models.ForeignKey(
+        'fsm.State2', on_delete=models.SET_NULL, related_name='hints', null=True)
 
     def clone(self, paper):
         return clone_hint(self, paper)

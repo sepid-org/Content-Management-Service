@@ -17,7 +17,7 @@ class FSMManager(models.Manager):
 
 class FSM(models.Model, ObjectMixin):
     _object = models.OneToOneField(
-        Object, on_delete=models.CASCADE, null=True, related_name='fsm')
+        Object, on_delete=models.CASCADE, null=True, related_name='_fsm')
 
     class FSMLearningType(models.TextChoices):
         Supervised = 'Supervised'
@@ -49,6 +49,8 @@ class FSM(models.Model, ObjectMixin):
     is_visible = models.BooleanField(default=True)
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='my_fsm')
+    first_state2 = models.OneToOneField('fsm.State2', null=True, blank=True, on_delete=models.SET_NULL,
+                                        related_name='my_fsm')
     fsm_learning_type = models.CharField(max_length=40, default=FSMLearningType.Unsupervised,
                                          choices=FSMLearningType.choices)
     fsm_p_type = models.CharField(
@@ -110,6 +112,8 @@ class Player(models.Model):
 
     current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                       related_name='players')
+    current_state2 = models.ForeignKey('fsm.State2', null=True, blank=True, on_delete=models.SET_NULL,
+                                       related_name='players')
     last_visit = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -126,6 +130,41 @@ class Player(models.Model):
 
     def __str__(self):
         return f'{self.user.full_name} in {self.fsm.name}'
+
+
+class State2(Object):
+    class PaperTemplate(models.TextChoices):
+        normal = 'normal'
+        board = 'board'
+
+    papers = models.ManyToManyField(to=Paper, default=list)
+    template = models.CharField(
+        max_length=20, default=PaperTemplate.normal, choices=PaperTemplate.choices)
+    fsm = models.ForeignKey(
+        FSM, on_delete=models.CASCADE, related_name='states2')
+    show_appbar = models.BooleanField(default=True)
+    is_end = models.BooleanField(default=False)
+
+    @transaction.atomic
+    def delete(self):
+        try:
+            if self.my_fsm:
+                fsm = self.fsm
+                fsm.first_state = fsm.states.exclude(id=self.id).first()
+                fsm.save()
+        except:
+            pass
+        return super(State, self).delete()
+
+    def clone(self, fsm):
+        cloned_state = clone_paper(self, fsm=fsm)
+        cloned_widgets = [widget.clone(cloned_state)
+                          for widget in self.widgets.all()]
+        cloned_hints = [hint.clone(cloned_state) for hint in self.hints.all()]
+        return cloned_state
+
+    def __str__(self):
+        return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
 
 
 class State(Paper):
@@ -163,8 +202,12 @@ class Edge(models.Model, ObjectMixin):
 
     tail = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='outward_edges')
+    tail2 = models.ForeignKey(
+        State2, on_delete=models.SET_NULL, related_name='outward_edges', null=True)
     head = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='inward_edges')
+    head2 = models.ForeignKey(
+        State2, on_delete=models.SET_NULL, related_name='inward_edges', null=True)
     is_back_enabled = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
@@ -195,8 +238,12 @@ class PlayerTransition(models.Model):
         Player, on_delete=models.SET_NULL, null=True, related_name='player_transitions')
     source_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
+    source_state2 = models.ForeignKey(
+        State2, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
     target_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
+    target_state2 = models.ForeignKey(
+        State2, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
     time = models.DateTimeField(null=True)
     transited_edge = models.ForeignKey(
         Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
@@ -210,6 +257,8 @@ class PlayerStateHistory(models.Model):
         Player, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
+    state2 = models.ForeignKey(
+        State2, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     arrival = models.ForeignKey(
         PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_target_state_history')
     departure = models.ForeignKey(

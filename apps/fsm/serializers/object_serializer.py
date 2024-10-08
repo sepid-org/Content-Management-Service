@@ -20,8 +20,8 @@ class ObjectSerializer(serializers.ModelSerializer):
             representation['widget'] = instance.widget.id
         if hasattr(instance, 'edge'):
             representation['edge'] = instance.edge.id
-        if hasattr(instance, 'fsm'):
-            representation['fsm'] = instance.fsm.id
+        if hasattr(instance, '_fsm'):
+            representation['_fsm'] = instance._fsm.id
         if hasattr(instance, 'paper'):
             representation['paper'] = instance.paper.id
 
