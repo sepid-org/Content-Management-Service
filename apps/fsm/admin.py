@@ -12,7 +12,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
 from apps.fsm.models.content_widgets import Placeholder
-from apps.fsm.models.fsm import State
+from apps.fsm.models.fsm import State, StatePaper
 from apps.fsm.utils import get_django_file
 
 
@@ -541,6 +541,11 @@ admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
 admin.site.register(Widget, WidgetAdmin)
 admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
+
+
+@admin.register(StatePaper)
+class StatePaperAdmin(admin.ModelAdmin):
+    list_display = ['id', 'paper']
 
 
 @admin.register(State)

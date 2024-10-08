@@ -132,12 +132,17 @@ class Player(models.Model):
         return f'{self.user.full_name} in {self.fsm.name}'
 
 
+class StatePaper(models.Model):
+    state = models.ForeignKey('fsm.State', on_delete=models.CASCADE)
+    paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
+    order = models.IntegerField(default=0)
+
+
 class State(Object):
     class PaperTemplate(models.TextChoices):
         normal = 'normal'
         board = 'board'
 
-    papers = models.ManyToManyField(to=Paper, default=list)
     template = models.CharField(
         max_length=20, default=PaperTemplate.normal, choices=PaperTemplate.choices)
     fsm = models.ForeignKey(
