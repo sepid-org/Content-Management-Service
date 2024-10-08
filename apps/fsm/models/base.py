@@ -107,10 +107,6 @@ class Paper(PolymorphicModel, ObjectMixin):
     _object = models.OneToOneField(
         Object, on_delete=models.CASCADE, null=True, related_name='paper')
 
-    class PaperTemplate(models.TextChoices):
-        normal = 'normal'
-        board = 'board'
-
     class PaperType(models.TextChoices):
         RegistrationForm = 'RegistrationForm'
         State = 'State'
@@ -120,11 +116,9 @@ class Paper(PolymorphicModel, ObjectMixin):
         General = 'General'
 
     paper_type = models.CharField(
-        max_length=25, blank=False, choices=PaperType.choices)
+        max_length=25, choices=PaperType.choices, default=PaperType.General)
     creator = models.ForeignKey('accounts.User', related_name='papers', null=True, blank=True,
                                 on_delete=models.SET_NULL)
-    template = models.CharField(max_length=20, default=PaperTemplate.normal,
-                                choices=PaperTemplate.choices)
 
     def delete(self):
         for w in Widget.objects.filter(paper=self):
