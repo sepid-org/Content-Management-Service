@@ -15,6 +15,7 @@ class Object(PolymorphicModel):
     is_private = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
     is_hidden = models.BooleanField(default=False)
+    website = models.CharField(blank=True, null=True, max_length=50)
 
 
 class Position(models.Model):
