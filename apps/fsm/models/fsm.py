@@ -137,6 +137,9 @@ class StatePaper(models.Model):
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
 
+    class Meta:
+        unique_together = ('paper', 'state')
+
 
 class State(Object):
     class PaperTemplate(models.TextChoices):
