@@ -1,10 +1,12 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from rest_framework import status
+from django.db import transaction
+from django.db.models import Min
 
-from apps.fsm.models import State
-from apps.fsm.models.base import Paper
+from apps.fsm.models import State, Paper
+from apps.fsm.models.fsm import StatePaper
 from apps.fsm.permissions import IsStateModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer
 from apps.fsm.serializers.papers.state_serializer import StateSerializer
@@ -30,7 +32,7 @@ class StateViewSet(ObjectViewSet):
         return context
 
     def get_permissions(self):
-        if self.action in ['create', 'retrieve', 'list', 'outward_edges', 'inward_edges']:
+        if self.action in ['create', 'retrieve', 'list', 'outward_edges', 'inward_edges', 'add_paper', 'remove_paper']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsStateModifier]
@@ -49,3 +51,76 @@ class StateViewSet(ObjectViewSet):
         inward_edges = state.inward_edges.all()
         serializer = EdgeSerializer(inward_edges, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def update_paper_order(self, request, pk=None):
+        state = self.get_object()
+        paper_ids = request.data.get('paper_ids', [])
+        if not paper_ids:
+            return Response({"error": "No paper IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                for index, paper_id in enumerate(paper_ids):
+                    state_paper = StatePaper.objects.get(
+                        state=state, paper_id=paper_id)
+                    state_paper.order = index
+                    state_paper.save()
+            return Response({"message": "Paper order updated successfully"}, status=status.HTTP_200_OK)
+        except StatePaper.DoesNotExist:
+            return Response({"error": "One or more paper IDs are invalid for this state"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def add_paper(self, request, pk=None):
+        state = self.get_object()
+        paper_id = request.data.get('paper_id')
+
+        if not paper_id:
+            return Response({"error": "No paper ID provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            paper = Paper.objects.get(id=paper_id)
+        except Paper.DoesNotExist:
+            return Response({"error": "Invalid paper ID"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                # Get the lowest order number
+                min_order = StatePaper.objects.filter(
+                    state=state).aggregate(Min('order'))['order__min']
+                new_order = (min_order or +1) - 1
+
+                # Create new StatePaper
+                StatePaper.objects.create(
+                    state=state, paper=paper, order=new_order)
+
+            return Response({"message": "Paper added successfully"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def remove_paper(self, request, pk=None):
+        state = self.get_object()
+        paper_id = request.data.get('paper_id')
+
+        if not paper_id:
+            return Response({"error": "No paper ID provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            state_paper = StatePaper.objects.get(
+                state=state, paper_id=paper_id)
+            state_paper.delete()
+
+            # Optionally, reorder remaining papers
+            remaining_papers = StatePaper.objects.filter(
+                state=state).order_by('order')
+            for index, sp in enumerate(remaining_papers):
+                sp.order = index
+                sp.save()
+
+            return Response({"message": "Paper removed successfully"}, status=status.HTTP_200_OK)
+        except StatePaper.DoesNotExist:
+            return Response({"error": "Paper not found in this state"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
