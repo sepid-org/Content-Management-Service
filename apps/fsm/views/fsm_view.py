@@ -11,10 +11,11 @@ from django_filters import rest_framework as filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
+from apps.fsm.models.fsm import State
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import RegistrationReceipt, FSM, PlayerStateHistory, Player, RegistrationReceipt, Problem
+from apps.fsm.models import FSM, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
@@ -234,4 +235,13 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm.deleted_at = timezone.now()
         fsm.save()
         self.cache.invalidate_list_cache(request.headers.get('Website'))
+        return Response()
+
+    @action(detail=True, methods=['post'], permission_classes=[FSMMentorPermission])
+    def first_state(self, request, pk=None):
+        state_id = request.data.get('state', None)
+        state = State.objects.get(id=state_id)
+        fsm = self.get_object()
+        fsm.first_state = state
+        fsm.save()
         return Response()
