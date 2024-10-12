@@ -244,4 +244,5 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm = self.get_object()
         fsm.first_state = state
         fsm.save()
+        self.cache.invalidate_object_cache(pk)
         return Response()
