@@ -18,18 +18,6 @@ class Object(PolymorphicModel):
     website = models.CharField(blank=True, null=True, max_length=50)
 
 
-class Positionc(models.Model):
-    object = models.OneToOneField(
-        Object, on_delete=models.CASCADE, primary_key=True, related_name='positionc')
-    x = models.IntegerField()
-    y = models.IntegerField()
-    width = models.IntegerField()
-    height = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.object} at ({self.x}, {self.y})"
-
-
 class Position(models.Model):
     object = models.OneToOneField(
         Object, on_delete=models.CASCADE, related_name='position')
@@ -57,7 +45,8 @@ class ObjectMixin:
     def object(self):
         if not hasattr(self, '_object') or self._object is None:
             self._object = Object.objects.create(
-                title=f'{self.__class__.__name__}-{self.id}')
+                title=f'{self.__class__.__name__}-{self.id}'
+            )
             self.save()
         return self._object
 
