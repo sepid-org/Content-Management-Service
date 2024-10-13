@@ -18,9 +18,9 @@ class Object(PolymorphicModel):
     website = models.CharField(blank=True, null=True, max_length=50)
 
 
-class Position(models.Model):
+class Positionc(models.Model):
     object = models.OneToOneField(
-        Object, on_delete=models.CASCADE, primary_key=True, related_name='position')
+        Object, on_delete=models.CASCADE, primary_key=True, related_name='positionc')
     x = models.IntegerField()
     y = models.IntegerField()
     width = models.IntegerField()
@@ -30,9 +30,9 @@ class Position(models.Model):
         return f"{self.object} at ({self.x}, {self.y})"
 
 
-class Position2(models.Model):
-    object = models.ForeignKey(
-        Object, on_delete=models.CASCADE, related_name='positions2')
+class Position(models.Model):
+    object = models.OneToOneField(
+        Object, on_delete=models.CASCADE, related_name='position')
     x = models.IntegerField()
     y = models.IntegerField()
     width = models.IntegerField()

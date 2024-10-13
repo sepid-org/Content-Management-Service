@@ -6,4 +6,4 @@ class PositionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Position
-        fields = ['x', 'y', 'width', 'height']
+        fields = ['id', 'x', 'y', 'width', 'height']
