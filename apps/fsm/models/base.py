@@ -30,6 +30,18 @@ class Position(models.Model):
         return f"{self.object} at ({self.x}, {self.y})"
 
 
+class Position2(models.Model):
+    object = models.ForeignKey(
+        Object, on_delete=models.CASCADE, related_name='positions2')
+    x = models.IntegerField()
+    y = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.id} at ({self.x}, {self.y})"
+
+
 def generate_properties(properties):
     def decorator(cls):
         for prop in properties:

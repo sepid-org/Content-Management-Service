@@ -24,7 +24,7 @@ class ObjectViewSet(viewsets.ModelViewSet):
     def update_positions(self, request):
         positions_data = request.data.get('positions', [])
         self._update_positions(positions_data)
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update_positions(self, positions_data):
         for position_data in positions_data:

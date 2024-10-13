@@ -16,14 +16,6 @@ class ObjectSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if hasattr(instance, 'widget'):
-            representation['widget'] = instance.widget.id
-        if hasattr(instance, 'edge'):
-            representation['edge'] = instance.edge.id
-        if hasattr(instance, '_fsm'):
-            representation['_fsm'] = instance._fsm.id
-        if hasattr(instance, 'paper'):
-            representation['paper'] = instance.paper.id
 
         if hasattr(instance, 'has_entrance_lock'):
             representation['has_entrance_lock'] = instance.has_entrance_lock
