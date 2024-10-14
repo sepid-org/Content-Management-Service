@@ -12,8 +12,7 @@ from apps.fsm.models import State
 class StateSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        fields = ['name', 'title']
-        read_only_fields = ['name', 'title']
+        fields = ['id', 'name', 'title']
 
 
 class StateSerializer(ObjectSerializer):
