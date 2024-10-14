@@ -96,7 +96,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             raise InternalServerError('Not implemented Yet😎')
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='transit-to-state')
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='transit-to-state')
     def transit_to_state(self, request):
         state_id = request.data.get('state')
         state = get_object_or_404(State, id=state_id)
