@@ -33,7 +33,10 @@ class PaperSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         if representation.get('widgets'):
             representation['widgets'] = sorted(
-                representation['widgets'], key=lambda x: x['id'])
+                representation['widgets'],
+                # Sort by 'order' first, then 'id'
+                key=lambda x: (x.get('order', 0), x['id'])
+            )
         return representation
 
     class Meta:
