@@ -78,6 +78,12 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
     player.last_visit = transition_time
     player.save()
 
+    if edge is None:
+        edge = Edge.objects.filter(tail=source_state, head=target_state) or \
+            Edge.objects.filter(tail=target_state, head=source_state)
+        if edge.count() > 0:
+            edge = edge.first()
+
     player_transition = PlayerTransition.objects.create(
         player=player,
         source_state=source_state,

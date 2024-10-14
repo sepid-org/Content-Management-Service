@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -8,6 +9,7 @@ from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
+from apps.fsm.models.fsm import State
 from errors.error_codes import serialize_error
 from errors.exceptions import InternalServerError
 from apps.fsm.models import FSM, Player
@@ -69,7 +71,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
                 player = transit_player_in_fsm(
                     player, edge.head, edge.tail, edge)
             return Response(status=status.HTTP_202_ACCEPTED)
-        
+
         else:
             raise InternalServerError('Not implemented Yet😎')
 
@@ -92,3 +94,34 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
         else:
             raise InternalServerError('Not implemented Yet😎')
+
+    @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='transit-to-state')
+    def transit_to_state(self, request):
+        state_id = request.data.get('state')
+        state = get_object_or_404(State, id=state_id)
+        player = Player.objects.filter(user=request.user, fsm=state.fsm)
+        if player is None:
+            Player.objects.create(
+                user=request.user,
+                fsm=state.fsm,
+                current_state=state,
+            )
+
+        if not is_transition_permitted(player.current_state, state):
+            # todo
+            pass
+
+        transit_player_in_fsm(
+            player=player,
+            source_state=player.current_state,
+            target_state=state,
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def is_transition_permitted(source_state: State, target_state: State):
+    if source_state.id == target_state.id:
+        return True
+    return True

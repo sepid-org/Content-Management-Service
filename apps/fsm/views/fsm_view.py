@@ -113,7 +113,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
             serializer.is_valid(raise_exception=True)
             player = serializer.save()
             transit_player_in_fsm(
-                player=player, source_state=None, target_state=fsm.first_state, edge=None)
+                player=player, source_state=None, target_state=fsm.first_state)
 
         # if any state has been deleted and player has no current state:
         if player.current_state is None:
