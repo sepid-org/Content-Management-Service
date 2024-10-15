@@ -124,4 +124,5 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 def is_transition_permitted(source_state: State, target_state: State):
     if source_state.id == target_state.id:
         return True
+    # todo
     return True
