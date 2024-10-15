@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-from django.db.models import Min
+from django.db.models import Max
 
 from apps.fsm.models import State, Paper
 from apps.fsm.models.fsm import StatePaper
@@ -87,9 +87,9 @@ class StateViewSet(ObjectViewSet):
         try:
             with transaction.atomic():
                 # Get the lowest order number
-                min_order = StatePaper.objects.filter(
-                    state=state).aggregate(Min('order'))['order__min']
-                new_order = (min_order or +1) - 1
+                max_order = StatePaper.objects.filter(
+                    state=state).aggregate(Max('order'))['order__max']
+                new_order = max_order + 1 if max_order is not None else 0
 
                 # Create new StatePaper
                 StatePaper.objects.create(
