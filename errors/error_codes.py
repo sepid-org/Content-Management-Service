@@ -124,6 +124,7 @@ errors_dict = {'4000': 'phone number must be digit',
                '4116': 'no website is provided',
                '4117': 'user has already registered in the website',
                '4118': 'the edge tail-head pair must be unique',
+               '4119': 'you are not allowed to do this transition',
 
                '5000': 'sending SMS failed',
                '5001': 'zarinpal request failed, contact with support',

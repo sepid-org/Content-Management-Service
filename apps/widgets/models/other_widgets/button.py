@@ -7,7 +7,7 @@ class ButtonWidget(Widget):
     label = models.TextField(default='', null=True, blank=True)
     background_image = models.URLField(null=True, blank=True)
     destination_page_url = models.URLField(null=True, blank=True)
-    edges_to_destination_states = models.JSONField(default=list)
+    destination_states = models.JSONField(default=[], null=True, blank=True)
 
     def clone(self, paper):
         return clone_widget(self, paper)

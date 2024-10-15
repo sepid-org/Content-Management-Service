@@ -71,7 +71,7 @@ def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state:
             transit_player_in_fsm(player, source_state, target_state, edge)
 
 
-def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge) -> Player:
+def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge = None) -> Player:
     player.current_state = target_state
     transition_time = timezone.now()
 
@@ -79,10 +79,13 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
     player.save()
 
     if edge is None:
-        edge = Edge.objects.filter(tail=source_state, head=target_state) or \
-            Edge.objects.filter(tail=target_state, head=source_state)
-        if edge.count() > 0:
-            edge = edge.first()
+        try:
+            edge = Edge.objects.get(tail=source_state, head=target_state)
+        except Edge.DoesNotExist:
+            try:
+                edge = Edge.objects.get(tail=target_state, head=source_state)
+            except Edge.DoesNotExist:
+                pass
 
     player_transition = PlayerTransition.objects.create(
         player=player,

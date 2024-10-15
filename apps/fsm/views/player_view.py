@@ -100,17 +100,17 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     def transit_to_state(self, request):
         state_id = request.data.get('state')
         state = get_object_or_404(State, id=state_id)
-        player = Player.objects.filter(user=request.user, fsm=state.fsm)
-        if player is None:
-            Player.objects.create(
+        try:
+            player = Player.objects.get(user=request.user, fsm=state.fsm)
+        except:
+            player = Player.objects.create(
                 user=request.user,
                 fsm=state.fsm,
                 current_state=state,
             )
 
         if not is_transition_permitted(player.current_state, state):
-            # todo
-            pass
+            raise ParseError(serialize_error('4119'))
 
         transit_player_in_fsm(
             player=player,
