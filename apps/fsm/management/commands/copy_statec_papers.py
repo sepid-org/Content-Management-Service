@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Get all State records
-        statecs = Statec.objects.all()
+        statecs = Statec.objects.filter(flag=False)
         for statec in statecs:
             self.migrate_state(statec)
 
@@ -25,6 +25,8 @@ class Command(BaseCommand):
             for statec in statec_paper.states.all():
                 add_paper_to_fsm_state(cloned_paper, statec)
 
+            statec.flag = True
+            statec.save()
             self.stdout.write(self.style.SUCCESS(
                 f'Successful: {statec.id}'))
 
