@@ -182,6 +182,7 @@ class State(Object):
 
 
 class Statec(Paper):
+    flag = models.BooleanField(default=False)
     name = models.TextField(null=True, blank=True)
     fsm = models.ForeignKey(
         FSM, on_delete=models.CASCADE, related_name='statesc')
