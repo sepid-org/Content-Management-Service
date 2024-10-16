@@ -13,14 +13,6 @@ class HintSerializer(PaperSerializer):
         user = self.context.get('user', None)
         return super(HintSerializer, self).create({'paper_type': 'Hint', 'creator': user, **validated_data})
 
-    def validate(self, attrs):
-        reference = attrs.get('reference', None)
-        user = self.context.get('user', None)
-        if user not in reference.fsm.mentors.all():
-            raise PermissionDenied(serialize_error('4075'))
-
-        return super(HintSerializer, self).validate(attrs)
-
     class Meta(PaperSerializer.Meta):
         model = Hint
         ref_name = 'hint'

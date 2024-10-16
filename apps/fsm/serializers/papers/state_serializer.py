@@ -37,14 +37,6 @@ class StateSerializer(ObjectSerializer):
 
         return instance
 
-    def validate(self, attrs):
-        fsm = attrs.get('fsm', None)
-        user = self.context.get('user', None)
-        if user not in fsm.mentors.all():
-            raise PermissionDenied(serialize_error('4075'))
-
-        return super(StateSerializer, self).validate(attrs)
-
     class Meta(ObjectSerializer.Meta):
         model = State
         ref_name = 'state'

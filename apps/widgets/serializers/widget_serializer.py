@@ -19,18 +19,6 @@ class WidgetSerializer(serializers.ModelSerializer):
         validated_data['creator'] = self.context.get('user', None)
         return super().create(validated_data)
 
-    def validate(self, attrs):
-        user = self.context.get('user', None)
-        paper = attrs.get('paper', None)
-        if isinstance(paper, State):
-            if user not in paper.fsm.mentors.all():
-                raise ParseError(serialize_error('4075'))
-        elif isinstance(paper, Hint):
-            if user not in paper.reference.fsm.mentors.all():
-                raise ParseError(serialize_error('4075'))
-
-        return super(WidgetSerializer, self).validate(attrs)
-
     def to_representation(self, instance):
         # add object fields to representation
         representation = super().to_representation(instance)
