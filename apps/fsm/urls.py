@@ -15,7 +15,7 @@ from apps.fsm.views.program_view import ProgramViewSet
 from apps.fsm.views.registration_receipt_view import RegistrationReceiptViewSet
 from apps.fsm.views.registration_view import RegistrationViewSet
 from apps.fsm.views.certificate_view import CertificateTemplateViewSet, FontViewSet
-from apps.fsm.views.state_view import StateViewSet
+from apps.fsm.views.fsm_state_view import StateViewSet
 from apps.fsm.views.team_view import InvitationViewSet, TeamViewSet
 
 router = DefaultRouter()

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 from django.db.models import Max
+from django.shortcuts import get_object_or_404
 
 from apps.fsm.models import State, Paper
 from apps.fsm.models.fsm import StatePaper
@@ -18,21 +19,8 @@ class StateViewSet(ObjectViewSet):
     queryset = State.objects.all()
     my_tags = ['state']
 
-    def get_serializer_class(self):
-        try:
-            return self.serializer_action_classes[self.action]
-        except (KeyError, AttributeError):
-            return super().get_serializer_class()
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'user': self.request.user})
-        context.update(
-            {'domain': self.request.build_absolute_uri('/api/')[:-5]})
-        return context
-
     def get_permissions(self):
-        if self.action in ['create', 'retrieve', 'list', 'outward_edges', 'inward_edges', 'add_paper', 'remove_paper']:
+        if self.action in ['create', 'retrieve', 'list', 'outward_edges', 'inward_edges']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsStateModifier]
@@ -122,5 +110,27 @@ class StateViewSet(ObjectViewSet):
             return Response({"message": "Paper removed successfully"}, status=status.HTTP_200_OK)
         except StatePaper.DoesNotExist:
             return Response({"error": "Paper not found in this state"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def create_and_add_paper(self, request, pk=None):
+        state = self.get_object()
+
+        try:
+            with transaction.atomic():
+                # Create new Paper
+                paper = Paper.objects.create()
+
+                # Get the highest order number
+                max_order = StatePaper.objects.filter(
+                    state=state).aggregate(Max('order'))['order__max']
+                new_order = max_order + 1 if max_order is not None else 0
+
+                # Create new StatePaper
+                StatePaper.objects.create(
+                    state=state, paper=paper, order=new_order)
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

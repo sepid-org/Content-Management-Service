@@ -34,7 +34,6 @@ class StateSerializer(ObjectSerializer):
 
         paper = Paper.objects.create()
         instance.papers.add(paper)
-        # instance.papers2.add(paper)
 
         return instance
 
