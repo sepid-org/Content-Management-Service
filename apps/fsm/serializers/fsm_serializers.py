@@ -1,3 +1,4 @@
+from apps.fsm.models.fsm import State
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 from apps.fsm.models import Player
@@ -80,15 +81,12 @@ class FSMSerializer(serializers.ModelSerializer):
 
 
 class EdgeSerializer(serializers.ModelSerializer):
+    tail = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
+    head = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
 
     def to_representation(self, instance):
-        from apps.fsm.serializers.papers.state_serializer import StateSimpleSerializer
         representation = super(
             EdgeSerializer, self).to_representation(instance)
-        representation['tail'] = StateSimpleSerializer(
-            context=self.context).to_representation(instance.tail)
-        representation['head'] = StateSimpleSerializer(
-            context=self.context).to_representation(instance.head)
 
         object_instance = instance.object
         object_serializer = ObjectSerializer()
@@ -102,7 +100,7 @@ class EdgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edge
         fields = ['id', 'tail', 'head',
-                  'is_back_enabled', 'is_visible', 'text']
+                  'is_back_enabled', 'is_visible']
 
 
 class KeySerializer(serializers.Serializer):
