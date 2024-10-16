@@ -202,8 +202,6 @@ class Widget(PolymorphicModel, ObjectMixin):
 
 
 class Hint(Paper):
-    referencec = models.ForeignKey(
-        'fsm.Statec', on_delete=models.CASCADE, related_name='hints')
     reference = models.ForeignKey(
         'fsm.State', on_delete=models.SET_NULL, related_name='hints', null=True)
 

@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from import_export.admin import ExportActionMixin
 
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
-    Invitation, CertificateTemplate, Font, FSM, Statec, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
+    Invitation, CertificateTemplate, Font, FSM, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
@@ -229,13 +229,6 @@ class TeamAdmin(admin.ModelAdmin):
             if m.players.filter(last_visit__gt=timezone.now() - timedelta(hours=1)).first():
                 return True
         return False
-
-
-class StateAdmin(admin.ModelAdmin):
-    model = Statec
-    list_display = ['id', 'name', 'fsm']
-    list_filter = ['name']
-    search_fields = ['name']
 
 
 class SmallAnswerProblemAdmin(admin.ModelAdmin):
@@ -531,7 +524,6 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Font)
 admin.site.register(FSM, FSMAdmin)
 admin.site.register(Edge, EdgeAdmin)
-admin.site.register(Statec, StateAdmin)
 admin.site.register(BigAnswerProblem, BigAnswerProblemAdmin)
 admin.site.register(SmallAnswerProblem, SmallAnswerProblemAdmin)
 admin.site.register(TextWidget, TextWidgetAdmin)

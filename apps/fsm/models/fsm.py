@@ -47,8 +47,6 @@ class FSM(models.Model, ObjectMixin):
     cover_page = models.URLField()
     is_active = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=True)
-    first_statec = models.OneToOneField('fsm.Statec', null=True, blank=True, on_delete=models.SET_NULL,
-                                        related_name='my_fsm')
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                        related_name='my_fsm')
     fsm_learning_type = models.CharField(max_length=40, default=FSMLearningType.Unsupervised,
@@ -110,8 +108,6 @@ class Player(models.Model):
     receipt = models.ForeignKey(
         'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
 
-    current_statec = models.ForeignKey('fsm.Statec', null=True, blank=True, on_delete=models.SET_NULL,
-                                       related_name='players')
     current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                       related_name='players')
     last_visit = models.DateTimeField(null=True, blank=True)
@@ -181,46 +177,12 @@ class State(Object):
         return f'گام: {self.title} | کارگاه: {str(self.fsm)}'
 
 
-class Statec(Paper):
-    flag = models.BooleanField(default=False)
-    name = models.TextField(null=True, blank=True)
-    fsm = models.ForeignKey(
-        FSM, on_delete=models.CASCADE, related_name='statesc')
-    show_appbar = models.BooleanField(default=True)
-    is_end = models.BooleanField(default=False)
-
-    @transaction.atomic
-    def delete(self):
-        try:
-            if self.my_fsm:
-                fsm = self.fsm
-                fsm.first_state = fsm.states.exclude(id=self.id).first()
-                fsm.save()
-        except:
-            pass
-        return super(State, self).delete()
-
-    def clone(self, fsm):
-        cloned_state = clone_paper(self, fsm=fsm)
-        cloned_widgets = [widget.clone(cloned_state)
-                          for widget in self.widgets.all()]
-        cloned_hints = [hint.clone(cloned_state) for hint in self.hints.all()]
-        return cloned_state
-
-    def __str__(self):
-        return f'گام: {self.name} | کارگاه: {str(self.fsm)}'
-
-
 class Edge(models.Model, ObjectMixin):
     _object = models.OneToOneField(
         Object, on_delete=models.CASCADE, null=True, related_name='edge')
 
-    tailc = models.ForeignKey(
-        Statec, on_delete=models.CASCADE, related_name='outward_edges', null=True)
     tail = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='outward_edges')
-    headc = models.ForeignKey(
-        Statec, on_delete=models.CASCADE, related_name='inward_edges', null=True)
     head = models.ForeignKey(
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
@@ -251,12 +213,8 @@ class Edge(models.Model, ObjectMixin):
 class PlayerTransition(models.Model):
     player = models.ForeignKey(
         Player, on_delete=models.SET_NULL, null=True, related_name='player_transitions')
-    source_statec = models.ForeignKey(
-        Statec, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
     source_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
-    target_statec = models.ForeignKey(
-        Statec, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
     target_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
     time = models.DateTimeField(null=True)
@@ -270,8 +228,6 @@ class PlayerTransition(models.Model):
 class PlayerStateHistory(models.Model):
     player = models.ForeignKey(
         Player, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
-    statec = models.ForeignKey(
-        Statec, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
     arrival = models.ForeignKey(
