@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from polymorphic.models import PolymorphicModel
 from abc import abstractmethod
 
@@ -16,6 +16,35 @@ class Object(PolymorphicModel):
     order = models.IntegerField(default=0)
     is_hidden = models.BooleanField(default=False)
     website = models.CharField(blank=True, null=True, max_length=50)
+
+    def clone(self):
+        # Start a transaction to ensure atomicity
+        with transaction.atomic():
+            # Duplicate the object instance, excluding the fields that should not be cloned
+            cloned_object = Object.objects.create(
+                title=f'new {self.title}',
+                name=self.name,
+                creator=self.creator,
+                is_private=self.is_private,
+                order=self.order,
+                is_hidden=self.is_hidden,
+                website=self.website
+            )
+
+            # Copy ManyToMany relationships (attributes)
+            cloned_object.attributes.set(self.attributes.all())
+
+            # Check if the object has a position and clone it if it exists
+            if hasattr(self, 'position'):
+                Position.objects.create(
+                    object=cloned_object,
+                    x=self.position.x,
+                    y=self.position.y,
+                    width=self.position.width,
+                    height=self.position.height,
+                )
+
+            return cloned_object
 
 
 class Position(models.Model):
@@ -122,6 +151,12 @@ class Paper(PolymorphicModel, ObjectMixin):
     creator = models.ForeignKey('accounts.User', related_name='papers', null=True, blank=True,
                                 on_delete=models.SET_NULL)
 
+    def clone(self):
+        cloned_paper = clone_paper(self)
+        cloned_widgets = [widget.clone(cloned_paper)
+                          for widget in self.widgets.all()]
+        return cloned_paper
+
     def delete(self):
         for w in Widget.objects.filter(paper=self):
             try:
@@ -165,14 +200,6 @@ class Widget(PolymorphicModel, ObjectMixin):
     def clone(self, paper):
         pass
 
-    def make_file_empty(self):
-        try:
-            self.file.delete()
-        except:
-            self.file = None
-            self.file.save()
-            pass
-
 
 class Hint(Paper):
     referencec = models.ForeignKey(
@@ -205,40 +232,50 @@ def clone_hint(hint, reference_paper):
 def clone_widget(widget, paper, *args, **kwargs):
     widget_type = widget.__class__
     model_fields = [
-        field.name for field in widget_type._meta.get_fields() if field.name != 'id']
-    dicted_model = {name: value for name,
-                    value in widget.__dict__.items() if name in model_fields}
+        field.name for field in widget_type._meta.get_fields() if field.name != 'id'
+    ]
+    dicted_model = {
+        name: value for name, value in widget.__dict__.items() if name in model_fields
+    }
     cloned_widget = widget_type(
-        **{**dicted_model,
-           'paper': paper,
-           **kwargs,
-           },
+        **{
+            **dicted_model,
+            'paper': paper,
+            '_object': widget.object.clone(),
+            ** kwargs,
+        },
     )
     cloned_widget.save()
 
-    cloned_widget_hints = [widget_hint.clone(
-        cloned_widget) for widget_hint in widget.hints.all()]
+    cloned_widget_hints = [
+        widget_hint.clone(cloned_widget) for widget_hint in widget.hints.all()
+    ]
 
     return cloned_widget
 
 
 def clone_hint(hint, reference_paper):
     cloned_hint = clone_paper(hint, reference=reference_paper)
-    cloned_widgets = [widget.clone(cloned_hint)
-                      for widget in hint.widgets.all()]
+    cloned_widgets = [
+        widget.clone(cloned_hint) for widget in hint.widgets.all()
+    ]
     return cloned_hint
 
 
 def clone_paper(paper, *args, **kwargs):
     paper_type = paper.__class__
     model_fields = [
-        field.name for field in paper_type._meta.get_fields() if field.name != 'id']
-    dicted_model = {name: value for name, value
-                    in paper.__dict__.items() if name in model_fields}
+        field.name for field in paper_type._meta.get_fields() if field.name != 'id'
+    ]
+    dicted_model = {
+        name: value for name, value in paper.__dict__.items() if name in model_fields
+    }
     cloned_paper = paper_type(
-        **{**dicted_model,
-           **kwargs,
-           },
+        **{
+            **dicted_model,
+            '_object': paper.object.clone(),
+            **kwargs,
+        },
     )
     cloned_paper.save()
     return cloned_paper
