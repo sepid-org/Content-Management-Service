@@ -71,11 +71,13 @@ class MultiChoiceProblem(Problem):
         correct_choices = self.choices.all().filter(is_correct=True)
 
         if not correct_answer_object:
-            correct_answer_serializer = MultiChoiceAnswerSerializer(data={
-                'answer_type': 'MultiChoiceAnswer',
-                'problem': self,
-                'is_correct': True,
-            })
+            correct_answer_serializer = MultiChoiceAnswerSerializer(
+                data={
+                    'answer_type': 'MultiChoiceAnswer',
+                    'problem': self,
+                    'is_correct': True,
+                }
+            )
             correct_answer_serializer.is_valid(raise_exception=True)
             correct_answer_object = correct_answer_serializer.save()
 

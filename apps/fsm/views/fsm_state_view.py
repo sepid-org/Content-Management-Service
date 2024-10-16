@@ -72,20 +72,9 @@ class StateViewSet(ObjectViewSet):
         except Paper.DoesNotExist:
             return Response({"error": "Invalid paper ID"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            with transaction.atomic():
-                # Get the lowest order number
-                max_order = StatePaper.objects.filter(
-                    state=state).aggregate(Max('order'))['order__max']
-                new_order = max_order + 1 if max_order is not None else 0
+        add_paper_to_fsm_state(paper, state)
 
-                # Create new StatePaper
-                StatePaper.objects.create(
-                    state=state, paper=paper, order=new_order)
-
-            return Response({"message": "Paper added successfully"}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"message": "Paper added successfully"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def remove_paper(self, request, pk=None):
@@ -122,15 +111,36 @@ class StateViewSet(ObjectViewSet):
                 # Create new Paper
                 paper = Paper.objects.create()
 
-                # Get the highest order number
-                max_order = StatePaper.objects.filter(
-                    state=state).aggregate(Max('order'))['order__max']
-                new_order = max_order + 1 if max_order is not None else 0
-
-                # Create new StatePaper
-                StatePaper.objects.create(
-                    state=state, paper=paper, order=new_order)
+                add_paper_to_fsm_state(paper, state)
 
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def duplicate_and_add_paper(self, request, pk=None):
+        state = self.get_object()
+        paper_id = request.data.get('paper_id')
+        paper = get_object_or_404(Paper, id=paper_id)
+
+        cloned_paper = paper.clone()
+
+        add_paper_to_fsm_state(cloned_paper, state)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def add_paper_to_fsm_state(paper, state):
+    try:
+        with transaction.atomic():
+            # Get the highest order number
+            max_order = StatePaper.objects.filter(
+                state=state).aggregate(Max('order'))['order__max']
+            new_order = max_order + 1 if max_order is not None else 0
+
+            # Create new StatePaper
+            StatePaper.objects.create(
+                state=state, paper=paper, order=new_order)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
