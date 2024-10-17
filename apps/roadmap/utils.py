@@ -14,7 +14,8 @@ def _get_fsm_links(fsm_id: int):
 
 def _get_player_transited_path(player_id: int):
     player: Player = Player.get_player(player_id)
-    transitions: list[PlayerTransition] = player.player_transitions.order_by('time').all()
+    transitions: list[PlayerTransition] = player.player_transitions.order_by(
+        'time').all()
     taken_path: list[Link] = []
 
     for transition in transitions:

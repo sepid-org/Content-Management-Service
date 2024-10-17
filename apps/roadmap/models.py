@@ -1,7 +1,7 @@
 from apps.fsm.models import PlayerTransition, State
 
 
-# todo: refactor: Link model should be replaced with PlayerTransiton model
+# todo: refactor: Link model should be replaced with PlayerTransition model
 class Link:
     source: str
     target: str
@@ -11,10 +11,10 @@ class Link:
         self.target = target
 
     @staticmethod
-    def get_link_from_states(source_state: State, taret_state: State):
-        if not source_state or not taret_state:
+    def get_link_from_states(source_state: State, target_state: State):
+        if not source_state or not target_state:
             return None
-        return Link(source_state.name, taret_state.name)
+        return Link(source_state.title, target_state.title)
 
     @staticmethod
     def get_link_from_transition(player_transition: PlayerTransition):
