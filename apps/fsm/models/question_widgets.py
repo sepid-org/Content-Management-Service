@@ -56,7 +56,7 @@ class UploadFileProblem(Problem):
 
 class MultiChoiceProblem(Problem):
     min_selections = models.IntegerField(
-        validators=[MaxValueValidator(0)], default=1)
+        validators=[MinValueValidator(0)], default=1)
     max_selections = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
     lock_after_answer = models.BooleanField(default=False)
