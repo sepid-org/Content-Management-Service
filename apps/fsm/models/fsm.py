@@ -36,8 +36,8 @@ class FSM(models.Model, ObjectMixin):
 
     website = models.CharField(blank=True, null=True, max_length=50)
 
-    program = models.ForeignKey(Program, on_delete=models.SET_NULL, related_name='fsms', default=None, null=True,
-                                blank=True)
+    program = models.ForeignKey(
+        Program, on_delete=models.SET_NULL, related_name='fsms', null=True, blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
                                 blank=True)
     mentors = models.ManyToManyField(

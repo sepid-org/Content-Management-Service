@@ -205,17 +205,6 @@ class AcademicStudentship(Studentship):
         User, related_name='academic_studentship', on_delete=models.CASCADE, null=False)
 
 
-class Player(models.Model):
-    user = models.ForeignKey(
-        User, related_name='workshops', on_delete=models.CASCADE)
-    fsm = models.ForeignKey(
-        'fsm.FSM', related_name='users', on_delete=models.CASCADE)
-    # purchase = models.ForeignKey('accounts.Purchase', related_name='purchase', on_delete=models.SET_NULL, null=True)
-    # registration_receipt = models.ForeignKey('fsm.RegistrationReceipt', on_delete=models.SET_NULL, null=True, blank=True)
-    scores = models.JSONField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-
 # class OwnableMixin(models.Model):
 #     owners = models.ManyToManyField(User, related_name='owned_entities')
 #
