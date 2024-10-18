@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from apps.fsm.models.response import BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
@@ -55,8 +55,11 @@ class UploadFileProblem(Problem):
 
 
 class MultiChoiceProblem(Problem):
-    maximum_choices_could_be_chosen = models.IntegerField(
+    min_selections = models.IntegerField(
+        validators=[MaxValueValidator(0)], default=1)
+    max_selections = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
+    lock_after_answer = models.BooleanField(default=False)
 
     def clone(self, paper):
         cloned_widget = clone_widget(self, paper)

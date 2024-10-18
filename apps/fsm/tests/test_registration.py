@@ -15,7 +15,7 @@ registration_form_creation_test_case = {
             "name": "p0",
             "text": "mcp1",
             "widget_type": "MultiChoiceProblem",
-            "maximum_choices_could_be_chosen": 2,
+            "max_selections": 2,
             "choices": [
                 "1",
                 "2",
@@ -62,7 +62,7 @@ registration_form_creation_test_case_response = {
             "widget_type": "MultiChoiceProblem",
             "creator": 2,
             "text": "mcp1",
-            "maximum_choices_could_be_chosen": 2,
+            "max_selections": 2,
             "choices": [
                 {
                     "id": 157,
