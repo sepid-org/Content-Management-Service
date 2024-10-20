@@ -9,7 +9,7 @@ from apps.fsm.models.question_widgets import Widget
 from apps.fsm.models.question_widgets import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer ,UploadFileAnswer , Choice , MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
-from apps.reports.utils import extract_content_from_html, gregorian_to_jalali
+from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 from proxies.metabase.main import MetabaseProxy
 
 url = settings.METABASE_URL
