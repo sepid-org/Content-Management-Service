@@ -1,7 +1,7 @@
 from typing import Any
 from rest_framework.viewsets import ModelViewSet
 
-from utilities.cache_enabled_model_viewset.model_view_set_cache import ModelViewSetCache
+from utils.cache_enabled_model_viewset.model_view_set_cache import ModelViewSetCache
 
 
 class CacheEnabledModelViewSet(ModelViewSet):

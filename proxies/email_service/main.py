@@ -1,7 +1,7 @@
 import requests
 
 from manage_content_service.settings.base import get_environment_var
-from utilities.singleton_class import Singleton
+from utils.singleton_class import Singleton
 
 url = get_environment_var(
     'EMAIL_SERVICE_URL', 'https://smtp.sepid.org/')

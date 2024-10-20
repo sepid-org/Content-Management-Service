@@ -1,6 +1,6 @@
 from typing import Dict
 from django.conf import settings
-from utilities.singleton_class import Singleton
+from utils.singleton_class import Singleton
 import requests
 import json
 

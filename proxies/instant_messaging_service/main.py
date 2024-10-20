@@ -1,7 +1,7 @@
 from django.conf import settings
 import requests
 from apps.accounts.models import User
-from utilities.singleton_class import Singleton
+from utils.singleton_class import Singleton
 
 
 class InstantMessagingServiceProxy(Singleton):

@@ -13,8 +13,8 @@ from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils import find_user_in_website
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
-from utilities.cache_enabled_model_viewset import CacheEnabledModelViewSet
-from utilities.safe_auth import SafeTokenAuthentication
+from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet
+from utils.safe_auth import SafeTokenAuthentication
 
 
 class ProgramViewSet(CacheEnabledModelViewSet):

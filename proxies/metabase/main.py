@@ -1,6 +1,6 @@
 import requests
 from django.conf import settings
-from utilities.singleton_class import Singleton
+from utils.singleton_class import Singleton
 
 
 class MetabaseProxy(Singleton):
