@@ -7,11 +7,11 @@ from rest_framework.parsers import MultiPartParser
 from django.db import transaction
 from rest_framework.exceptions import ParseError
 
-from apps.responses.serializers.answers.mock_answer_serializer import MockAnswerSerializer
+from apps.response.serializers.answers.mock_answer_serializer import MockAnswerSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import *
 from apps.fsm.permissions import CanAnswerWidget
-from apps.responses.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
 from proxies.assess_answer_service.main import assess_answer
 from proxies.bank_service.main import BankProxy
