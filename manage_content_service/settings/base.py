@@ -53,7 +53,7 @@ CUSTOM_APPS = [
     'apps.roadmap.apps.RoadmapConfig',
     'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
-    'apps.sales.apps.SalesConfig',
+    'apps.sale.apps.SaleConfig',
     'apps.file_storage.apps.FileStorageConfig',
     'apps.attributes.apps.AttributesConfig',
     'apps.response.apps.ResponseConfig',

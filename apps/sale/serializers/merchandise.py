@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import Merchandise
-from apps.sales.validators import price_validator
+from apps.sale.validators import price_validator
 
 
 class MerchandiseSerializer(serializers.ModelSerializer):

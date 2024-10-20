@@ -7,8 +7,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.models import Merchandise, DiscountCode
 from apps.accounts.permissions import IsMerchandiseOwner
-from apps.sales.serializers.merchandise import MerchandiseSerializer
-from apps.sales.serializers.discount_code import DiscountCodeSerializer
+from apps.sale.serializers.merchandise import MerchandiseSerializer
+from apps.sale.serializers.discount_code import DiscountCodeSerializer
 
 
 class MerchandiseViewSet(ModelViewSet):

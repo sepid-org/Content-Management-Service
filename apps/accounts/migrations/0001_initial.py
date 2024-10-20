@@ -10,7 +10,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import uuid
 
-import apps.sales
+import apps.sale
 
 
 class Migration(migrations.Migration):
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.CharField(max_length=10, unique=True)),
-                ('value', models.FloatField(validators=[apps.sales.validators.percentage_validator])),
+                ('value', models.FloatField(validators=[apps.sale.validators.percentage_validator])),
                 ('expiration_date', models.DateTimeField(blank=True, null=True)),
                 ('is_valid', models.BooleanField(default=True)),
             ],
