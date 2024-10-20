@@ -58,6 +58,7 @@ CUSTOM_APPS = [
     'apps.attributes.apps.AttributesConfig',
     'apps.responses.apps.ResponsesConfig',
     'apps.widgets.apps.WidgetsConfig',
+    'apps.currency.apps.CurrencyConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
