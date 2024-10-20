@@ -225,21 +225,6 @@ METABASE_USERNAME = get_environment_var('METABASE_USERNAME', None)
 METABASE_PASSWORD = get_environment_var('METABASE_PASSWORD', None)
 
 
-########## INSTANT MESSAGING ##########
-
-INSTANT_MESSAGE_URL = get_environment_var(
-    'INSTANT_MESSAGE_URL', 'https://ims.sepid.org/')
-
-
-########## PROXIES ##########
-
-BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
-
-
-ASSESS_ANSWER_SERVICE_URL = get_environment_var(
-    'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')
-
-
 ########## CORS ##########
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -275,3 +260,17 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+########## OTHER SERVICES ##########
+
+BANK = get_environment_var('BANK', 'http://localhost:20000/')
+
+WMS_URL = get_environment_var('WMS_URL', 'http://localhost:10000/')
+
+IMS_URL = get_environment_var(
+    'IMS_URL', 'https://ims.sepid.org/')
+
+BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
+
+ASSESS_ANSWER_SERVICE_URL = get_environment_var(
+    'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')

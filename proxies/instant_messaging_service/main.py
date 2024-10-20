@@ -5,7 +5,7 @@ from utils.singleton_class import Singleton
 
 
 class InstantMessagingServiceProxy(Singleton):
-    url = settings.INSTANT_MESSAGE_URL
+    url = settings.IMS_URL
 
     def __init__(self, website):
         self.website = website
