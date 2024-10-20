@@ -47,8 +47,15 @@ def spend_on_object(request):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Get user's current balance
+        # Check if the user has already spent on this object
         user_uuid = str(request.user.id)
+        if Spend.objects.filter(user=user_uuid, object=obj.id).exists():
+            return Response(
+                {"error": "You have already spent on this object."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get user's current balance
         user_balances = get_user_balances(user_uuid)
 
         # Validate user has enough balance
@@ -71,7 +78,7 @@ def spend_on_object(request):
         transfer_response = request_transfer(
             sender_id=user_uuid,
             receiver_id=website.get('uuid'),
-            funds=funds  # Note: If needed, update services.py to use 'funds' too
+            funds=funds
         )
 
         withdraw_transaction = transfer_response.get(
@@ -81,7 +88,7 @@ def spend_on_object(request):
         with transaction.atomic():
             spend = Spend.objects.create(
                 user=user_uuid,
-                object=obj,
+                object=obj.id,
                 fund=funds,
                 transaction_id=withdraw_transaction.get('id')
             )

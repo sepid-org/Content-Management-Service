@@ -6,7 +6,7 @@ from apps.fsm.models import Object
 class Spend(models.Model):
     """Records of coins spent on objects"""
     user = models.UUIDField()
-    object = models.ForeignKey(Object, on_delete=models.CASCADE)
+    object = models.IntegerField()
     fund = models.JSONField()
     spent_at = models.DateTimeField(auto_now_add=True)
     transaction_id = models.IntegerField()
@@ -15,4 +15,4 @@ class Spend(models.Model):
         ordering = ['-spent_at']
 
     def __str__(self):
-        return f"{self.user.username} spent {self.coins_spent} coins on {self.coin_product.name}"
+        return f"{self.user} spent {self.fund} coins on {self.object}"
