@@ -1,3 +1,101 @@
-from django.shortcuts import render
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from apps.fsm.models import Object
+from proxies.bank_service.bank import get_user_balances, request_transfer
+from proxies.website_service.main import get_website
+from .models import Spend
+from django.core.exceptions import ObjectDoesNotExist
 
-# Create your views here.
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def spend_on_object(request):
+    """
+    Endpoint to spend funds on an object.
+
+    Expected request body:
+    {
+        "object_id": "123",
+        "funds": {
+            "gold": 100,
+            "silver": 50,
+            ...
+        }
+    }
+    """
+    try:
+        # Validate request data
+        object_id = request.data.get('object_id')
+        funds = request.data.get('funds')
+
+        if not object_id or not funds:
+            return Response(
+                {"error": "Both object_id and funds are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate object exists
+        try:
+            obj = Object.objects.get(id=object_id)
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "Object not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get user's current balance
+        user_uuid = str(request.user.id)
+        user_balances = get_user_balances(user_uuid)
+
+        # Validate user has enough balance
+        for currency, amount in funds.items():
+            if user_balances.get(currency, 0) < amount:
+                return Response(
+                    {
+                        "error": f"Insufficient {currency} balance",
+                        "required": amount,
+                        "available": user_balances.get(currency, 0)
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Get website
+        website_name = request.headers.get('Website')
+        website = get_website(website_name)
+
+        # Process the transfer
+        transfer_response = request_transfer(
+            sender_id=user_uuid,
+            receiver_id=website.get('uuid'),
+            funds=funds  # Note: If needed, update services.py to use 'funds' too
+        )
+
+        withdraw_transaction = transfer_response.get(
+            'transactions').get('withdraw')
+
+        # If transfer successful, create spend record
+        with transaction.atomic():
+            spend = Spend.objects.create(
+                user=user_uuid,
+                object=obj,
+                fund=funds,
+                transaction_id=withdraw_transaction.get('id')
+            )
+
+            return Response({
+                "message": "Successfully spent funds on object",
+                "spend_id": spend.id,
+                "transaction_id": spend.transaction_id,
+                "spent_at": spend.spent_at,
+                "funds": spend.fund
+            }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response(
+            {"error": f"An unexpected error occurred: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
