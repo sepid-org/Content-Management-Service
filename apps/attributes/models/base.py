@@ -5,23 +5,14 @@ from abc import abstractmethod
 
 class Attribute(PolymorphicModel):
     """Base model for all attributes."""
-    name = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=50)
+    description = models.TextField(blank=True, null=True)
+    order = models.IntegerField(default=0)
     attributes = models.ManyToManyField(
         'self', symmetrical=False, blank=True, related_name='related_to')
-    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
-
-
-class IntrinsicAttributeTypes(models.TextChoices):
-    """Enumeration for intrinsic attribute types."""
-    COST = 'cost', 'Cost'
-    REWARD = 'reward', 'Reward'
-    REQUIRED_BALANCE = 'required_balance', 'Required Balance'
-    PASSWORD = 'password', 'Password'
-    DISABLED = 'disabled', 'Disabled'
-    CONDITION = 'condition', 'Condition'
+        return self.title
 
 
 class IntrinsicAttribute(Attribute):
@@ -31,19 +22,6 @@ class IntrinsicAttribute(Attribute):
     class Meta:
         verbose_name = 'Intrinsic Attribute'
         verbose_name_plural = 'Intrinsic Attributes'
-
-
-class PerformableActionTypes(models.TextChoices):
-    """Enumeration for performable actions."""
-    SEE = 'see', 'See'
-    PURCHASE = 'purchase', 'Purchase'
-    SELL = 'sell', 'Sell'
-    COPY = 'copy', 'Copy'
-    ASSESS_ANSWER = 'assess_answer', 'Assess Answer'
-    SOLVE = 'solve', 'Solve'
-    SUBMIT = 'submit', 'Submit'
-    ENTER = 'enter', 'Enter'
-    TRANSIT = 'transit', 'Transit'
 
 
 class PerformableAction(Attribute):
