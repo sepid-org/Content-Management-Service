@@ -218,28 +218,6 @@ class HasActiveRegistration(permissions.BasePermission):
                                                        is_participating=True))
 
 
-class CanAnswerWidget(permissions.BasePermission):
-    """
-    Permission to check whether user can submit an answer to this widget or not.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        if isinstance(obj, Problem):
-            if isinstance(obj.paper, State):
-                registration_form = obj.paper.fsm.program.registration_form
-                receipt = RegistrationReceipt.objects.filter(form=registration_form, user=request.user,
-                                                             is_participating=True).first()
-                if receipt is not None:
-                    if len(receipt.players.filter(fsm=obj.paper.fsm, current_state=obj.paper)) < 1:
-                        return False
-                else:
-                    return False
-
-            return True
-        else:
-            return False
-
-
 class ParticipantPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
