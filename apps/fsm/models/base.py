@@ -83,56 +83,6 @@ class ObjectMixin:
     def attributes(self):
         return self.object.attributes.all()
 
-    @property
-    def solve_cost(self):
-        return self._get_performable_action_intrinsic_attribute_template_method('solve', 'reward')
-
-    @property
-    def submission_cost(self):
-        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
-
-    @property
-    def submission_cost(self):
-        return self._get_performable_action_intrinsic_attribute_template_method('submit', 'cost')
-
-    @property
-    def has_transition_lock(self):
-        return bool(self.transition_lock)
-
-    @property
-    def transition_lock(self):
-        return self._get_performable_action_intrinsic_attribute_template_method('transit', 'password')
-
-    @property
-    def has_entrance_lock(self):
-        return bool(self.entrance_lock)
-
-    @property
-    def entrance_lock(self):
-        return self._get_performable_action_intrinsic_attribute_template_method('enter', 'password')
-
-    def _get_performable_action_intrinsic_attribute_template_method(self, performable_action_type, intrinsic_attribute_type):
-        for performable_action in self._get_performable_actions():
-            if performable_action.type == performable_action_type:
-                for intrinsic_attribute in performable_action.attributes.all():
-                    if intrinsic_attribute.type == intrinsic_attribute_type:
-                        return intrinsic_attribute.value
-        return None
-
-    def _get_intrinsic_attributes(self) -> list[IntrinsicAttribute]:
-        result = []
-        for attribute in self.attributes.all():
-            if isinstance(attribute, IntrinsicAttribute):
-                result.append(attribute)
-        return result
-
-    def _get_performable_actions(self) -> list[PerformableAction]:
-        result = []
-        for attribute in self.attributes.all():
-            if isinstance(attribute, PerformableAction):
-                result.append(attribute)
-        return result
-
 
 class Paper(PolymorphicModel, ObjectMixin):
     _object = models.OneToOneField(

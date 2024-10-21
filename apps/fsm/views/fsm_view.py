@@ -93,8 +93,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
         if not fsm.first_state:
             raise ParseError(serialize_error('4111'))
 
-        if fsm.entrance_lock and password != fsm.entrance_lock:
-            raise PermissionDenied(serialize_error('4080'))
+        # if fsm.entrance_lock and password != fsm.entrance_lock:
+        #     raise PermissionDenied(serialize_error('4080'))
 
         player = get_player(user, fsm)
 

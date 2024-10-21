@@ -62,9 +62,9 @@ class EdgeViewSet(ObjectViewSet):
             raise PermissionDenied(serialize_error('4087'))
 
         # check password:
-        password = request.data.get('password', None)
-        if edge.transition_lock and edge.transition_lock != password:
-            raise PermissionDenied(serialize_error('4084'))
+        # password = request.data.get('password', None)
+        # if edge.transition_lock and edge.transition_lock != password:
+        #     raise PermissionDenied(serialize_error('4084'))
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
