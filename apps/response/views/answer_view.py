@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -35,7 +36,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question"))
-        player = request.data.get("player")
+        player = get_object_or_404(Player, request.data.get("player"))
         user = request.user
 
         # check if user has already answered this question correctly
@@ -61,7 +62,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         for attribute in question.attributes.all():
             if isinstance(attribute, PerformableAction):
-                attribute.perform(player_id=player)
+                attribute.perform(player=player)
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
