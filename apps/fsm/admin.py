@@ -24,19 +24,19 @@ class ProgramContactInfoCustomAdmin(admin.ModelAdmin):
 
 class EdgeAdmin(admin.ModelAdmin):
     model = Edge
-    list_display = ['id', 'text', 'head_name', 'tail_name', 'is_visible']
-    list_filter = ['is_visible', 'head__name', 'tail__name']
+    list_display = ['id', 'head_title', 'tail_title', 'is_visible']
+    list_filter = ['is_visible', 'head__title', 'tail__title']
 
-    def head_name(self, obj):
-        name = obj.head.name
+    def head_title(self, obj):
+        name = obj.head.title
         return name
 
-    def tail_name(self, obj):
-        name = obj.tail.name
+    def tail_title(self, obj):
+        name = obj.tail.title
         return name
 
-    head_name.short_description = "به "
-    tail_name.short_description = "از "
+    head_title.short_description = "به "
+    tail_title.short_description = "از "
 
 
 class UploadFileAnswerAdmin(admin.ModelAdmin):

@@ -177,7 +177,7 @@ class State(Object):
                 fsm.save()
         except:
             pass
-        return super(State, self).delete()
+        return super().delete()
 
     def clone(self, fsm):
         cloned_state = clone_paper(self, fsm=fsm)
@@ -187,7 +187,7 @@ class State(Object):
         return cloned_state
 
     def __str__(self):
-        return f'گام: {self.title} | کارگاه: {str(self.fsm)}'
+        return f'گام: {self.title} | کارگاه: {self.fsm}'
 
 
 class Edge(models.Model, ObjectMixin):
@@ -200,7 +200,6 @@ class Edge(models.Model, ObjectMixin):
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=False)
-    text = models.TextField(null=True, blank=True)
 
     class Meta:
         unique_together = ('tail', 'head')

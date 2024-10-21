@@ -11,10 +11,10 @@ from apps.fsm.models import Program, FSM, Edge, Team
 
 class FSMMinimalSerializer(serializers.ModelSerializer):
 
-    class Meta(ObjectSerializer.Meta):
+    class Meta:
         model = FSM
-        fields = ObjectSerializer.Meta.fields + ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
-                                                 'fsm_learning_type', 'fsm_p_type', 'card_type', 'show_roadmap']
+        fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
+                  'fsm_learning_type', 'fsm_p_type', 'card_type', 'show_roadmap']
 
     def to_representation(self, instance):
         representation = super(FSMMinimalSerializer,

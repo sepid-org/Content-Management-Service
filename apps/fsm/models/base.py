@@ -7,7 +7,7 @@ from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAct
 
 class Object(PolymorphicModel):
     title = models.CharField(max_length=200)
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
     creator = models.UUIDField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -15,7 +15,7 @@ class Object(PolymorphicModel):
     is_private = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
     is_hidden = models.BooleanField(default=False)
-    website = models.CharField(blank=True, null=True, max_length=50)
+    website = models.CharField(null=True, blank=True, max_length=50)
 
     def clone(self):
         # Start a transaction to ensure atomicity

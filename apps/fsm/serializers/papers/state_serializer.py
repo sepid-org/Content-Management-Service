@@ -1,11 +1,9 @@
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
 
 from apps.fsm.models.base import Paper
 from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
-from errors.error_codes import serialize_error
 from apps.fsm.models import State
 
 
