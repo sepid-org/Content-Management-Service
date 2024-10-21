@@ -180,7 +180,7 @@ class AnswerSheet(PolymorphicModel):
         blank=True,
     )
     form = models.ForeignKey(
-        RegistrationForm, related_name='answer_sheets', on_delete=models.PROTECT)
+        Form, related_name='answer_sheets', on_delete=models.PROTECT)
 
     def delete(self):
         self.answers.clear()
