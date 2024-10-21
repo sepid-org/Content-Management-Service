@@ -68,8 +68,6 @@ class EdgeViewSet(ObjectViewSet):
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
-            if player.receipt.id != team.team_head.id:
-                raise ParseError(serialize_error('4089'))
             if player.current_state == edge.tail:
                 transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
 

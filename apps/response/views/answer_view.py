@@ -36,7 +36,9 @@ class AnswerViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question"))
-        player = get_object_or_404(Player, request.data.get("player"))
+        player_id = request.data.get("player")
+        if player_id:
+            player = get_object_or_404(Player, id=player_id)
         user = request.user
 
         # check if user has already answered this question correctly
@@ -60,6 +62,13 @@ class AnswerViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         answer = serializer.save()
 
+        # save answer in the player answer-sheet:
+        if player:
+            answer_sheet = player.answer_sheet
+            answer.answer_sheet = answer_sheet
+            answer.save()
+
+        # perform posterior actions
         for attribute in question.attributes.all():
             if isinstance(attribute, PerformableAction):
                 attribute.perform(player=player)

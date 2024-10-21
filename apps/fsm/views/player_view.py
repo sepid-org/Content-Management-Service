@@ -60,8 +60,6 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         # todo check back enable
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
-            if player.receipt.id != team.team_head.id:
-                raise ParseError(serialize_error('4089'))
             if player.current_state == edge.head:
                 transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
             return Response(status=status.HTTP_202_ACCEPTED)

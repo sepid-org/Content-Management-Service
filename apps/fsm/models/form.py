@@ -171,7 +171,10 @@ class AnswerSheet(PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     answer_sheet_type = models.CharField(
-        max_length=25, default=AnswerSheetType.General, choices=AnswerSheetType.choices)
+        max_length=25,
+        default=AnswerSheetType.General,
+        choices=AnswerSheetType.choices,
+    )
     user = models.ForeignKey(
         User,
         related_name='answer_sheets',
@@ -180,7 +183,12 @@ class AnswerSheet(PolymorphicModel):
         blank=True,
     )
     form = models.ForeignKey(
-        Form, related_name='answer_sheets', on_delete=models.PROTECT)
+        Form,
+        related_name='answer_sheets',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
 
     def delete(self):
         self.answers.clear()

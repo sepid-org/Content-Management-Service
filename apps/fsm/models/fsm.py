@@ -3,6 +3,7 @@ from apps.accounts.models import User
 
 from apps.attributes.models import Attribute
 from apps.fsm.models.base import Object, ObjectMixin, Paper, clone_paper
+from apps.fsm.models.form import AnswerSheet
 from apps.fsm.models.program import Program
 
 
@@ -105,8 +106,23 @@ class Player(models.Model):
     fsm = models.ForeignKey(FSM, related_name='players',
                             on_delete=models.CASCADE)
 
+    # can be deleted:
     receipt = models.ForeignKey(
         'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
+
+    @property
+    def answer_sheet(self):
+        if not self._answer_sheet:
+            self._answer_sheet = AnswerSheet.objects.create(user=self.user)
+            self._answer_sheet.save()
+        return self._answer_sheet
+
+    _answer_sheet = models.ForeignKey(
+        to=AnswerSheet,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                       related_name='players')
@@ -120,9 +136,6 @@ class Player(models.Model):
     @staticmethod
     def get_player(player_id: int):
         return Player.objects.filter(id=player_id).first()
-
-    class Meta:
-        unique_together = ('user', 'fsm', 'receipt')
 
     def __str__(self):
         return f'{self.user.full_name} in {self.fsm.name}'
