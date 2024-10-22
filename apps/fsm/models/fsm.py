@@ -116,7 +116,6 @@ class Player(models.Model):
             self._answer_sheet = AnswerSheet.objects.create(user=self.user)
             self._answer_sheet.save()
         return self._answer_sheet
-
     _answer_sheet = models.ForeignKey(
         to=AnswerSheet,
         on_delete=models.CASCADE,
@@ -126,8 +125,12 @@ class Player(models.Model):
 
     current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
                                       related_name='players')
+
     last_visit = models.DateTimeField(null=True, blank=True)
+
     is_active = models.BooleanField(default=True)
+
+    finished_at = models.DateTimeField(null=True, blank=True)
 
     @property
     def team(self):
