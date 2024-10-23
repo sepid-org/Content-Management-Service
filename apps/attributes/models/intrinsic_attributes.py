@@ -9,6 +9,7 @@ class Condition(IntrinsicAttribute):
             choices_must_have_been_selected = value.get(
                 'choices_must_have_been_selected')
             for choice_id in choices_must_have_been_selected:
+                answer_sheet = player.answer_sheet
                 # todo: check json condition in answer-sheet
                 pass
 
@@ -19,3 +20,7 @@ class Condition(IntrinsicAttribute):
                 pass
 
         return True
+
+
+class Reward(IntrinsicAttribute):
+    pass

@@ -62,7 +62,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         answer = serializer.save()
 
-        # save answer in the player answer-sheet:
+        # save answer in the player answer-sheet (if player exists):
         if player:
             answer_sheet = player.answer_sheet
             answer.answer_sheet = answer_sheet
@@ -71,7 +71,10 @@ class AnswerViewSet(viewsets.ModelViewSet):
         # perform posterior actions
         for attribute in question.attributes.all():
             if isinstance(attribute, PerformableAction):
-                attribute.perform(player=player)
+                attribute.perform(
+                    player=player,
+                    request=request,
+                )
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
