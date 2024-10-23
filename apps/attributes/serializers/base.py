@@ -7,16 +7,11 @@ from apps.attributes.models.base import IntrinsicAttribute, PerformableAction
 class AttributeSerializer(serializers.ModelSerializer):
     """Base serializer for all attributes."""
     attributes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    model_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Attribute
-        fields = ['id', 'title', 'description',
-                  'order', 'attributes', 'model_type']
-        read_only_fields = ['id', 'model_type']
-
-    def get_model_type(self, obj):
-        return obj.__class__.__name__
+        fields = ['id', 'title', 'description', 'order', 'attributes']
+        read_only_fields = ['id']
 
 
 class IntrinsicAttributeSerializer(AttributeSerializer):
@@ -25,7 +20,7 @@ class IntrinsicAttributeSerializer(AttributeSerializer):
     class Meta:
         model = IntrinsicAttribute
         fields = AttributeSerializer.Meta.fields + ['value']
-        read_only_fields = AttributeSerializer.Meta.read_only_fields
+        read_only_fields = AttributeSerializer.Meta.read_only_fields + []
 
 
 class PerformableActionSerializer(AttributeSerializer):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.attributes.models.intrinsic_attributes import Cost, Enabled, Condition, Reward
+from apps.attributes.models.intrinsic_attributes import Enabled, Condition, Funds
 from apps.attributes.models.performable_actions import Buy, Submission, Transition
 
 ################ INTRINSIC ATTRIBUTES ################
@@ -16,13 +16,8 @@ class ConditionCustomAdmin(admin.ModelAdmin):
     list_display = ['title', 'description', 'value']
 
 
-@admin.register(Cost)
-class CostCustomAdmin(admin.ModelAdmin):
-    list_display = ['title', 'description', 'value']
-
-
-@admin.register(Reward)
-class RewardCustomAdmin(admin.ModelAdmin):
+@admin.register(Funds)
+class FundsCustomAdmin(admin.ModelAdmin):
     list_display = ['title', 'description', 'value']
 
 

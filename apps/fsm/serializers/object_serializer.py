@@ -1,12 +1,15 @@
 
 from rest_framework import serializers
 
+from apps.attributes.serializers.polymorphic_attribute_serializer import AttributePolymorphicSerializer
 from apps.fsm.models import Object
 from apps.fsm.models.base import Position
 from apps.fsm.serializers.position_serializer import PositionSerializer
 
 
 class ObjectSerializer(serializers.ModelSerializer):
+    attributes = AttributePolymorphicSerializer(
+        required=False, read_only=True, many=True)
     position = serializers.SerializerMethodField(
         required=False, read_only=True)
 

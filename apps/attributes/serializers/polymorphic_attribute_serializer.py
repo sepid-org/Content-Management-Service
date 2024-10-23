@@ -1,22 +1,31 @@
-from ast import Attribute
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from apps.attributes.models.base import IntrinsicAttribute, PerformableAction
-from apps.attributes.models.performable_actions import Transition
-from apps.attributes.serializers.base import AttributeSerializer, IntrinsicAttributeSerializer, PerformableActionSerializer, TransitionSerializer
+from apps.attributes.models import *
+from apps.attributes.serializers.base import AttributeSerializer, IntrinsicAttributeSerializer, PerformableActionSerializer
+from apps.attributes.serializers.intrinsic_attributes import *
+from apps.attributes.serializers.performable_actions import *
 
 
-class PolymorphicAttributeSerializer(PolymorphicSerializer):
+class AttributePolymorphicSerializer(PolymorphicSerializer):
     """
     Polymorphic serializer that can handle all attribute types.
     Use this serializer when you need to work with mixed attribute types.
     """
     model_serializer_mapping = {
+        Attribute: AttributeSerializer,
+        # intrinsic
         IntrinsicAttribute: IntrinsicAttributeSerializer,
+        Funds: FundsSerializer,
+        Condition: ConditionSerializer,
+        Enabled: EnabledSerializer,
+        # actions
         PerformableAction: PerformableActionSerializer,
         Transition: TransitionSerializer,
-        Attribute: AttributeSerializer,
+        Buy: BuySerializer,
+        Submission: SubmissionSerializer,
     }
+
+    resource_type_field_name = 'type'
 
     class Meta:
         model = Attribute

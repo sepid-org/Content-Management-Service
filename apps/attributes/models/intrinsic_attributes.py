@@ -74,9 +74,5 @@ class Condition(IntrinsicAttribute):
         return True
 
 
-class Cost(IntrinsicAttribute):
-    pass
-
-
-class Reward(IntrinsicAttribute):
+class Funds(IntrinsicAttribute):
     pass

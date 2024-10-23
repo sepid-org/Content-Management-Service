@@ -19,8 +19,6 @@ class Transition(PerformableAction):
             id=self.destination_state_id
         )
 
-        print("##############", destination_state)
-
         player = kwargs.get('player')
         transit_player_in_fsm(
             player, player.current_state, destination_state)
@@ -29,6 +27,7 @@ class Transition(PerformableAction):
 
 
 class Buy(PerformableAction):
+
     def perform(self, *arg, **kwargs):
         # todo
         return True
