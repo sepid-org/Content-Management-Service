@@ -55,7 +55,7 @@ def request_transfer(sender_id: str, receiver_id: str, funds: dict):
     payload = {
         "sender_id": sender_id,
         "receiver_id": receiver_id,
-        "currency_amounts": funds
+        "funds": funds
     }
 
     return _post(url, payload)
