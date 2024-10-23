@@ -69,13 +69,11 @@ class AnswerViewSet(viewsets.ModelViewSet):
             answer.save()
 
         # perform posterior actions
-        for attribute in question.attributes.all():
-            from apps.attributes.models import PerformableAction
-            if isinstance(attribute, PerformableAction):
-                attribute.perform(
-                    player=player,
-                    request=request,
-                )
+        from apps.attributes.models import PerformableAction
+        performable_attributes = question.attributes.instance_of(
+            PerformableAction)
+        for performable_attribute in performable_attributes:
+            performable_attribute.perform(player=player, request=request)
 
         return Response(status=status.HTTP_202_ACCEPTED)
 

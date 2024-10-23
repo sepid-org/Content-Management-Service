@@ -22,11 +22,10 @@ class Attribute(PolymorphicModel):
     def is_permitted(self, *args, **kwargs):
         is_permitted = True
 
-        for attribute in self.attributes.all():
-            from .intrinsic_attributes import Condition
-
-            if isinstance(attribute, Condition):
-                is_permitted &= attribute.is_true(*args, **kwargs)
+        from .intrinsic_attributes import Condition
+        condition_attributes = self.attributes.instance_of(Condition)
+        for condition in condition_attributes:
+            is_permitted &= condition.is_true(*args, **kwargs)
 
         return is_permitted
 
@@ -49,10 +48,10 @@ class PerformableAction(Attribute):
     def give_reward(self, *args, **kwargs):
         total_reward = SumDict({})
 
-        for attribute in self.attributes.all():
-            from .intrinsic_attributes import Reward
-            if isinstance(attribute, Reward):
-                total_reward += SumDict(attribute.value)
+        from .intrinsic_attributes import Reward
+        reward_attributes = self.attributes.instance_of(Reward)
+        for reward in reward_attributes:
+            total_reward += SumDict(reward.value)
 
         if total_reward.is_zero():
             return
