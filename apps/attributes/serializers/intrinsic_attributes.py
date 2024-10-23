@@ -1,4 +1,4 @@
-from apps.attributes.models import Condition, Funds, Enabled
+from apps.attributes.models import Condition, Cost, Enabled, Reward
 from apps.attributes.serializers.base import IntrinsicAttributeSerializer
 
 
@@ -10,10 +10,18 @@ class ConditionSerializer(IntrinsicAttributeSerializer):
         read_only_fields = IntrinsicAttributeSerializer.Meta.read_only_fields + []
 
 
-class FundsSerializer(IntrinsicAttributeSerializer):
+class CostSerializer(IntrinsicAttributeSerializer):
 
     class Meta(IntrinsicAttributeSerializer.Meta):
-        model = Funds
+        model = Cost
+        fields = IntrinsicAttributeSerializer.Meta.fields
+        read_only_fields = IntrinsicAttributeSerializer.Meta.read_only_fields + []
+
+
+class RewardSerializer(IntrinsicAttributeSerializer):
+
+    class Meta(IntrinsicAttributeSerializer.Meta):
+        model = Reward
         fields = IntrinsicAttributeSerializer.Meta.fields
         read_only_fields = IntrinsicAttributeSerializer.Meta.read_only_fields + []
 

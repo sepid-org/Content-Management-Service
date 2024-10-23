@@ -15,7 +15,8 @@ class AttributePolymorphicSerializer(PolymorphicSerializer):
         Attribute: AttributeSerializer,
         # intrinsic
         IntrinsicAttribute: IntrinsicAttributeSerializer,
-        Funds: FundsSerializer,
+        Cost: CostSerializer,
+        Reward: RewardSerializer,
         Condition: ConditionSerializer,
         Enabled: EnabledSerializer,
         # actions
