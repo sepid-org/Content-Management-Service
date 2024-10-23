@@ -2,7 +2,7 @@ from django.db import models, transaction
 from polymorphic.models import PolymorphicModel
 from abc import abstractmethod
 
-from apps.attributes.models import Attribute, IntrinsicAttribute, PerformableAction
+from apps.attributes.models import Attribute
 
 
 class Object(PolymorphicModel):

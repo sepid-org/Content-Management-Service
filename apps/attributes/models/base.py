@@ -13,7 +13,22 @@ class Attribute(PolymorphicModel):
     description = models.TextField(blank=True, null=True)
     order = models.IntegerField(default=0)
     attributes = models.ManyToManyField(
-        'self', symmetrical=False, blank=True, related_name='related_to')
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='related_to',
+    )
+
+    def is_permitted(self, *args, **kwargs):
+        is_permitted = True
+
+        for attribute in self.attributes.all():
+            from .intrinsic_attributes import Condition
+
+            if isinstance(attribute, Condition):
+                is_permitted &= attribute.is_true(*args, **kwargs)
+
+        return is_permitted
 
     def __str__(self):
         return self.title
@@ -31,18 +46,7 @@ class IntrinsicAttribute(Attribute):
 class PerformableAction(Attribute):
     """Attributes representing actions that can be performed."""
 
-    def is_permitted(self, player):
-        is_permitted = True
-
-        for attribute in self.attributes.all():
-            from .intrinsic_attributes import Condition
-
-            if isinstance(attribute, Condition):
-                is_permitted &= attribute.is_true(player)
-
-        return is_permitted
-
-    def give_reward(self, request):
+    def give_reward(self, *args, **kwargs):
         total_reward = SumDict({})
 
         for attribute in self.attributes.all():
@@ -54,6 +58,7 @@ class PerformableAction(Attribute):
             return
 
         # Get website
+        request = kwargs.get('request')
         website_name = request.headers.get('Website')
         website = get_website(website_name)
 

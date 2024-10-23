@@ -70,6 +70,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         # perform posterior actions
         for attribute in question.attributes.all():
+            from apps.attributes.models import PerformableAction
             if isinstance(attribute, PerformableAction):
                 attribute.perform(
                     player=player,
