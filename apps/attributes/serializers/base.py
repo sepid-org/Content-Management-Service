@@ -1,17 +1,20 @@
-from ast import Attribute
 from rest_framework import serializers
 
-from apps.attributes.models.base import IntrinsicAttribute, PerformableAction
+from apps.attributes.models.base import Attribute, IntrinsicAttribute, PerformableAction
 
 
 class AttributeSerializer(serializers.ModelSerializer):
     """Base serializer for all attributes."""
-    attributes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    attributes = serializers.SerializerMethodField()
+
+    def get_attributes(self, obj):
+        from apps.attributes.serializers.polymorphic_attribute_serializer import AttributePolymorphicSerializer
+        return AttributePolymorphicSerializer(obj.attributes, many=True).data
 
     class Meta:
         model = Attribute
         fields = ['id', 'title', 'description', 'order', 'attributes']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'attributes']
 
 
 class IntrinsicAttributeSerializer(AttributeSerializer):
@@ -28,5 +31,5 @@ class PerformableActionSerializer(AttributeSerializer):
 
     class Meta:
         model = PerformableAction
-        fields = AttributeSerializer.Meta.fields
-        read_only_fields = AttributeSerializer.Meta.read_only_fields
+        fields = AttributeSerializer.Meta.fields + []
+        read_only_fields = AttributeSerializer.Meta.read_only_fields + []
