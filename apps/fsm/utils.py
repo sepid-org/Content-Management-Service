@@ -72,6 +72,10 @@ def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state:
 
 
 def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge = None) -> Player:
+
+    if not is_transition_permitted(source_state, target_state):
+        raise ParseError(serialize_error('4119'))
+
     player.current_state = target_state
     transition_time = timezone.now()
 
@@ -112,6 +116,13 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
     )
 
     return player
+
+
+def is_transition_permitted(source_state: State, target_state: State):
+    if source_state.id == target_state.id:
+        return True
+    # todo
+    return True
 
 
 def get_a_player_from_team(team, fsm) -> Player:

@@ -98,17 +98,17 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     def transit_to_state(self, request):
         state_id = request.data.get('state')
         state = get_object_or_404(State, id=state_id)
+        user = request.user
+
         try:
-            player = Player.objects.get(user=request.user, fsm=state.fsm)
+            player = Player.objects.get(
+                user=user, fsm=state.fsm, finished_at__isnull=True)
         except:
             player = Player.objects.create(
-                user=request.user,
+                user=user,
                 fsm=state.fsm,
                 current_state=state,
             )
-
-        if not is_transition_permitted(player.current_state, state):
-            raise ParseError(serialize_error('4119'))
 
         transit_player_in_fsm(
             player=player,
@@ -117,10 +117,3 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-def is_transition_permitted(source_state: State, target_state: State):
-    if source_state.id == target_state.id:
-        return True
-    # todo
-    return True
