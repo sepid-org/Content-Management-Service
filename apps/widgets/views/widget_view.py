@@ -1,11 +1,9 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
-from rest_framework.decorators import parser_classes, action
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
-from rest_framework.parsers import MultiPartParser
 from django.db import transaction
-from drf_yasg import openapi
 
 from apps.fsm.models import *
 from apps.fsm.serializers.object_serializer import ObjectSerializer
@@ -15,7 +13,6 @@ from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymor
 
 class WidgetViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes([MultiPartParser])
     queryset = Widget.objects.all()
     serializer_class = WidgetPolymorphicSerializer
     my_tags = ['widgets']
@@ -66,17 +63,6 @@ class WidgetViewSet(viewsets.ModelViewSet):
 
         return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        method='post',
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_INTEGER))
-            },
-            required=['ids']
-        ),
-        responses={200: WidgetPolymorphicSerializer(many=True)}
-    )
     @action(detail=False, methods=['post'])
     def get_widgets_by_ids(self, request):
         ids = request.data.get('ids', [])
