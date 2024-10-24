@@ -119,8 +119,8 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
 
 
 def is_transition_permitted(source_state: State, target_state: State):
-    if source_state.id == target_state.id:
-        return True
+    # if source_state.id == target_state.id:
+    #     return True
     # todo
     return True
 
