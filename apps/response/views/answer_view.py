@@ -37,6 +37,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
     def submit_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question"))
         player_id = request.data.get("player")
+        player = None
         if player_id:
             player = get_object_or_404(Player, id=player_id)
         user = request.user
