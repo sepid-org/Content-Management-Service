@@ -1,11 +1,12 @@
 from rest_framework import status
 from django.utils import timezone
+from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from apps.fsm.models import Program
+from apps.fsm.models import Program, Player, RegistrationReceipt
 from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
@@ -99,12 +100,50 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         })
 
     @action(detail=True, methods=['get'])
-    def get_fsms_user_permissions(self, request, slug=None):
+    def get_user_fsms_status(self, request, slug=None):
+        """Get FSM status for a user with optimized database queries."""
         program = self.get_object()
-        return Response({
-            'fsm_id': fsm.id,
-            'is_mentor': request.user in fsm.mentors.all(),
-        } for fsm in program.fsms.all())
+        user = request.user
+
+        # Prefetch related FSMs with necessary relationships
+        fsms = program.fsms.prefetch_related(
+            'mentors',
+            Prefetch(
+                'players',
+                queryset=Player.objects.filter(
+                    user=user,
+                    is_active=True
+                ).select_related('receipt'),
+                to_attr='user_players'
+            )
+        ).all()
+
+        # Get all relevant registration receipts in one query
+        receipts = {
+            receipt.form_id: receipt
+            for receipt in RegistrationReceipt.objects.filter(
+                user=user,
+                form=program.registration_form,
+                is_participating=True
+            )
+        }
+
+        # Build status list without additional queries
+        status = []
+        for fsm in fsms:
+            player = next(
+                (p for p in fsm.user_players
+                 if p.receipt_id == receipts.get(fsm.program.registration_form_id)),
+                None
+            )
+
+            status.append({
+                'fsm_id': fsm.id,
+                'is_finished': bool(player and player.finished_at),
+                'is_mentor': user in fsm.mentors.all(),
+            })
+
+        return Response(status)
 
     def _find_user(self, user_data, website):
         return find_user_in_website(user_data=user_data, website=website, raise_exception=True)
