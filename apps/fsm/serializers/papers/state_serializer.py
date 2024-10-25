@@ -3,7 +3,6 @@ from rest_framework import serializers
 
 from apps.fsm.models.base import Paper
 from apps.fsm.serializers.object_serializer import ObjectSerializer
-from apps.fsm.serializers.papers.hint_serializer import HintSerializer
 from apps.fsm.models import State
 
 
@@ -14,7 +13,6 @@ class StateSimpleSerializer(serializers.ModelSerializer):
 
 
 class StateSerializer(ObjectSerializer):
-    hints = HintSerializer(many=True, read_only=True)
     papers = serializers.SerializerMethodField()
 
     def get_papers(self, obj):
@@ -40,5 +38,5 @@ class StateSerializer(ObjectSerializer):
         ref_name = 'state'
 
         fields = ObjectSerializer.Meta.fields + \
-            ['id', 'papers', 'template', 'fsm', 'hints', 'show_appbar', 'is_end']
-        read_only_fields = ObjectSerializer.Meta.read_only_fields + ['hints']
+            ['id', 'papers', 'template', 'fsm', 'show_appbar', 'is_end']
+        read_only_fields = ObjectSerializer.Meta.read_only_fields + []

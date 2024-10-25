@@ -23,18 +23,11 @@ class WidgetViewSet(viewsets.ModelViewSet):
         except (KeyError, AttributeError):
             return super().get_serializer_class()
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'user': self.request.user})
-        context.update(
-            {'domain': self.request.build_absolute_uri('/api/')[:-5]})
-        return context
-
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        serializer = WidgetPolymorphicSerializer(
-            data=request.data, context=self.get_serializer_context())
+        request.data['creator'] = request.user.id
+        serializer = WidgetPolymorphicSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         widget_instance = serializer.save()
 

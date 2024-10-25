@@ -95,16 +95,13 @@ class DetailBoxWidgetSerializer(ContentWidgetSerializer):
         return PaperMinimalSerializer(obj.details).data
 
     def create(self, validated_data):
-        user = self.context.get('request').user
-        details_instance = Paper.objects.create(**{
-            'paper_type': Paper.PaperType.General,
-            'creator': user,
-        })
-        return super(DetailBoxWidgetSerializer, self).create({
-            'widget_type': Widget.WidgetTypes.DetailBoxWidget,
-            'details': details_instance,
-            **validated_data,
-        })
+        details_instance = Paper.objects.create(
+            paper_type=Paper.PaperType.General,
+            creator=validated_data.get('creator'),
+        )
+        validated_data['widget_type'] = Widget.WidgetTypes.DetailBoxWidget
+        validated_data['details'] = details_instance
+        return super().create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = DetailBoxWidget

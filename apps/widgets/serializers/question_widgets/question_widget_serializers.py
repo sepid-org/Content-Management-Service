@@ -55,13 +55,6 @@ class SmallAnswerProblemSerializer(QuestionWidgetSerializer):
                     serializer.save()
         return instance
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        user = self.context.get('user')
-        if hasattr(instance.paper, 'fsm') and user and not user in instance.paper.fsm.mentors.all():
-            del representation['correct_answer']
-        return representation
-
 
 class BigAnswerProblemSerializer(QuestionWidgetSerializer):
 
@@ -126,27 +119,12 @@ class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
         question_instance.save()
         return question_instance
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        user = self.context.get('user')
-        if hasattr(instance.paper, 'fsm') and user and not user in instance.paper.fsm.mentors.all():
-            for choice in representation['choices']:
-                del choice['is_correct']
-        return representation
-
 
 class UploadFileProblemSerializer(WidgetSerializer):
 
     class Meta(QuestionWidgetSerializer.Meta):
         model = UploadFileProblem
         fields = QuestionWidgetSerializer.Meta.fields + []
-
-    def validate_answer(self, answer):
-        if answer.problem is not None:
-            raise ParseError(serialize_error('4047'))
-        elif answer.submitted_by != self.context.get('user', None):
-            raise ParseError(serialize_error('4048'))
-        return answer
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

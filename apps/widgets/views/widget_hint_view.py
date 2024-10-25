@@ -1,4 +1,7 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
 from apps.fsm.models import WidgetHint
 from apps.fsm.models.base import Paper
@@ -8,21 +11,23 @@ from apps.widgets.serializers.widget_hint_serializer import WidgetHintSerializer
 class WidgetHintViewSet(viewsets.ModelViewSet):
     serializer_class = WidgetHintSerializer
     queryset = WidgetHint.objects.all()
-    my_tags = ['state']
-
-    def get_serializer_class(self):
-        try:
-            return self.serializer_action_classes[self.action]
-        except (KeyError, AttributeError):
-            return super().get_serializer_class()
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'user': self.request.user})
-        context.update(
-            {'domain': self.request.build_absolute_uri('/api/')[:-5]})
-        return context
+    my_tags = ['widget-hint']
 
     def create(self, request, *args, **kwargs):
         request.data['paper_type'] = Paper.PaperType.WidgetHint
+        request.data['creator'] = request.user.id
         return super().create(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'], url_path='by-widget')
+    def by_widget(self, request):
+        widget_id = request.query_params.get('widget_id')
+
+        if not widget_id:
+            return Response(
+                {"error": "widget_id query parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        hints = self.queryset.filter(reference=widget_id)
+        serializer = self.get_serializer(hints, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
