@@ -6,6 +6,5 @@ class WidgetHintSerializer(PaperSerializer):
 
     class Meta(PaperSerializer.Meta):
         model = WidgetHint
-        ref_name = 'hint'
-        fields = PaperSerializer.Meta.fields + ['reference']
+        fields = PaperSerializer.Meta.get_fields() + ['reference']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
