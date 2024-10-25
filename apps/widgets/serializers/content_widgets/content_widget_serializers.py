@@ -69,7 +69,7 @@ class TextWidgetSerializer(ContentWidgetSerializer):
 
     def create(self, validated_data):
         validated_data['widget_type'] = Widget.WidgetTypes.TextWidget
-        return super(TextWidgetSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta(ContentWidgetSerializer.Meta):
         model = TextWidget
