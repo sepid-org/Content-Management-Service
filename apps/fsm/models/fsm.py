@@ -112,10 +112,6 @@ class Player(models.Model):
         on_delete=models.CASCADE,
     )
 
-    # can be deleted:
-    receipt = models.ForeignKey(
-        'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
-
     @property
     def answer_sheet(self):
         if not self._answer_sheet:
@@ -138,10 +134,12 @@ class Player(models.Model):
     )
 
     last_visit = models.DateTimeField(null=True, blank=True)
-
+    finished_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
-    finished_at = models.DateTimeField(null=True, blank=True)
+    # todo: think about it. should player really connect to receipt?
+    receipt = models.ForeignKey(
+        'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
 
     @property
     def team(self):
