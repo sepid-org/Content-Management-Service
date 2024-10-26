@@ -13,7 +13,6 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
 
 from apps.fsm.models.content_widgets import Placeholder
 from apps.fsm.models.fsm import State, StatePaper
-from apps.fsm.utils import get_django_file
 
 
 @admin.register(ProgramContactInfo)
@@ -450,23 +449,12 @@ class IframeCustomAdmin(admin.ModelAdmin):
     search_fields = ['link']
 
 
-def download_files_from_links(self, request, queryset):
-    for media in queryset:
-        try:
-            if not media.file:
-                link_file = get_django_file(media.link)
-                media.file = link_file
-                media.save()
-        except:
-            pass
-
-
 @admin.register(Video)
 class VideoCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper', 'widget_type', 'creator']
     list_filter = []
     search_fields = []
-    actions = [download_files_from_links]
+    actions = []
 
 
 @admin.register(Audio)
@@ -488,7 +476,7 @@ class ImageCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper', 'widget_type', 'creator']
     list_filter = []
     search_fields = []
-    actions = [download_files_from_links]
+    actions = []
 
 
 @admin.register(Hint)

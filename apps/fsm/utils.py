@@ -1,45 +1,16 @@
-from django.utils import timezone
-from apps.accounts.models import User
-from errors.error_codes import serialize_error
-from rest_framework.exceptions import ParseError
 import logging
-import requests
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from io import BytesIO
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
+from django.utils import timezone
+from rest_framework.exceptions import ParseError
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from apps.accounts.models import User
 from apps.fsm.models import FSM, AnswerSheet, Edge, Player, PlayerStateHistory, PlayerTransition, Program, RegistrationReceipt, State, Team
-
-
-def go_next_step(player):
-    pass
-
-
-def go_to_state(destination):
-    pass
+from errors.error_codes import serialize_error
 
 
 def _get_fsm_edges(fsm: FSM) -> list[Edge]:
     return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm)).order_by('-id')
-
-
-def get_django_file(url: str):
-    request = requests.get(url, allow_redirects=True)
-
-    if not request.ok:
-        raise Exception("fail to fetch")
-
-    file_name = url.rsplit('/', 1)[1]
-    file_type = request.headers.get('content-type')
-    file_size = int(request.headers.get('content-length'))
-
-    file_io = BytesIO(request.content)
-
-    django_file = InMemoryUploadedFile(
-        file_io, None, file_name, file_type,  file_size, None)
-
-    return django_file
 
 
 class SafeTokenAuthentication(JWTAuthentication):
@@ -59,9 +30,8 @@ def get_receipt(user, fsm) -> RegistrationReceipt:
                                               is_participating=True).first()
 
 
-def get_player(user, fsm) -> Player:
-    receipt = get_receipt(user, fsm)
-    return user.players.filter(fsm=fsm, receipt=receipt, is_active=True).first()
+def get_players(user, fsm) -> list[Player]:
+    return fsm.players.filter(user=user)
 
 
 def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge) -> None:
