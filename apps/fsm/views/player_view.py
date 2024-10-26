@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
@@ -24,7 +25,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     permission_classes = [IsAuthenticated]
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
-    my_tags = ['fsm']
+    my_tags = ['player']
 
     def get_permissions(self):
         if self.action in ['retrieve', 'mentor_move_backward']:
@@ -117,3 +118,10 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='finish-fsm')
+    def finish_fsm(self, request, pk=None):
+        player = self.get_object()
+        player.finished_at = timezone.now()
+        player.save()
+        return Response()

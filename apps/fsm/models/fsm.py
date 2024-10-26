@@ -100,11 +100,17 @@ class FSM(models.Model, ObjectMixin):
 
 
 class Player(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        User, related_name='players', on_delete=models.CASCADE)
-    fsm = models.ForeignKey(FSM, related_name='players',
-                            on_delete=models.CASCADE)
+        to=User,
+        related_name='players',
+        on_delete=models.CASCADE,
+    )
+    fsm = models.ForeignKey(
+        to=FSM,
+        related_name='players',
+        on_delete=models.CASCADE,
+    )
 
     # can be deleted:
     receipt = models.ForeignKey(
@@ -123,8 +129,13 @@ class Player(models.Model):
         blank=True,
     )
 
-    current_state = models.ForeignKey('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
-                                      related_name='players')
+    current_state = models.ForeignKey(
+        to='fsm.State',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='players',
+    )
 
     last_visit = models.DateTimeField(null=True, blank=True)
 

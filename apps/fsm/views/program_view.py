@@ -92,54 +92,26 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         self.cache.invalidate_list_cache(request.headers.get('Website'))
         return Response()
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='user-permissions')
     def get_user_permissions(self, request, slug=None):
         program = self.get_object()
         return Response({
             'is_manager': request.user in program.modifiers,
         })
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='user-fsms-status')
     def get_user_fsms_status(self, request, slug=None):
-        """Get FSM status for a user with optimized database queries."""
         program = self.get_object()
         user = request.user
-
-        # Prefetch related FSMs with necessary relationships
-        fsms = program.fsms.prefetch_related(
-            'mentors',
-            Prefetch(
-                'players',
-                queryset=Player.objects.filter(
-                    user=user,
-                    is_active=True
-                ).select_related('receipt'),
-                to_attr='user_players'
-            )
-        ).all()
-
-        # Get all relevant registration receipts in one query
-        receipts = {
-            receipt.form_id: receipt
-            for receipt in RegistrationReceipt.objects.filter(
-                user=user,
-                form=program.registration_form,
-                is_participating=True
-            )
-        }
-
-        # Build status list without additional queries
+        fsms = program.fsms.all()
         status = []
+        from apps.fsm.utils import get_players
         for fsm in fsms:
-            player = next(
-                (p for p in fsm.user_players
-                 if p.receipt_id == receipts.get(fsm.program.registration_form_id)),
-                None
-            )
-
+            players = get_players(user, fsm)
             status.append({
                 'fsm_id': fsm.id,
-                'is_finished': bool(player and player.finished_at),
+                'has_active_player': players.filter(finished_at__isnull=False).exists(),
+                'count_of_playing': players.count(),
                 'is_mentor': user in fsm.mentors.all(),
             })
 

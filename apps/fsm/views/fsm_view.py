@@ -21,7 +21,7 @@ from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerial
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
-from apps.fsm.utils import get_player, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
+from apps.fsm.utils import get_players, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
 from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet
 
 
@@ -96,7 +96,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         # if fsm.entrance_lock and password != fsm.entrance_lock:
         #     raise PermissionDenied(serialize_error('4080'))
 
-        player = get_player(user, fsm)
+        player = get_players(user, fsm).filter(finished_at__isnull=True).last()
 
         # first time entering fsm
         if not player:
@@ -128,7 +128,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
     def current_user_fsm_player(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
-        player = get_player(user, fsm)
+        player = get_players(user, fsm).last()
         return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
