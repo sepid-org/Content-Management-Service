@@ -110,7 +110,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
             players = get_players(user, fsm)
             status.append({
                 'fsm_id': fsm.id,
-                'has_playing_player': players.filter(finished_at__isnull=False).exists(),
+                'has_playing_player': players.filter(finished_at__isnull=True).exists(),
                 'count_of_playing': players.count(),
                 'is_mentor': user in fsm.mentors.all(),
             })
