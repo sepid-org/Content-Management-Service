@@ -13,6 +13,31 @@ class Condition(IntrinsicAttribute):
         player = kwargs.get('player')
         value = self.value
 
+        if 'expected_correct_choices_in_last_answer_count' in value:
+            expected_count = value.get(
+                'expected_correct_choices_in_last_answer_count')
+
+            try:
+                # Get the last multi-choice answer in a single query
+                from apps.fsm.models.response import MultiChoiceAnswer
+                last_answer = (
+                    player.answer_sheet.answers
+                    .instance_of(MultiChoiceAnswer)
+                    .prefetch_related('choices')
+                    .latest('id')
+                )
+
+                # Count how many of the selected choices are marked as correct
+                correct_choices_count = sum(
+                    1 for choice in last_answer.choices.all()
+                    if choice.is_correct
+                )
+
+                return correct_choices_count == expected_count
+
+            except MultiChoiceAnswer.DoesNotExist:
+                return False
+
         if 'completed_fsms' in value:
             completed_fsm_ids = value.get('completed_fsms')
             # Get distinct completed FSMs
