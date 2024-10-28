@@ -19,7 +19,7 @@ class Attribute(PolymorphicModel):
         related_name='related_to',
     )
 
-    def is_permitted(self, *args, **kwargs):
+    def is_permitted(self, *args, **kwargs) -> bool:
         is_permitted = True
 
         from .intrinsic_attributes import Condition
@@ -69,7 +69,7 @@ class PerformableAction(Attribute):
         )
 
     @abstractmethod
-    def perform(self, *args, **kwargs):
+    def perform(self, *args, **kwargs) -> bool:
         pass
 
     class Meta:

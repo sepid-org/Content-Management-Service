@@ -7,7 +7,7 @@ from django.db import models
 class Transition(PerformableAction):
     destination_state_id = models.IntegerField()
 
-    def perform(self, *arg, **kwargs):
+    def perform(self, *arg, **kwargs) -> bool:
 
         if not self.is_permitted(*arg, **kwargs):
             return False
@@ -21,7 +21,10 @@ class Transition(PerformableAction):
 
         player = kwargs.get('player')
         transit_player_in_fsm(
-            player, player.current_state, destination_state)
+            player,
+            player.current_state,
+            destination_state,
+        )
 
         return True
 

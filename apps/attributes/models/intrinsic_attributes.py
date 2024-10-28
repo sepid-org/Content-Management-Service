@@ -12,6 +12,7 @@ class Condition(IntrinsicAttribute):
     def is_true(self, *args, **kwargs):
         player = kwargs.get('player')
         value = self.value
+        total_condition_result = True
 
         if 'expected_correct_choices_in_last_answer_count' in value:
             expected_count = value.get(
@@ -33,10 +34,10 @@ class Condition(IntrinsicAttribute):
                     if choice.is_correct
                 )
 
-                return correct_choices_count == expected_count
+                total_condition_result = correct_choices_count == expected_count
 
             except MultiChoiceAnswer.DoesNotExist:
-                return False
+                total_condition_result = False
 
         if 'completed_fsms' in value:
             completed_fsm_ids = value.get('completed_fsms')
@@ -49,7 +50,8 @@ class Condition(IntrinsicAttribute):
             ).values('fsm_id').distinct().count()
 
             # Compare with the total number of required unique FSMs
-            return completed_fsm_count == len(set(completed_fsm_ids))
+            total_condition_result = \
+                completed_fsm_count == len(set(completed_fsm_ids))
 
         if 'expected_choices' in value:
             expected_choice_ids = value.get('expected_choices')
@@ -70,7 +72,8 @@ class Condition(IntrinsicAttribute):
             }
 
             # Check if all expected choices exist in the set
-            return all(choice_id in all_choice_ids for choice_id in expected_choice_ids)
+            total_condition_result = \
+                all(choice_id in all_choice_ids for choice_id in expected_choice_ids)
 
         if 'expected_choices_in_last_answer' in value:
             expected_choice_ids = value.get('expected_choices_in_last_answer')
@@ -91,12 +94,13 @@ class Condition(IntrinsicAttribute):
 
                 expected_choice_ids = set(expected_choice_ids)
 
-                return submitted_choice_ids == expected_choice_ids
+                total_condition_result = submitted_choice_ids == expected_choice_ids
 
             except MultiChoiceAnswer.DoesNotExist:
-                return False
+                total_condition_result = False
 
-        return True
+        is_not = value.get('not', False)
+        return total_condition_result ^ is_not
 
 
 class Cost(IntrinsicAttribute):
