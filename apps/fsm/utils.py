@@ -26,8 +26,10 @@ logger = logging.getLogger(__name__)
 
 def get_receipt(user, fsm) -> RegistrationReceipt:
     registration_form = fsm.program.registration_form
-    return RegistrationReceipt.objects.filter(user=user, form=registration_form,
-                                              is_participating=True).first()
+    try:
+        return RegistrationReceipt.objects.get(user=user, form=registration_form, is_participating=True)
+    except:
+        return None
 
 
 def get_players(user, fsm) -> list[Player]:

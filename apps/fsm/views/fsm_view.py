@@ -79,12 +79,12 @@ class FSMViewSet(CacheEnabledModelViewSet):
             if isinstance(user, AnonymousUser):
                 pass
 
-        password = self.request.data.get('password', None)
+        # password = self.request.data.get('password', None)
         receipt = get_receipt(user, fsm)
-        is_mentor = user in fsm.mentors.all()
+        # is_mentor = user in fsm.mentors.all()
 
-        if receipt is None:
-            raise ParseError(serialize_error('4079'))
+        # if receipt is None:
+        #     raise ParseError(serialize_error('4079'))
 
         if fsm.fsm_p_type in [FSM.FSMPType.Team, FSM.FSMPType.Hybrid]:
             if receipt.team is None:
@@ -104,11 +104,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
                 data={
                     'user': user.id,
                     'fsm': fsm.id,
-                    'receipt': receipt.id,
+                    'receipt': receipt,
                     'current_state': fsm.first_state.id,
                     'last_visit': timezone.now(),
-                },
-                context=self.get_serializer_context()
+                }
             )
             serializer.is_valid(raise_exception=True)
             player = serializer.save()
@@ -124,8 +123,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
-    @action(detail=True, methods=['get'], serializer_class=KeySerializer)
-    def current_user_fsm_player(self, request, pk=None):
+    @action(detail=True, methods=['get'], url_path='user-player')
+    def get_user_player(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
         player = get_players(user, fsm).last()

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.fsm.models import Player, PlayerStateHistory
-from apps.fsm.serializers.team_serializer import TeamSerializer
 
 
 class PlayerHistorySerializer(serializers.ModelSerializer):
@@ -12,12 +11,11 @@ class PlayerHistorySerializer(serializers.ModelSerializer):
 
 
 class PlayerMinimalSerializer(serializers.ModelSerializer):
-    team = TeamSerializer()
 
     class Meta:
         model = Player
-        fields = ['id', 'team', 'current_state']
-        read_only_fields = ['id', 'current_state', 'team']
+        fields = ['id', 'current_state']
+        read_only_fields = ['id', 'current_state']
 
 
 class PlayerSerializer(serializers.ModelSerializer):

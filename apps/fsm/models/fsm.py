@@ -3,7 +3,7 @@ from apps.accounts.models import User
 
 from apps.attributes.models import Attribute
 from apps.fsm.models.base import Object, ObjectMixin, Paper, clone_paper
-from apps.fsm.models.form import AnswerSheet
+from apps.fsm.models.form import AnswerSheet, RegistrationReceipt
 from apps.fsm.models.program import Program
 
 
@@ -139,11 +139,12 @@ class Player(models.Model):
 
     # todo: think about it. should player really connect to receipt?
     receipt = models.ForeignKey(
-        'fsm.RegistrationReceipt', related_name='players', on_delete=models.CASCADE)
-
-    @property
-    def team(self):
-        return self.receipt.team if self.receipt else None
+        RegistrationReceipt,
+        related_name='players',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     @staticmethod
     def get_player(player_id: int):
