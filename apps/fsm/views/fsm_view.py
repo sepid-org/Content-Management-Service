@@ -46,10 +46,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
     pagination_class = StandardPagination
 
     def get_permissions(self):
-        if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_states', 'get_edges',
-                           'get_player_from_team', 'players']:
+        if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_edges', 'get_player_from_team', 'players']:
             permission_classes = [FSMMentorPermission]
-        elif self.action in ['enter', 'review']:
+        # todo: get_states should not be public:
+        elif self.action in ['enter', 'review', 'get_states']:
             permission_classes = [HasActiveRegistration]
         else:
             permission_classes = self.permission_classes
@@ -168,7 +168,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
     @swagger_auto_schema(responses={200: StateSerializer}, tags=['mentor'])
     @transaction.atomic
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='states')
     def get_states(self, request, pk):
         return Response(data=StateSerializer(self.get_object().states.order_by('id'), context=self.get_serializer_context(),
                                              many=True).data, status=status.HTTP_200_OK)

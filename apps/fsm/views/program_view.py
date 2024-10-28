@@ -38,8 +38,10 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list', 'get_user_permissions', 'get_fsms_user_permissions']:
+        if self.action in ['retrieve', 'list']:
             return [AllowAny()]
+        if self.action in ['get_user_permissions', 'get_user_fsms_status']:
+            return [IsAuthenticated()]
         return [ProgramAdminPermission()]
 
     def get_serializer_class(self):
