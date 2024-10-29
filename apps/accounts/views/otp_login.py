@@ -41,6 +41,7 @@ class OTPLoginView(APIView):
                 website=website,
                 raise_exception=True
             )
+            created = False
             response_status = status.HTTP_200_OK
         except:
             # If user doesn't exist, create one with provided details
