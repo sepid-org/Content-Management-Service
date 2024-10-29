@@ -22,7 +22,7 @@ router.register(r'profile', ProfileViewSet, basename='profiles')
 router.register(r'studentship', StudentshipViewSet, basename='studentships')
 
 urlpatterns = [
-    path('accounts/simple-login/', SimpleLogin.as_view(), name='create_token'),
+    path('accounts/simple-login/', SimpleLogin.as_view(), name='simple-login'),
     path('accounts/otp-login/', OTPLoginView.as_view(), name='otp-login'),
     path("accounts/google-login/", GoogleLogin.as_view(), name="google-login"),
 

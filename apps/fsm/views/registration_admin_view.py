@@ -43,7 +43,7 @@ class RegistrationAdminViewSet(GenericViewSet):
                     registration_form = self.get_object()
                     participant = handle_user_name_while_registration(
                         participant)
-                    participant_user_account = create_or_get_user(
+                    participant_user_account, created = create_or_get_user(
                         user_data=participant, website=website)
                     receipt = update_or_create_registration_receipt(
                         participant_user_account, registration_form)

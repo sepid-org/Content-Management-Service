@@ -7,11 +7,10 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.accounts.models import User
+from apps.accounts.models import User, UserWebsiteLogin
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
-from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
-from apps.accounts.utils import create_or_get_user, find_user_in_website
+from apps.accounts.utils import create_or_get_user, find_user_in_website, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
 
@@ -68,11 +67,20 @@ class UserViewSet(ModelViewSet):
         if user:
             raise ParseError(serialize_error('4117'))
 
-        user = create_or_get_user(user_data=request.data,
-                                  website=request.headers.get("Website"))
+        user, _ = create_or_get_user(user_data=request.data,
+                                     website=request.headers.get("Website"))
 
-        token_serializer = CustomTokenObtainSerializer(
-            data={'username': user.username})
-        if token_serializer.is_valid(raise_exception=True):
-            return Response({'user': UserSerializer(user).data, **token_serializer.validated_data},
-                            status=status.HTTP_201_CREATED)
+        website = request.headers.get("Website")
+
+        # create a login object to save users logins
+        UserWebsiteLogin.objects.create(
+            user_website=user.get_user_website(website=website)
+        )
+
+        access_token, refresh_token = generate_tokens_for_user(user)
+
+        return Response({
+            'user': UserSerializer(user).data,
+            'access': str(access_token),
+            'refresh': str(refresh_token),
+        }, status=status.HTTP_201_CREATED)

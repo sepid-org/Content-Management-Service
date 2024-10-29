@@ -5,10 +5,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 
-from apps.accounts.models import VerificationCode
+from apps.accounts.models import UserWebsiteLogin, VerificationCode
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
 
-from apps.accounts.utils import find_user_in_website, generate_secure_password, generate_tokens_for_user
+from apps.accounts.utils import create_or_get_user, find_user_in_website, generate_secure_password, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
 
@@ -51,13 +51,9 @@ class OTPLoginView(APIView):
             }
 
             # Use your UserSerializer to create new user
-            user_serializer = UserSerializer(data=user_data)
-            user_serializer.is_valid(raise_exception=True)
-            user = user_serializer.create(user_serializer.validated_data)
+            user, created = create_or_get_user(
+                user_data, website=request.headers.get("Website"))
             response_status = status.HTTP_201_CREATED
-
-        # Generate tokens
-        access_token, refresh_token = generate_tokens_for_user(user)
 
         # Invalidate the verification code
         verification_code = VerificationCode.objects.get(
@@ -68,9 +64,17 @@ class OTPLoginView(APIView):
         verification_code.is_valid = False
         verification_code.save()
 
+        # create a login object to save users logins
+        UserWebsiteLogin.objects.create(
+            user_website=user.get_user_website(website=website)
+        )
+
+        # Generate tokens
+        access_token, refresh_token = generate_tokens_for_user(user)
+
         return Response({
             'user': UserSerializer(user).data,
             'access': str(access_token),
             'refresh': str(refresh_token),
             'is_new_user': response_status == status.HTTP_201_CREATED
-        }, status=response_status)
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)

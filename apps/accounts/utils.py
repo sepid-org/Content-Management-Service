@@ -5,7 +5,7 @@ from rest_framework.exceptions import ParseError
 from django.contrib.auth.hashers import make_password, check_password
 
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.models import User, UserWebsite
+from apps.accounts.models import User, UserWebsite, UserWebsiteLogin
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
@@ -62,7 +62,7 @@ def create_or_get_user(user_data, website):
     user = find_user(user_data=user_data)
 
     if user and user.get_user_website(website=website):
-        return user
+        return user, False
 
     if not user:
         serializer = UserSerializer(data=user_data)
@@ -81,10 +81,10 @@ def create_or_get_user(user_data, website):
     #     )
 
     # send greeting notification
-    notification_service_proxy = InstantMessagingServiceProxy(website=website)
-    notification_service_proxy.send_greeting_notification(recipient=user)
+    # notification_service_proxy = InstantMessagingServiceProxy(website=website)
+    # notification_service_proxy.send_greeting_notification(recipient=user)
 
-    return user
+    return user, True
 
 
 def can_user_login(user, password, website):
