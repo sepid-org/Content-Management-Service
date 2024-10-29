@@ -74,5 +74,5 @@ class UserViewSet(ModelViewSet):
         token_serializer = CustomTokenObtainSerializer(
             data={'username': user.username})
         if token_serializer.is_valid(raise_exception=True):
-            return Response({'account': UserSerializer(user).data, **token_serializer.validated_data},
+            return Response({'user': UserSerializer(user).data, **token_serializer.validated_data},
                             status=status.HTTP_201_CREATED)

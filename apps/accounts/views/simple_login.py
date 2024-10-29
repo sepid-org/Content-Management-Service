@@ -36,5 +36,5 @@ class SimpleLogin(TokenObtainPairView):
         token_serializer.is_valid(raise_exception=True)
         UserWebsiteLogin.objects.create(
             **{"user_website": user.get_user_website(website=website)})
-        return Response({'account': UserSerializer(user).data, **token_serializer.validated_data},
+        return Response({'user': UserSerializer(user).data, **token_serializer.validated_data},
                         status=status.HTTP_200_OK)

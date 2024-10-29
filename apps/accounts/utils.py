@@ -1,3 +1,5 @@
+import string
+import secrets
 from django.db.models import Q
 from rest_framework.exceptions import ParseError
 from django.contrib.auth.hashers import make_password, check_password
@@ -149,3 +151,36 @@ def create_team(**data):
         team.save()
 
     return team
+
+
+def generate_secure_password(length=12):
+    """
+    Generate a secure random password with:
+    - Minimum length of 12 characters
+    - At least one lowercase letter
+    - At least one uppercase letter
+    - At least one digit
+    - At least one special character
+    """
+    # Define character sets
+    lowercase = string.ascii_lowercase
+    uppercase = string.ascii_uppercase
+    digits = string.digits
+    special = "!@#$%^&*"
+
+    # Ensure at least one character from each set
+    password = [
+        secrets.choice(lowercase),
+        secrets.choice(uppercase),
+        secrets.choice(digits),
+        secrets.choice(special),
+    ]
+
+    # Fill the rest with random characters from all sets
+    all_characters = lowercase + uppercase + digits + special
+    password.extend(secrets.choice(all_characters) for _ in range(length - 4))
+
+    # Shuffle the password characters
+    secrets.SystemRandom().shuffle(password)
+
+    return ''.join(password)

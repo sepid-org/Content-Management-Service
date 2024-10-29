@@ -5,9 +5,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 
+from apps.accounts.models import VerificationCode
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
 
-from apps.accounts.utils import find_user_in_website, generate_tokens_for_user
+from apps.accounts.utils import find_user_in_website, generate_secure_password, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
 
@@ -38,25 +39,15 @@ class OTPLoginView(APIView):
             user = find_user_in_website(
                 user_data={"phone_number": phone_number},
                 website=website,
-                raise_exception=False
+                raise_exception=True
             )
             response_status = status.HTTP_200_OK
         except:
             # If user doesn't exist, create one with provided details
-            if not all([
-                request.data.get('first_name'),
-                request.data.get('last_name')
-            ]):
-                raise ParseError(serialize_error('4007',
-                                                 "First name and last name are required for new user registration"))
-
             user_data = {
                 'phone_number': phone_number,
                 'username': phone_number,
-                'password': phone_number,  # You might want to generate a random password
-                'first_name': request.data.get('first_name'),
-                'last_name': request.data.get('last_name'),
-                'email': request.data.get('email', '')
+                'password': generate_secure_password(),
             }
 
             # Use your UserSerializer to create new user
