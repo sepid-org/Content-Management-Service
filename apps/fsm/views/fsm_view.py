@@ -123,8 +123,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
-    @action(detail=True, methods=['get'], url_path='user-player')
-    def get_user_player(self, request, pk=None):
+    @action(detail=True, methods=['get'], url_path='current-user-player')
+    def get_current_user_player(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
         player = get_players(user, fsm).last()
