@@ -32,11 +32,11 @@ class AnswerViewSet(viewsets.ModelViewSet):
         return context
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='submit-answer')
     @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question"))
-        player_id = request.data.get("player")
+        player_id = request.data.get("player_id")
         player = None
         if player_id:
             player = get_object_or_404(Player, id=player_id)

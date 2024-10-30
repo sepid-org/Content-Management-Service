@@ -263,8 +263,6 @@ SIMPLE_JWT = {
 
 ########## OTHER SERVICES ##########
 
-BANK = get_environment_var('BANK', 'http://localhost:20000/')
-
 WMS_URL = get_environment_var('WMS_URL', 'http://localhost:10000/')
 
 IMS_URL = get_environment_var(

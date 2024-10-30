@@ -3,7 +3,7 @@ import requests
 from rest_framework import status
 from rest_framework.response import Response
 
-BANK = settings.BANK
+BANK_URL = settings.BANK_URL
 
 
 def _get(url, params):
@@ -50,7 +50,7 @@ def request_transfer(sender_id: str, receiver_id: str, funds: dict):
     Returns:
         dict: Response from the transfer API or Response object with error
     """
-    url = f'{BANK}counter/transfer/'
+    url = f'{BANK_URL}counter/transfer/'
 
     payload = {
         "sender_id": sender_id,
@@ -63,7 +63,7 @@ def request_transfer(sender_id: str, receiver_id: str, funds: dict):
 
 def get_user_balances(user_uuid):
 
-    url = f'{BANK}counter/user-balances/'
+    url = f'{BANK_URL}counter/user-balances/'
 
     payload = {
         "user_uuid": user_uuid,

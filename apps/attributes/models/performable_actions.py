@@ -43,6 +43,14 @@ class Submission(PerformableAction):
         if not self.is_permitted(*arg, **kwargs):
             return False
 
+        # perform main action:
         self.give_reward(*arg, **kwargs)
+
+        # perform posterior actions:
+        from apps.attributes.models import PerformableAction
+        performable_attributes = self.attributes.instance_of(
+            PerformableAction)
+        for performable_attribute in performable_attributes:
+            performable_attribute.perform(*arg, **kwargs)
 
         return True

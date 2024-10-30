@@ -30,7 +30,7 @@ class Attribute(PolymorphicModel):
         return is_permitted
 
     def __str__(self):
-        return self.title
+        return f'{self.__class__.__name__}: {self.title}'
 
 
 class IntrinsicAttribute(Attribute):
@@ -64,7 +64,7 @@ class PerformableAction(Attribute):
         # Process the transfer
         request_transfer(
             sender_id=website.get('uuid'),
-            receiver_id=request.user.id,
+            receiver_id=str(request.user.id),
             funds=total_reward,
         )
 
