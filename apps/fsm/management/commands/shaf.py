@@ -1,11 +1,13 @@
 from django.core.management.base import BaseCommand
 
-from apps.widgets.models.other_widgets.button import ButtonWidget
+from apps.fsm.models.content_widgets import Placeholder
+
 
 class Command(BaseCommand):
-    help = 'Delete all ButtonWidgets with a specific destination_page_url.'
+    help = 'Delete all Placeholder with a specific destination_page_url.'
 
     def handle(self, *args, **kwargs):
-        url_to_delete = "https://ashbaria.sepid.org/program/ashbaria/"
-        deleted_count, _ = ButtonWidget.objects.filter(destination_page_url=url_to_delete).delete()
-        self.stdout.write(self.style.SUCCESS(f'Successfully deleted {deleted_count} ButtonWidgets with destination_page_url="{url_to_delete}"'))
+        name = "dadbestan-name"
+        deleted_count, _ = Placeholder.objects.filter(_object__name=name).delete()
+        self.stdout.write(self.style.SUCCESS(
+            f'Successfully deleted {deleted_count} Placeholder with destination_page_url="{name}"'))
