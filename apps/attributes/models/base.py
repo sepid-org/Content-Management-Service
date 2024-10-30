@@ -29,6 +29,12 @@ class Attribute(PolymorphicModel):
 
         return is_permitted
 
+    def get_related_attributes(self):
+        # Returns a comma-separated string of related attribute titles
+        return ", ".join([attr.title for attr in self.attributes.all()])
+
+    get_related_attributes.short_description = "Related Attributes"
+
     def __str__(self):
         return f'{self.__class__.__name__}: {self.title}'
 
