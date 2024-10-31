@@ -10,28 +10,19 @@ from apps.widgets.models.other_widgets.button import ButtonWidget
 
 @api_view(["POST"])
 def submit_button_widget(request):
+    player_id = request.data.get('player_id', None)
+    player = get_object_or_404(Player, id=player_id)
 
-    state_id = request.data.get('state', None)
+    state_id = request.data.get('state_id', None)
     if state_id:
         state = get_object_or_404(State, id=state_id)
-        user = request.user
-        try:
-            player = Player.objects.get(
-                user=user, fsm=state.fsm, finished_at__isnull=True)
-        except:
-            player = Player.objects.create(
-                user=user,
-                fsm=state.fsm,
-                current_state=state,
-            )
-        if state:
-            transit_player_in_fsm(
-                player=player,
-                source_state=player.current_state,
-                target_state=state,
-            )
+        transit_player_in_fsm(
+            player=player,
+            source_state=player.current_state,
+            target_state=state,
+        )
 
-    button_id = request.data.get('button', None)
+    button_id = request.data.get('button_id', None)
     if button_id:
         button = get_object_or_404(ButtonWidget, id=button_id)
 
