@@ -58,6 +58,7 @@ class Video(Widget):
 
 class Audio(Widget):
     link = models.URLField(null=True, blank=True)
+    autoplay = models.BooleanField(default=False)
 
     def clone(self, paper):
         return clone_widget(self, paper)
