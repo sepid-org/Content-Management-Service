@@ -32,6 +32,13 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
             raise ParseError(serialize_error('4028'))
         return super().validate(attrs)
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.user:
+            representation['user'] = UserRegistrationReceiptInfoSerializer(
+                instance.user).data
+        return representation
+
     class Meta(AnswerSheetSerializer.Meta):
         model = RegistrationReceipt
         fields = AnswerSheetSerializer.Meta.fields + \
