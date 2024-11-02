@@ -163,7 +163,7 @@ class RegistrationReceiptsAdmin(admin.ModelAdmin):
 
 class PlayerAdmin(admin.ModelAdmin):
     model = Player
-    list_display = ['user', 'receipt', 'fsm', 'current_state', 'last_visit']
+    list_display = ['id', 'user', 'fsm', 'current_state', 'last_visit']
     list_filter = ['last_visit', 'fsm', 'current_state']
     search_fields = ['user__username']
 

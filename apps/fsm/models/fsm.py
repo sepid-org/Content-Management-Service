@@ -115,9 +115,11 @@ class Player(models.Model):
     @property
     def answer_sheet(self):
         if not self._answer_sheet:
-            self._answer_sheet = AnswerSheet.objects.create(user=self.user)
-            self._answer_sheet.save()
+            new_sheet = AnswerSheet.objects.create(user=self.user)
+            self._answer_sheet = new_sheet
+            self.save()
         return self._answer_sheet
+
     _answer_sheet = models.ForeignKey(
         to=AnswerSheet,
         on_delete=models.CASCADE,
