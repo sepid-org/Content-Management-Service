@@ -124,4 +124,4 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         player = self.get_object()
         player.finished_at = timezone.now()
         player.save()
-        return Response()
+        return Response(status=status.HTTP_204_NO_CONTENT)
