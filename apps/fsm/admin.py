@@ -152,13 +152,9 @@ def download_csv(modeladmin, request, queryset):
 
 
 class RegistrationReceiptsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'name', 'form',
-                    'status', 'is_participating', 'team']
+    list_display = ['user', 'form', 'status', 'is_participating', 'team']
     list_filter = ['form', 'status', 'is_participating']
     actions = [delete_registration_receipts, download_csv]
-
-    def name(self, obj):
-        return obj.user.full_name
 
 
 class PlayerAdmin(admin.ModelAdmin):

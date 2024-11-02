@@ -65,15 +65,11 @@ class RegistrationViewSet(ModelViewSet):
 
         registration_form.get_user_registration_permission_status(request.user)
 
-        serializer = RegistrationReceiptSerializer(
-            data={
-                'answer_sheet_type': 'RegistrationReceipt',
-                **request.data,
-            },
-            context={
-                'form': registration_form,
-                'user': request.user,
-            })
+        serializer = RegistrationReceiptSerializer(data={
+            'form': registration_form,
+            'user': request.user.id,
+            **request.data,
+        })
         serializer.is_valid(raise_exception=True)
         registration_receipt = serializer.save()
         registration_receipt.register_in_form(registration_form)
