@@ -75,7 +75,8 @@ class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
     class Meta(QuestionWidgetSerializer.Meta):
         model = MultiChoiceProblem
         fields = QuestionWidgetSerializer.Meta.fields + \
-            ['min_selections', 'max_selections', 'lock_after_answer', 'choices']
+            ['min_selections', 'max_selections',
+                'lock_after_answer', 'randomize_choices', 'choices']
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices')

@@ -60,6 +60,10 @@ class MultiChoiceProblem(Problem):
     max_selections = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
     lock_after_answer = models.BooleanField(default=False)
+    randomize_choices = models.BooleanField(
+        default=False,
+        help_text="If enabled, the choices will be presented in random order"
+    )
 
     def clone(self, paper):
         cloned_widget = clone_widget(self, paper)
