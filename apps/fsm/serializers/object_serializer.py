@@ -8,8 +8,6 @@ from apps.fsm.serializers.position_serializer import PositionSerializer
 
 
 class ObjectSerializer(serializers.ModelSerializer):
-    attributes = AttributePolymorphicSerializer(
-        required=False, read_only=True, many=True)
     position = serializers.SerializerMethodField(
         required=False, read_only=True)
 
@@ -33,4 +31,13 @@ class ObjectSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['object_id'] = instance.id
+
+        permitted_attributes = []
+        for attribute in instance.attributes.all():
+            if attribute.is_permitted():
+                permitted_attributes.append(attribute)
+
+        representation['attributes'] = AttributePolymorphicSerializer(
+            permitted_attributes, many=True).data
+
         return representation
