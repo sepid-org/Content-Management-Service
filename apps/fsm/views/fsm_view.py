@@ -17,7 +17,7 @@ from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import FSM, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
-from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, KeySerializer, EdgeSerializer, TeamGetSerializer
+from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, EdgeSerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
@@ -70,7 +70,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=KeySerializer)
+    @action(detail=True, methods=['post'])
     def enter_fsm(self, request, pk=None):
         fsm = self.get_object()
         user = request.user

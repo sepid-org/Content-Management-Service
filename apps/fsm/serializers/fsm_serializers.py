@@ -103,10 +103,6 @@ class EdgeSerializer(serializers.ModelSerializer):
                   'is_back_enabled', 'is_visible']
 
 
-class KeySerializer(serializers.Serializer):
-    key = serializers.CharField(max_length=10, required=False)
-
-
 class TeamGetSerializer(serializers.Serializer):
     team = serializers.PrimaryKeyRelatedField(
         queryset=Team.objects.all(), required=True)

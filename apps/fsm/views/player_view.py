@@ -16,7 +16,7 @@ from errors.exceptions import InternalServerError
 from apps.fsm.models import FSM, Player
 from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.models import FSM
-from apps.fsm.serializers.fsm_serializers import KeySerializer, TeamGetSerializer
+from apps.fsm.serializers.fsm_serializers import TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
 from apps.fsm.utils import get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
 
@@ -45,7 +45,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=KeySerializer)
+    @action(detail=True, methods=['post'])
     def go_backward(self, request, pk):
         player = self.get_object()
         fsm = player.fsm
