@@ -15,10 +15,9 @@ class WidgetSerializer(serializers.ModelSerializer):
         # add object fields to representation
         representation = super().to_representation(instance)
         object_instance = instance.object
-        object_serializer = ObjectSerializer()
         representation = {
             **representation,
-            **object_serializer.to_representation(object_instance)
+            **ObjectSerializer(object_instance, context=self.context).data
         }
 
         return representation

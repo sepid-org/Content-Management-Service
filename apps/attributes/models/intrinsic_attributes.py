@@ -2,9 +2,7 @@ from .base import IntrinsicAttribute
 
 
 class Enabled(IntrinsicAttribute):
-
-    def get_value(self, *args, **kwargs):
-        return self.is_permitted(*args, **kwargs)
+    pass
 
 
 class Condition(IntrinsicAttribute):
@@ -41,10 +39,12 @@ class Condition(IntrinsicAttribute):
 
         if 'completed_fsms' in value:
             completed_fsm_ids = value.get('completed_fsms')
+            user = kwargs.get('user')
+
             # Get distinct completed FSMs
             from apps.fsm.models import Player
             completed_fsm_count = Player.objects.filter(
-                user=player.user,
+                user=user,
                 fsm__id__in=completed_fsm_ids,
                 finished_at__isnull=False
             ).values('fsm_id').distinct().count()

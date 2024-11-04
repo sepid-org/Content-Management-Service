@@ -27,34 +27,49 @@ class WidgetViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.data['creator'] = request.user.id
-        serializer = WidgetPolymorphicSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        widget_instance = serializer.save()
+        widget_serializer = WidgetPolymorphicSerializer(
+            data=request.data,
+            context=self.get_serializer_context(),
+        )
+        widget_serializer.is_valid(raise_exception=True)
+        widget_instance = widget_serializer.save()
 
         object_instance = widget_instance.object
-        serializer = ObjectSerializer(
-            object_instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        object_serializer = ObjectSerializer(
+            object_instance,
+            data=request.data,
+            context=self.get_serializer_context(),
+            partial=True,
+        )
+        object_serializer.is_valid(raise_exception=True)
+        object_serializer.save()
 
-        return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_201_CREATED)
+        return Response(widget_serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer})
     @transaction.atomic
     def partial_update(self, request, *args, **kwargs):
         widget_instance = self.get_object()
-        serializer = WidgetPolymorphicSerializer(
-            widget_instance, data=request.data, partial=True, context=self.get_serializer_context())
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        widget_serializer = WidgetPolymorphicSerializer(
+            widget_instance,
+            data=request.data,
+            partial=True,
+            context=self.get_serializer_context(),
+        )
+        widget_serializer.is_valid(raise_exception=True)
+        widget_serializer.save()
 
         object_instance = widget_instance.object
-        serializer = ObjectSerializer(
-            object_instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        object_serializer = ObjectSerializer(
+            object_instance,
+            data=request.data,
+            context=self.get_serializer_context(),
+            partial=True,
+        )
+        object_serializer.is_valid(raise_exception=True)
+        object_serializer.save()
 
-        return Response(WidgetPolymorphicSerializer(widget_instance).data, status=status.HTTP_200_OK)
+        return Response(widget_serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])
     def get_widgets_by_ids(self, request):

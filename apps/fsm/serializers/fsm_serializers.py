@@ -84,19 +84,6 @@ class EdgeSerializer(serializers.ModelSerializer):
     tail = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     head = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
 
-    def to_representation(self, instance):
-        representation = super(
-            EdgeSerializer, self).to_representation(instance)
-
-        object_instance = instance.object
-        object_serializer = ObjectSerializer()
-        representation = {
-            **representation,
-            **object_serializer.to_representation(object_instance)
-        }
-
-        return representation
-
     class Meta:
         model = Edge
         fields = ['id', 'tail', 'head',
