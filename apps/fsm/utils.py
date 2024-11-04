@@ -151,7 +151,29 @@ class AnswerSheetFacade:
     def __init__(self, answer_sheet) -> None:
         self.answer_sheet = answer_sheet
 
-    def check_expected_choices(self, expected_choice_ids):
+    def check_expected_choice(self, expected_choice_id: int):
+        try:
+            # Get all multi-choice answers in one query
+            from apps.fsm.models.response import MultiChoiceAnswer
+            multi_choice_answers = (
+                self.answer_sheet.answers
+                .instance_of(MultiChoiceAnswer)
+                .prefetch_related('choices')
+            )
+
+            # Create a set of all selected choice IDs for O(1) lookup
+            all_choice_ids = {
+                choice.id
+                for answer in multi_choice_answers
+                for choice in answer.choices.all()
+            }
+
+            # Check if the expected choice exist in the set
+            return expected_choice_id in all_choice_ids
+        except:
+            return False
+
+    def check_expected_choices(self, expected_choice_ids: list[int]):
         try:
             # Get all multi-choice answers in one query
             from apps.fsm.models.response import MultiChoiceAnswer
@@ -173,7 +195,26 @@ class AnswerSheetFacade:
         except:
             return False
 
-    def check_expected_choices_in_last_answer(self, expected_choice_ids):
+    def check_expected_choice_in_last_answer(self, expected_choice_id: int):
+        try:
+            # Get the last multi-choice answer in a single query
+            from apps.fsm.models.response import MultiChoiceAnswer
+            last_answer = (
+                self.answer_sheet.answers
+                .instance_of(MultiChoiceAnswer)
+                .prefetch_related('choices')
+                .latest('id')
+            )
+
+            # Convert both sets of choices to sets for comparison
+            submitted_choice_ids = {
+                choice.id for choice in last_answer.choices.all()}
+
+            return expected_choice_id in submitted_choice_ids
+        except:
+            return False
+
+    def check_expected_choices_in_last_answer(self, expected_choice_ids: list[int]):
         try:
             # Get the last multi-choice answer in a single query
             from apps.fsm.models.response import MultiChoiceAnswer
@@ -194,7 +235,7 @@ class AnswerSheetFacade:
         except:
             return False
 
-    def check_expected_correct_choices_in_last_answer_count(self, expected_correct_choices_in_last_answer_count):
+    def check_expected_correct_choices_in_last_answer_count(self, expected_correct_choices_in_last_answer_count: int):
         try:
             # Get the last multi-choice answer in a single query
             from apps.fsm.models.response import MultiChoiceAnswer

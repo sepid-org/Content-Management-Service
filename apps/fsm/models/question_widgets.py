@@ -108,7 +108,7 @@ class Choice(models.Model):
 
         question = self.problem
         if question.lock_after_answer:
-            if facade.check_expected_choices_in_last_answer([self.id]):
+            if facade.check_expected_choice(self.id):
                 return False
 
         return True
