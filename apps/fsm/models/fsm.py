@@ -66,21 +66,23 @@ class FSM(models.Model, ObjectMixin):
     def __str__(self):
         return self.name
 
-    def get_user_players(self, user):
-        return Player.objects.filter(user=user, fsm=self)
+    def is_enabled(self, *args, **kwargs) -> bool:
+        user = kwargs.get('user')
 
-    def is_enabled(self, user) -> bool:
         # check is mentor
         if user in self.mentors.all():
             return True
 
         # check ceil of participation
-        finished_players = self.get_user_players(
-            user).filter(finished_at__isnull=False)
+        finished_players = Player.objects.filter(
+            user=user,
+            fsm=self,
+            finished_at__isnull=False,
+        )
         if finished_players.count() >= self.participant_limit:
             return False
 
-        return super().is_enabled(user)
+        return super().is_enabled(user=user)
 
     @transaction.atomic
     def clone(self):

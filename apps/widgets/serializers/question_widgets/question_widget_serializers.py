@@ -1,7 +1,5 @@
 from django.db import transaction
-from rest_framework.exceptions import ParseError
 from apps.widgets.serializers.widget_serializer import WidgetSerializer
-from errors.error_codes import serialize_error
 
 from apps.fsm.models import SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, Widget
 from apps.response.serializers.answers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
@@ -69,6 +67,11 @@ class BigAnswerProblemSerializer(QuestionWidgetSerializer):
         return instance
 
 
+def get_active_player(fsm_id, user_id):
+    from apps.fsm.models import Player
+    return Player.objects.filter(user__id=user_id, fsm__id=fsm_id, finished_at__isnull=True).last()
+
+
 class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
     choices = ChoiceSerializer(many=True)
 
@@ -77,6 +80,21 @@ class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
         fields = QuestionWidgetSerializer.Meta.fields + \
             ['min_selections', 'max_selections',
                 'lock_after_answer', 'randomize_choices', 'choices']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        fsm_id = request.headers.get("FSM")
+        user = request.user
+        player = get_active_player(fsm_id, user.id)
+        choices_representation = []
+        for choice in instance.choices.all():
+            choices_representation.append({
+                **ChoiceSerializer(choice).data,
+                'enabled': choice.is_enabled(user=user, player=player),
+            })
+        representation['choices'] = choices_representation
+        return representation
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices')

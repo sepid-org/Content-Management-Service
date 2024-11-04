@@ -99,6 +99,12 @@ class Choice(models.Model):
     text = models.TextField()
     is_correct = models.BooleanField(default=False)
 
+    def is_enabled(self, *args, **kwargs):
+        player = kwargs.get('player')
+        answer_sheet = player.answer_sheet
+        result = False
+        return result
+
     def __str__(self):
         return self.text
 

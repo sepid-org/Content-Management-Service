@@ -1,12 +1,11 @@
 from rest_framework import status
 from django.utils import timezone
-from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from apps.fsm.models import Program, Player, RegistrationReceipt
+from apps.fsm.models import Program
 from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
@@ -115,7 +114,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
                 'has_active_player': players.filter(finished_at__isnull=True).exists(),
                 'finished_players_count': players.filter(finished_at__isnull=False).count(),
                 'is_user_mentor': user in fsm.mentors.all(),
-                'is_enabled_for_user': fsm.is_enabled(user),
+                'is_enabled_for_user': fsm.is_enabled(user=user),
             })
 
         return Response(fsm_status_list)

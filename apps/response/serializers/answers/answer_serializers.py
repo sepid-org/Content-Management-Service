@@ -63,6 +63,7 @@ class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
         fields = ['id', 'text', 'is_correct']
+        read_only_fields = ['id']
 
     def to_internal_value(self, data):
         internal_value = super(ChoiceSerializer, self).to_internal_value(data)
