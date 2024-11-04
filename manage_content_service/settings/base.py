@@ -240,7 +240,8 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'Website',  # Add your custom header here
+    'Website',
+    'FSM',
 ]
 
 
