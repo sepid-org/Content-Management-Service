@@ -106,19 +106,19 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         program = self.get_object()
         user = request.user
         fsms = program.fsms.all()
-        status = []
+        fsm_status_list = []
         from apps.fsm.utils import get_players
         for fsm in fsms:
             players = get_players(user, fsm)
-            status.append({
+            fsm_status_list.append({
                 'fsm_id': fsm.id,
-                'has_playing_player': players.filter(finished_at__isnull=True).exists(),
-                'count_of_playing': players.count(),
-                'is_mentor': user in fsm.mentors.all(),
-                'enabled': fsm.is_enabled(user),
+                'has_active_player': players.filter(finished_at__isnull=True).exists(),
+                'finished_players_count': players.filter(finished_at__isnull=False).count(),
+                'is_user_mentor': user in fsm.mentors.all(),
+                'is_enabled_for_user': fsm.is_enabled(user),
             })
 
-        return Response(status)
+        return Response(fsm_status_list)
 
     def _find_user(self, user_data, website):
         return find_user_in_website(user_data=user_data, website=website, raise_exception=True)
