@@ -9,6 +9,7 @@ class Condition(IntrinsicAttribute):
 
     def is_true(self, *args, **kwargs):
         player = kwargs.get('player')
+        user = kwargs.get('user')
         value = self.value
         total_condition_result = True
 
@@ -33,47 +34,51 @@ class Condition(IntrinsicAttribute):
                 )
 
                 total_condition_result = correct_choices_count == expected_count
-
-            except MultiChoiceAnswer.DoesNotExist:
+            except:
                 total_condition_result = False
 
         if 'completed_fsms' in value:
             completed_fsm_ids = value.get('completed_fsms')
-            user = kwargs.get('user')
 
-            # Get distinct completed FSMs
-            from apps.fsm.models import Player
-            completed_fsm_count = Player.objects.filter(
-                user=user,
-                fsm__id__in=completed_fsm_ids,
-                finished_at__isnull=False
-            ).values('fsm_id').distinct().count()
+            try:
+                # Get distinct completed FSMs
+                from apps.fsm.models import Player
+                completed_fsm_count = Player.objects.filter(
+                    user=user,
+                    fsm__id__in=completed_fsm_ids,
+                    finished_at__isnull=False
+                ).values('fsm_id').distinct().count()
 
-            # Compare with the total number of required unique FSMs
-            total_condition_result = \
-                completed_fsm_count == len(set(completed_fsm_ids))
+                # Compare with the total number of required unique FSMs
+                total_condition_result = \
+                    completed_fsm_count == len(set(completed_fsm_ids))
+            except:
+                total_condition_result = False
 
         if 'expected_choices' in value:
             expected_choice_ids = value.get('expected_choices')
 
-            # Get all multi-choice answers in one query
-            from apps.fsm.models.response import MultiChoiceAnswer
-            multi_choice_answers = (
-                player.answer_sheet.answers
-                .instance_of(MultiChoiceAnswer)
-                .prefetch_related('choices')
-            )
+            try:
+                # Get all multi-choice answers in one query
+                from apps.fsm.models.response import MultiChoiceAnswer
+                multi_choice_answers = (
+                    player.answer_sheet.answers
+                    .instance_of(MultiChoiceAnswer)
+                    .prefetch_related('choices')
+                )
 
-            # Create a set of all selected choice IDs for O(1) lookup
-            all_choice_ids = {
-                choice.id
-                for answer in multi_choice_answers
-                for choice in answer.choices.all()
-            }
+                # Create a set of all selected choice IDs for O(1) lookup
+                all_choice_ids = {
+                    choice.id
+                    for answer in multi_choice_answers
+                    for choice in answer.choices.all()
+                }
 
-            # Check if all expected choices exist in the set
-            total_condition_result = \
-                all(choice_id in all_choice_ids for choice_id in expected_choice_ids)
+                # Check if all expected choices exist in the set
+                total_condition_result = \
+                    all(choice_id in all_choice_ids for choice_id in expected_choice_ids)
+            except:
+                total_condition_result = False
 
         if 'expected_choices_in_last_answer' in value:
             expected_choice_ids = value.get('expected_choices_in_last_answer')
@@ -96,7 +101,7 @@ class Condition(IntrinsicAttribute):
 
                 total_condition_result = submitted_choice_ids == expected_choice_ids
 
-            except MultiChoiceAnswer.DoesNotExist:
+            except:
                 total_condition_result = False
 
         is_not = value.get('not', False)
