@@ -99,11 +99,19 @@ class Choice(models.Model):
     text = models.TextField()
     is_correct = models.BooleanField(default=False)
 
+    # default is True
     def is_enabled(self, *args, **kwargs):
+        from apps.fsm.utils import AnswerSheetFacade
         player = kwargs.get('player')
         answer_sheet = player.answer_sheet
-        result = False
-        return result
+        facade = AnswerSheetFacade(answer_sheet)
+
+        question = self.problem
+        if question.lock_after_answer:
+            if facade.check_expected_choices_in_last_answer([self.id]):
+                return False
+
+        return True
 
     def __str__(self):
         return self.text

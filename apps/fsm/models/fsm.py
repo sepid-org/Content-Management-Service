@@ -66,6 +66,7 @@ class FSM(models.Model, ObjectMixin):
     def __str__(self):
         return self.name
 
+    # default is False
     def is_enabled(self, *args, **kwargs) -> bool:
         user = kwargs.get('user')
 

@@ -83,6 +83,7 @@ class ObjectMixin:
     def attributes(self):
         return self.object.attributes.all()
 
+    # default is False
     def is_enabled(self, *args, **kwargs) -> bool:
         user = kwargs.get('user')
         if not user:
