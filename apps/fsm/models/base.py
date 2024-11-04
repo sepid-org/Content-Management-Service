@@ -83,6 +83,15 @@ class ObjectMixin:
     def attributes(self):
         return self.object.attributes.all()
 
+    def is_enabled(self, user) -> bool:
+        result = False
+        from apps.attributes.models import Enabled
+        enabled_attributes = self.attributes.instance_of(Enabled)
+        for enabled_attribute in enabled_attributes:
+            if enabled_attribute.is_permitted(user=user):
+                result |= enabled_attribute.value
+        return result
+
 
 class Paper(PolymorphicModel, ObjectMixin):
     _object = models.OneToOneField(

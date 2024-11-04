@@ -1,7 +1,6 @@
 from django.db import models, transaction
 from apps.accounts.models import User
 
-from apps.attributes.models import Attribute
 from apps.fsm.models.base import Object, ObjectMixin, Paper, clone_paper
 from apps.fsm.models.form import AnswerSheet, RegistrationReceipt
 from apps.fsm.models.program import Program
@@ -60,11 +59,28 @@ class FSM(models.Model, ObjectMixin):
     card_type = models.CharField(
         max_length=20, default=FSMCardType.vertical1, choices=FSMCardType.choices)
     show_roadmap = models.BooleanField(default=True)
+    participant_limit = models.PositiveIntegerField(default=1)
 
     objects = FSMManager()
 
     def __str__(self):
         return self.name
+
+    def get_user_players(self, user):
+        return Player.objects.filter(user=user, fsm=self)
+
+    def is_enabled(self, user) -> bool:
+        # check is mentor
+        if user in self.mentors.all():
+            return True
+
+        # check ceil of participation
+        finished_players = self.get_user_players(
+            user).filter(finished_at__isnull=False)
+        if finished_players.count() >= self.participant_limit:
+            return False
+
+        return super().is_enabled(user)
 
     @transaction.atomic
     def clone(self):

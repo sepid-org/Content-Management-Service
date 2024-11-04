@@ -115,6 +115,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
                 'has_playing_player': players.filter(finished_at__isnull=True).exists(),
                 'count_of_playing': players.count(),
                 'is_mentor': user in fsm.mentors.all(),
+                'enabled': fsm.is_enabled(user),
             })
 
         return Response(status)

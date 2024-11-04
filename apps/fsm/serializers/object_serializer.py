@@ -32,16 +32,7 @@ class ObjectSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['object_id'] = instance.id
 
-        user = self.context.get('request').user
-
-        permitted_attributes = []
-        for attribute in instance.attributes.all():
-            if attribute.is_permitted(user=user):
-                permitted_attributes.append(attribute)
-
         representation['attributes'] = AttributePolymorphicSerializer(
             instance.attributes.all(), many=True).data
-        representation['permitted_attributes'] = AttributePolymorphicSerializer(
-            permitted_attributes, many=True).data
 
         return representation
