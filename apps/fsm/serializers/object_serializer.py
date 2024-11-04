@@ -36,7 +36,7 @@ class ObjectSerializer(serializers.ModelSerializer):
 
         permitted_attributes = []
         for attribute in instance.attributes.all():
-            if attribute.is_permitted(user):
+            if attribute.is_permitted(user=user):
                 permitted_attributes.append(attribute)
 
         representation['attributes'] = AttributePolymorphicSerializer(
