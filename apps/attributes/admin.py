@@ -7,13 +7,15 @@ from apps.attributes.models.performable_actions import Buy, Submission, Transiti
 
 class AttributeCustomAdmin(admin.ModelAdmin):
     list_display = ['title', 'get_related_attributes']
+    search_fields = ['title',]
+    filter_horizontal = ['attributes',]
 
 
 class IntrinsicAttributeCustomAdmin(AttributeCustomAdmin):
     list_display = AttributeCustomAdmin.list_display + ['value']
 
 
-class PerformableActionCustomAdmin(admin.ModelAdmin):
+class PerformableActionCustomAdmin(AttributeCustomAdmin):
     list_display = AttributeCustomAdmin.list_display + []
 
 
