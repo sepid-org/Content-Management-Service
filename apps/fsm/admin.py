@@ -84,17 +84,11 @@ class DetailBoxWidgetAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'details']
 
 
-class WidgetAdmin(admin.ModelAdmin):
-    model = Widget
-    list_display = ['id', 'widget_type', 'paper']
-    list_filter = ['widget_type']
-    search_fields = []
-
-
 class PaperAdmin(admin.ModelAdmin):
     model = Paper
     list_display = ['id']
     list_filter = []
+    search_fields = ['id']
 
 
 class RegistrationFormAdmin(admin.ModelAdmin):
@@ -120,41 +114,10 @@ def delete_registration_receipts(modeladmin, request, queryset):
         obj.delete()
 
 
-def download_csv(modeladmin, request, queryset):
-    import csv
-    f = open('registration_receipts.csv', 'w')
-    writer = csv.writer(f)
-    a_receipt = queryset[0]
-    problems = []
-    for widget in a_receipt.form.widgets.all():
-        print(widget.widget_type)
-        if 'problem' in widget.widget_type.lower():
-            problem = widget
-            problems.append(problem.id)
-    header = ['user', 'status', 'is_participating', 'team']
-    writer.writerow(
-        header + [f'widget {problem}' for problem in problems])
-    for registration_receipt in queryset:
-        row = [registration_receipt.user, registration_receipt.status,
-               registration_receipt.is_participating, registration_receipt.team]
-        answers = registration_receipt.answers.all()
-        for problem_id in problems:
-            for answer in answers:
-                if answer.problem.id == problem_id:
-                    row.append(answer.string_answer)
-                    break
-        writer.writerow(row)
-    f.close()
-    f = open('registration_receipts.csv', 'r')
-    response = HttpResponse(f, content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=registration_receipts.csv'
-    return response
-
-
 class RegistrationReceiptsAdmin(admin.ModelAdmin):
     list_display = ['user', 'form', 'status', 'is_participating', 'team']
     list_filter = ['form', 'status', 'is_participating']
-    actions = [delete_registration_receipts, download_csv]
+    actions = [delete_registration_receipts]
 
 
 class PlayerAdmin(admin.ModelAdmin):
@@ -233,67 +196,11 @@ class SmallAnswerProblemAdmin(admin.ModelAdmin):
     list_filter = ['widget_type']
     search_fields = []
 
-    def solution_csv(self, request, queryset):
-
-        file = open('small-answers.csv', 'w', encoding="utf-8")
-        writer = csv.writer(file)
-        writer.writerow(
-            ['problem_name', 'problem_body', 'text', 'submitted_by'])
-        problem_obj = queryset[0]
-        answers = SmallAnswer.objects.filter(problem=problem_obj)
-        ctr = 0
-        for i in answers:
-            if ctr == 0:
-                writer.writerow(
-                    [i.problem.name, i.problem.text, i.text, i.submitted_by])
-
-            else:
-                writer.writerow([i.problem.name, None, i.text, i.submitted_by])
-
-            ctr += 1
-
-        file.close()
-
-        f = open('small-answers.csv', 'r')
-        response = HttpResponse(f, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=small-answers.csv'
-        return response
-
-    actions = [solution_csv]
-
 
 class BigAnswerProblemAdmin(admin.ModelAdmin):
     list_display = ['paper', 'widget_type', 'creator']
     list_filter = ['widget_type']
     search_fields = []
-
-    def solution_csv(self, request, queryset):
-
-        file = open('big-answers.csv', 'w', encoding="utf-8")
-        writer = csv.writer(file)
-        writer.writerow(
-            ['problem_name', 'problem_body', 'text', 'submitted_by'])
-        problem_obj = queryset[0]
-        answers = BigAnswer.objects.filter(problem=problem_obj)
-        ctr = 0
-        for i in answers:
-            if ctr == 0:
-                writer.writerow(
-                    [i.problem.name, i.problem.text, i.text, i.submitted_by])
-
-            else:
-                writer.writerow([i.problem.name, None, i.text, i.submitted_by])
-
-            ctr += 1
-
-        file.close()
-
-        f = open('big-answers.csv', 'r')
-        response = HttpResponse(f, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=big-answers.csv'
-        return response
-
-    actions = [solution_csv]
 
 
 @admin.register(AnswerSheet)
@@ -302,58 +209,6 @@ class AnswerSheetCustomAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'answer_sheet_type']
     list_filter = ['answer_sheet_type']
     search_fields = ['answer_sheet_type']
-
-
-@admin.register(Problem)
-class ProblemCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'paper', 'widget_type',
-                    'creator', 'is_required']
-    list_display_links = ['id', 'paper', 'widget_type', 'creator']
-    list_filter = ['widget_type', 'is_required']
-    search_fields = []
-
-    def download_final_answers_scores(self, request, queryset):
-        score_types = set()
-        problems = {}
-        for p in queryset:
-            answers = []
-            score_types |= set(
-                st for st in p.paper.score_types.all().values_list('name', flat=True))
-            for ans in p.answers.filter(is_final_answer=True):
-                ans_dict = {'id': ans.id,
-                            'first_name': ans.submitted_by.first_name,
-                            'phone_number': ans.submitted_by.phone_number,
-                            'last_name': ans.submitted_by.last_name,
-                            'school': ans.submitted_by.school_studentship.school.name if ans.submitted_by.school_studentship.school else None,
-                            'grade': ans.submitted_by.school_studentship.grade,
-                            'province': ans.submitted_by.province,
-                            'city': ans.submitted_by.city,
-                            'gender': ans.submitted_by.gender,
-                            'national_code': ans.submitted_by.national_code,
-                            }
-                for score in ans.scores.all():
-                    ans_dict[score.type.name] = score.value
-                answers.append(ans_dict)
-            problems[p] = answers
-
-        file = open('answers.csv', 'w', encoding="utf-8")
-        writer = csv.writer(file)
-        writer.writerow(
-            ['problem_id', 'answer_id', 'first_name', 'last_name', 'phone_number', 'school', 'grade', 'province', 'city', 'gender',
-             'national_code'] + [st for st in score_types])
-        for p in queryset:
-            for a in problems[p]:
-                writer.writerow([p.id, a['id'], a['first_name'], a['last_name'], a['phone_number'], a['school'], a['grade'], a['province'],
-                                 a['city'], a['gender'], a['national_code']] + [a.get(st, '') for st in score_types])
-        file.close()
-
-        f = open('answers.csv', 'rb')
-        response = HttpResponse(f, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=answers.csv'
-        return response
-
-    download_final_answers_scores.short_description = 'export scored answers'
-    actions = [download_final_answers_scores]
 
 
 @admin.register(MultiChoiceAnswer)
@@ -376,19 +231,6 @@ class CertificateTemplateCustomAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'certificate_type']
     list_filter = ['certificate_type']
     search_fields = ['certificate_type']
-
-
-class ChoiceInline(admin.TabularInline):
-    model = Choice
-
-
-@admin.register(MultiChoiceProblem)
-class MultiChoiceProblemCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'paper', 'widget_type', 'creator']
-    list_display_links = ['id']
-    list_filter = ['widget_type']
-    search_fields = []
-    inlines = [ChoiceInline]
 
 
 @admin.register(Answer)
@@ -517,9 +359,32 @@ admin.site.register(TextWidget, TextWidgetAdmin)
 admin.site.register(DetailBoxWidget, DetailBoxWidgetAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
-admin.site.register(Widget, WidgetAdmin)
 admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
+
+
+@admin.register(Widget)
+class WidgetAdmin(admin.ModelAdmin):
+    list_display = ['id', 'paper', 'creator']
+    list_filter = ['widget_type']
+    autocomplete_fields = ['paper', 'creator', '_object']
+    search_fields = ['_object__title']
+
+
+@admin.register(Problem)
+class ProblemCustomAdmin(WidgetAdmin):
+    list_display = WidgetAdmin.list_display + ['is_required']
+    list_filter = WidgetAdmin.list_filter + ['is_required']
+
+
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+
+
+@admin.register(MultiChoiceProblem)
+class MultiChoiceProblemCustomAdmin(ProblemCustomAdmin):
+    list_display = ProblemCustomAdmin.list_display + []
+    inlines = [ChoiceInline]
 
 
 @admin.register(StatePaper)
