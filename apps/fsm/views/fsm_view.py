@@ -48,8 +48,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_edges', 'get_player_from_team', 'players']:
             permission_classes = [FSMMentorPermission]
-        # todo: get_states should not be public:
-        elif self.action in ['enter', 'review', 'get_states']:
+        # todo: get_states should be here:
+        elif self.action in ['enter', 'review']:
             permission_classes = [HasActiveRegistration]
         else:
             permission_classes = self.permission_classes
