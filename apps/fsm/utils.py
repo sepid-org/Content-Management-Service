@@ -235,7 +235,7 @@ class AnswerSheetFacade:
         except:
             return False
 
-    def check_expected_correct_choices_in_last_answer_count(self, expected_correct_choices_in_last_answer_count: int):
+    def check_expected_correct_choices_in_last_answer_count(self, expected_count: int):
         try:
             # Get the last multi-choice answer in a single query
             from apps.fsm.models.response import MultiChoiceAnswer
@@ -252,6 +252,6 @@ class AnswerSheetFacade:
                 if choice.is_correct
             )
 
-            return correct_choices_count == expected_correct_choices_in_last_answer_count
+            return correct_choices_count == expected_count
         except:
             return False

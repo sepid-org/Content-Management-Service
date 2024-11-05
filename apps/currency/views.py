@@ -1,12 +1,11 @@
-from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 from apps.fsm.models import Object
-from proxies.bank_service.bank import get_user_balances, request_transfer
-from proxies.website_service.main import get_website
+from proxies.bank_service.bank import get_user_balances
+from proxies.bank_service.utils import transfer_funds_to_user
 from .models import Spend
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -70,27 +69,21 @@ def spend_on_object(request):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Get website
-        website_name = request.headers.get('Website')
-        website = get_website(website_name)
-
-        # Process the transfer
-        transfer_response = request_transfer(
-            sender_id=user_uuid,
-            receiver_id=website.get('uuid'),
-            funds=funds
-        )
-
-        withdraw_transaction = transfer_response.get(
-            'transactions').get('withdraw')
-
-        # If transfer successful, create spend record
         with transaction.atomic():
+            # Spending money
+            website_name = request.headers.get('Website')
+            response = transfer_funds_to_user(
+                website_name=website_name,
+                user_uuid=user_uuid,
+                funds=funds,
+            )
+
+            # If transfer successful, create spend record
             spend = Spend.objects.create(
                 user=user_uuid,
                 object=obj.id,
                 fund=funds,
-                transaction_id=withdraw_transaction.get('id')
+                transaction_id=response.get('withdraw_transaction_id')
             )
 
             return Response({

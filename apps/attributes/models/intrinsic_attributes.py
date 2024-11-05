@@ -9,7 +9,7 @@ class Condition(IntrinsicAttribute):
 
     def is_true(self, *args, **kwargs):
         from apps.fsm.utils import AnswerSheetFacade
-        
+
         player = kwargs.get('player')
         user = kwargs.get('user')
         value = self.value
@@ -19,11 +19,11 @@ class Condition(IntrinsicAttribute):
             if not player:
                 total_condition_result = False
             else:
-                expected_correct_choices_in_last_answer_count = value.get(
+                expected_count = value.get(
                     'expected_correct_choices_in_last_answer_count')
                 facade = AnswerSheetFacade(player.answer_sheet)
                 total_condition_result = facade.check_expected_correct_choices_in_last_answer_count(
-                    expected_correct_choices_in_last_answer_count)
+                    expected_count)
 
         if 'expected_choices' in value:
             if not player:

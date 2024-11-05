@@ -1,10 +1,8 @@
 from django.db import models
 from polymorphic.models import PolymorphicModel
-from abc import abstractmethod
 
 from apps.attributes.models.utils import SumDict
-from proxies.bank_service.bank import request_transfer
-from proxies.website_service.main import get_website
+from proxies.bank_service.utils import transfer_funds_to_user
 
 
 class Attribute(PolymorphicModel):
@@ -62,15 +60,12 @@ class PerformableAction(Attribute):
         if total_reward.is_zero():
             return
 
-        # Get website
+        # Process the transfer
         request = kwargs.get('request')
         website_name = request.headers.get('Website')
-        website = get_website(website_name)
-
-        # Process the transfer
-        request_transfer(
-            sender_id=website.get('uuid'),
-            receiver_id=str(request.user.id),
+        transfer_funds_to_user(
+            website_name=website_name,
+            user_uuid=str(request.user.id),
             funds=total_reward,
         )
 
