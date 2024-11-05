@@ -74,9 +74,10 @@ class PerformableAction(Attribute):
             funds=total_reward,
         )
 
-    @abstractmethod
     def perform(self, *args, **kwargs) -> bool:
-        pass
+        if not self.is_permitted(*args, **kwargs):
+            return False
+        return True
 
     class Meta:
         verbose_name = 'Performable Action'

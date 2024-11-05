@@ -5,10 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
 from django.db import transaction
-from rest_framework.exceptions import ParseError
 
 from apps.response.serializers.answers.mock_answer_serializer import MockAnswerSerializer
-from errors.error_codes import serialize_error
+from apps.response.utils import AnswerFacade
 from apps.fsm.models import *
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
@@ -42,39 +41,21 @@ class AnswerViewSet(viewsets.ModelViewSet):
             player = get_object_or_404(Player, id=player_id)
         user = request.user
 
-        # check if user has already answered this question correctly
-        if question.correct_answer:
-            user_correctly_answered_problems = Answer.objects.filter(
-                submitted_by=user, is_correct=True)
-            for answer in user_correctly_answered_problems:
-                if answer.problem == question:
-                    raise ParseError(serialize_error('6000'))
-
-        # create submitted answer object
-        answer_data = {
-            'is_final_answer': True,
-            'problem': question.id,
-            **request.data
-        }
-        serializer = self.get_serializer(
-            data=answer_data,
-            context=self.get_serializer_context()
+        facade = AnswerFacade()
+        facade.submit_answer(
+            user=user,
+            player=player,
+            provided_answer=request.data,
+            question=question,
         )
-        serializer.is_valid(raise_exception=True)
-        answer = serializer.save()
 
-        # save answer in the player answer-sheet (if player exists):
-        if player:
-            answer_sheet = player.answer_sheet
-            answer.answer_sheet = answer_sheet
-            answer.save()
-
-        # perform posterior actions
-        from apps.attributes.models import PerformableAction
-        performable_attributes = question.attributes.instance_of(
-            PerformableAction)
-        for performable_attribute in performable_attributes:
-            performable_attribute.perform(player=player, request=request)
+        from apps.attributes.utils import perform_posterior_actions
+        perform_posterior_actions(
+            attributes=question.attributes,
+            player=player,
+            user=user,
+            request=request,
+        )
 
         return Response(status=status.HTTP_202_ACCEPTED)
 

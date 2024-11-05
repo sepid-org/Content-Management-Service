@@ -9,12 +9,12 @@ from apps.fsm.serializers.validators import multi_choice_answer_validator
 class AnswerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
-        user = self.context.get('user', None)
+        user = validated_data.get('submitted_by', None)
         validated_data.get('problem').unfinalize_older_answers(user)
         return super().create({'submitted_by': user, **validated_data})
 
     def update(self, instance, validated_data):
-        user = self.context.get('user', None)
+        user = validated_data.get('submitted_by', None)
         if 'problem' not in validated_data.keys():
             validated_data['problem'] = instance.problem
         elif validated_data.get('problem', None) != instance.problem:
@@ -22,26 +22,17 @@ class AnswerSerializer(serializers.ModelSerializer):
         instance.problem.unfinalize_older_answers(user)
         return super(AnswerSerializer, self).update(instance, {'is_final_answer': True, **validated_data})
 
-    def validate(self, attrs):
-        problem = attrs.get('problem', None)
-        answer_sheet = self.context.get('answer_sheet', None)
-        if answer_sheet is not None and problem is not None and problem.paper is not None:
-            if answer_sheet.form != problem.paper:
-                raise ParseError(serialize_error('4027', {'problem.paper': problem.paper,
-                                                          'original paper': answer_sheet.form},
-                                                 is_field_error=False))
-        return attrs
-
     class Meta:
         model = Answer
-        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by', 'created_at', 'is_final_answer', 'is_correct',
-                  'problem']
-        read_only_fields = ['id', 'submitted_by', 'answer_type', 'created_at']
+        fields = ['id', 'answer_type', 'answer_sheet', 'submitted_by',
+                  'created_at', 'is_final_answer', 'is_correct', 'problem']
+        read_only_fields = ['id', 'answer_type', 'created_at']
 
 
 class SmallAnswerSerializer(AnswerSerializer):
     def create(self, validated_data):
-        return super().create({'answer_type': 'SmallAnswer', **validated_data})
+        validated_data['answer_type'] = 'SmallAnswer'
+        return super().create(validated_data)
 
     class Meta(AnswerSerializer.Meta):
         model = SmallAnswer
@@ -50,7 +41,8 @@ class SmallAnswerSerializer(AnswerSerializer):
 
 class BigAnswerSerializer(AnswerSerializer):
     def create(self, validated_data):
-        return super().create({'answer_type': 'BigAnswer', **validated_data})
+        validated_data['answer_type'] = 'BigAnswer'
+        return super().create(validated_data)
 
     class Meta(AnswerSerializer.Meta):
         model = BigAnswer
@@ -72,22 +64,20 @@ class ChoiceSerializer(serializers.ModelSerializer):
 
 
 class MultiChoiceAnswerSerializer(AnswerSerializer):
-    choices = ChoiceSerializer(many=True, required=False)
-
-    class Meta(AnswerSerializer.Meta):
-        model = MultiChoiceAnswer
-        fields = AnswerSerializer.Meta.fields + ['choices']
+    choices = serializers.PrimaryKeyRelatedField(
+        queryset=Choice.objects.all(), many=True, required=False)
 
     def create(self, validated_data):
-        choices_data = validated_data.pop('choices', [])
-        choices_ids = [choice_data['id'] for choice_data in choices_data]
-        choices_instances = Choice.objects.filter(id__in=choices_ids)
-        instance = super().create(
-            {'answer_type': 'MultiChoiceAnswer', **validated_data})
-        instance.choices.add(*choices_instances)
-        instance.save()
-        self.context['choices'] = choices_instances
-        return instance
+        choices_instances = validated_data.pop('choices', [])
+
+        print(validated_data, choices_instances)
+
+        validated_data['answer_type'] = 'MultiChoiceAnswer'
+        answer_instance = super().create(validated_data)
+        answer_instance.choices.add(*choices_instances)
+        answer_instance.save()
+
+        return answer_instance
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -97,19 +87,17 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
             choices, problem.max_selections)
         return attrs
 
+    class Meta(AnswerSerializer.Meta):
+        model = MultiChoiceAnswer
+        fields = AnswerSerializer.Meta.fields + ['choices']
+
 
 class UploadFileAnswerSerializer(AnswerSerializer):
+
+    def create(self, validated_data):
+        validated_data['answer_type'] = 'UploadFileAnswer'
+        return super().create(validated_data)
 
     class Meta(AnswerSerializer.Meta):
         model = UploadFileAnswer
         fields = AnswerSerializer.Meta.fields + ['answer_file']
-
-    def to_representation(self, instance):
-        representation = super(UploadFileAnswerSerializer,
-                               self).to_representation(instance)
-        answer_file = representation['answer_file']
-        if answer_file.startswith('/api/'):
-            domain = self.context.get('domain', None)
-            if domain:
-                representation['answer_file'] = domain + answer_file
-        return representation

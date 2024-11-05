@@ -4,12 +4,47 @@ from .base import PerformableAction
 from django.db import models
 
 
+class Answer(PerformableAction):
+    class AnswerTypes(models.TextChoices):
+        SmallAnswer = 'SmallAnswer'
+        BigAnswer = 'BigAnswer'
+        MultiChoiceAnswer = 'MultiChoiceAnswer'
+        UploadFileAnswer = 'UploadFileAnswer'
+
+    question_id = models.PositiveIntegerField()
+    answer_type = models.CharField(max_length=20, choices=AnswerTypes.choices)
+    provided_answer = models.JSONField(default=dict)
+
+    def perform(self, *args, **kwargs) -> bool:
+        if not super().perform(*args, **kwargs):
+            return False
+
+        from apps.response.utils import AnswerFacade
+
+        user = kwargs.get('user')
+        player = kwargs.get('player')
+        if not user:
+            return False
+
+        facade = AnswerFacade()
+        facade.submit_answer(
+            user=user,
+            player=player,
+            provided_answer={
+                'answer_type': self.answer_type,
+                **self.provided_answer,
+            },
+            question=facade.get_question(self.question_id),
+        )
+
+        return True
+
+
 class Transition(PerformableAction):
     destination_state_id = models.IntegerField()
 
-    def perform(self, *arg, **kwargs) -> bool:
-
-        if not self.is_permitted(*arg, **kwargs):
+    def perform(self, *args, **kwargs) -> bool:
+        if not super().perform(*args, **kwargs):
             return False
 
         from apps.fsm.models.fsm import State
@@ -29,28 +64,29 @@ class Transition(PerformableAction):
         return True
 
 
-class Buy(PerformableAction):
-
-    def perform(self, *arg, **kwargs):
-        # todo
-        return True
-
-
 class Submission(PerformableAction):
 
-    def perform(self, *arg, **kwargs):
-
-        if not self.is_permitted(*arg, **kwargs):
+    def perform(self, *args, **kwargs):
+        if not super().perform(*args, **kwargs):
             return False
 
         # perform main action:
-        self.give_reward(*arg, **kwargs)
+        self.give_reward(*args, **kwargs)
 
-        # perform posterior actions:
-        from apps.attributes.models import PerformableAction
-        performable_attributes = self.attributes.instance_of(
-            PerformableAction)
-        for performable_attribute in performable_attributes:
-            performable_attribute.perform(*arg, **kwargs)
+        from apps.attributes.utils import perform_posterior_actions
+        perform_posterior_actions(
+            attributes=self.attributes,
+            *args,
+            **kwargs,
+        )
+
+        return True
+
+
+class Buy(PerformableAction):
+
+    def perform(self, *args, **kwargs):
+        if not super().perform(*args, **kwargs):
+            return False
 
         return True

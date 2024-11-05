@@ -26,10 +26,12 @@ def submit_button_widget(request):
     if button_id:
         button = get_object_or_404(ButtonWidget, id=button_id)
 
-        from apps.attributes.models import PerformableAction
-        performable_attributes = button.attributes.instance_of(
-            PerformableAction)
-        for attribute in performable_attributes:
-            attribute.perform(player=player, request=request)
+        from apps.attributes.utils import perform_posterior_actions
+        perform_posterior_actions(
+            attributes=button.attributes,
+            player=player,
+            user=request.user,
+            request=request
+        )
 
     return Response(status=status.HTTP_200_OK)
