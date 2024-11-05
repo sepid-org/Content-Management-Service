@@ -175,6 +175,8 @@ class FSMAdmin(admin.ModelAdmin):
                     'mentors_num', 'mentors_list', 'online_teams_in_last_hour']
     list_filter = ['name']
     search_fields = ['name']
+    autocomplete_fields = ['creator', 'mentors',
+                           'program', 'first_state', '_object']
     actions = [clone_fsm]
 
     def mentors_list(self, obj):
@@ -491,6 +493,7 @@ class WidgetHintCustomAdmin(admin.ModelAdmin):
 class ProgramCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'registration_form', 'creator']
     list_display_links = ['id', 'name']
+    search_fields = ['name']
 
 
 @admin.register(UploadFileProblem)
