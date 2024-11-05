@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class WMSConfig:
     """Configuration settings for WMS client."""
     base_url: str = settings.WMS_URL
-    cache_timeout: int = getattr(settings, 'WMS_CACHE_TIMEOUT', 60 * 15)
+    cache_timeout: int = getattr(settings, 'WMS_CACHE_TIMEOUT', 60 * 60 * 24)
     cache_prefix: str = 'wms_website_'
     request_timeout: int = 10
 
