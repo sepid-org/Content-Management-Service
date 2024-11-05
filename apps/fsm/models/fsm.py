@@ -70,10 +70,6 @@ class FSM(models.Model, ObjectMixin):
     def is_enabled(self, *args, **kwargs) -> bool:
         user = kwargs.get('user')
 
-        # check is mentor
-        if user in self.mentors.all():
-            return True
-
         # check ceil of participation
         finished_players = Player.objects.filter(
             user=user,
