@@ -41,7 +41,8 @@ class AudioSerializer(ContentWidgetSerializer):
 
     class Meta(ContentWidgetSerializer.Meta):
         model = Audio
-        fields = ContentWidgetSerializer.Meta.fields + ['link', 'autoplay']
+        fields = ContentWidgetSerializer.Meta.fields + \
+            ['link', 'autoplay', 'repeat', 'volume']
 
 
 class AparatSerializer(ContentWidgetSerializer):
