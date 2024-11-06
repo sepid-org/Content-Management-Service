@@ -35,6 +35,14 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
                         '4029', {'problem': widget}))
         return attrs
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        answers = instance.answers
+        from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+        representation['answers'] = AnswerPolymorphicSerializer(
+            answers, many=True).data
+        return representation
+
     class Meta:
         model = AnswerSheet
         fields = ['id', 'answer_sheet_type', 'user']

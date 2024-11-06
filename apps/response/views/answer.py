@@ -6,9 +6,13 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from django.db import transaction
 
+from apps.attributes.models.performable_actions import Answer
+from apps.fsm.models.base import Widget
+from apps.fsm.models.fsm import Player
+from apps.fsm.models.question_widgets import PROBLEM_ANSWER_MAPPING
+from apps.fsm.models.team import Team
 from apps.response.serializers.answers.mock_answer_serializer import MockAnswerSerializer
 from apps.response.utils import AnswerFacade
-from apps.fsm.models import *
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
 
@@ -21,14 +25,6 @@ class AnswerViewSet(viewsets.ModelViewSet):
     queryset = Answer.objects.all()
     serializer_class = AnswerPolymorphicSerializer
     my_tags = ['answers']
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({
-            'user': self.request.user,
-            'domain': self.request.build_absolute_uri('/api/')[:-5],
-        })
-        return context
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
     @action(detail=False, methods=['post'], url_path='submit-answer')
@@ -87,10 +83,3 @@ class AnswerViewSet(viewsets.ModelViewSet):
         question = get_question(question_id=question_id)
         # todo
         return Response()
-
-    @action(detail=False, methods=['get'])
-    def answer_sheet_answers(self, request, *args, **kwargs):
-        answer_sheet_id = request.GET.get('answer_sheet')
-        answer_sheet = AnswerSheet.objects.get(id=answer_sheet_id)
-        answers = answer_sheet.answers
-        return Response(self.get_serializer(answers, many=True).data)
