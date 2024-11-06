@@ -79,22 +79,7 @@ class MultiChoiceProblemSerializer(QuestionWidgetSerializer):
         model = MultiChoiceProblem
         fields = QuestionWidgetSerializer.Meta.fields + \
             ['min_selections', 'max_selections',
-                'lock_after_answer', 'randomize_choices', 'choices']
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        request = self.context.get('request')
-        fsm_id = request.headers.get("FSM")
-        user = request.user
-        player = get_active_player(fsm_id, user.id)
-        choices_representation = []
-        for choice in instance.choices.all():
-            choices_representation.append({
-                **ChoiceSerializer(choice).data,
-                'enabled': choice.is_enabled(user=user, player=player),
-            })
-        representation['choices'] = choices_representation
-        return representation
+                'disable_after_answer', 'randomize_choices', 'choices']
 
     def create(self, validated_data):
         choices_data = validated_data.pop('choices')

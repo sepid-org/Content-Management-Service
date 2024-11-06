@@ -59,7 +59,7 @@ class MultiChoiceProblem(Problem):
         validators=[MinValueValidator(0)], default=1)
     max_selections = models.IntegerField(
         validators=[MinValueValidator(0)], default=1)
-    lock_after_answer = models.BooleanField(default=False)
+    disable_after_answer = models.BooleanField(default=False)
     randomize_choices = models.BooleanField(
         default=False,
         help_text="If enabled, the choices will be presented in random order"
@@ -98,23 +98,6 @@ class Choice(models.Model):
                                 related_name='choices')
     text = models.TextField()
     is_correct = models.BooleanField(default=False)
-
-    # default is True
-    def is_enabled(self, *args, **kwargs):
-        from apps.fsm.utils import AnswerSheetFacade
-        player = kwargs.get('player')
-        if not player:
-            return False
-
-        answer_sheet = player.answer_sheet
-        facade = AnswerSheetFacade(answer_sheet)
-
-        question = self.problem
-        if question.lock_after_answer:
-            if facade.check_expected_choice(self.id):
-                return False
-
-        return True
 
     def __str__(self):
         return self.text
