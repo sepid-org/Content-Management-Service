@@ -107,7 +107,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
                     'receipt': receipt,
                     'current_state': fsm.first_state.id,
                     'last_visit': timezone.now(),
-                }
+                },
+                context=self.get_serializer_context(),
             )
             serializer.is_valid(raise_exception=True)
             player = serializer.save()

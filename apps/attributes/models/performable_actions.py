@@ -4,6 +4,37 @@ from .base import PerformableAction
 from django.db import models
 
 
+class Start(PerformableAction):
+
+    def perform(self, *args, **kwargs):
+        if not super().perform(*args, **kwargs):
+            return False
+
+        # perform main action:
+        self.give_reward(*args, **kwargs)
+
+        return True
+
+
+class Submission(PerformableAction):
+
+    def perform(self, *args, **kwargs):
+        if not super().perform(*args, **kwargs):
+            return False
+
+        # perform main action:
+        self.give_reward(*args, **kwargs)
+
+        from apps.attributes.utils import perform_posterior_actions
+        perform_posterior_actions(
+            attributes=self.attributes,
+            *args,
+            **kwargs,
+        )
+
+        return True
+
+
 class Answer(PerformableAction):
     class AnswerTypes(models.TextChoices):
         SmallAnswer = 'SmallAnswer'
@@ -59,25 +90,6 @@ class Transition(PerformableAction):
             player,
             player.current_state,
             destination_state,
-        )
-
-        return True
-
-
-class Submission(PerformableAction):
-
-    def perform(self, *args, **kwargs):
-        if not super().perform(*args, **kwargs):
-            return False
-
-        # perform main action:
-        self.give_reward(*args, **kwargs)
-
-        from apps.attributes.utils import perform_posterior_actions
-        perform_posterior_actions(
-            attributes=self.attributes,
-            *args,
-            **kwargs,
         )
 
         return True

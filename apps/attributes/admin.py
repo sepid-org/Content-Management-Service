@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from apps.attributes.models.base import Attribute, IntrinsicAttribute, PerformableAction
 from apps.attributes.models.intrinsic_attributes import Enabled, Condition, Cost, Reward
-from apps.attributes.models.performable_actions import Answer, Buy, Submission, Transition
+from apps.attributes.models.performable_actions import Answer, Buy, Start, Submission, Transition
 
 
 class AttributeCustomAdmin(admin.ModelAdmin):
@@ -45,6 +45,16 @@ class RewardCustomAdmin(IntrinsicAttributeCustomAdmin):
 ################ PERFORMABLE ACTIONS ################
 
 
+@admin.register(Submission)
+class SubmissionCustomAdmin(PerformableActionCustomAdmin):
+    list_display = PerformableActionCustomAdmin.list_display + []
+
+
+@admin.register(Start)
+class StartCustomAdmin(PerformableActionCustomAdmin):
+    list_display = PerformableActionCustomAdmin.list_display + []
+
+
 @admin.register(Transition)
 class TransitionCustomAdmin(PerformableActionCustomAdmin):
     list_display = PerformableActionCustomAdmin.list_display + \
@@ -53,11 +63,6 @@ class TransitionCustomAdmin(PerformableActionCustomAdmin):
 
 @admin.register(Buy)
 class BuyCustomAdmin(PerformableActionCustomAdmin):
-    list_display = PerformableActionCustomAdmin.list_display + []
-
-
-@admin.register(Submission)
-class SubmissionCustomAdmin(PerformableActionCustomAdmin):
     list_display = PerformableActionCustomAdmin.list_display + []
 
 
