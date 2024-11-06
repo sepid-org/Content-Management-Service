@@ -103,6 +103,9 @@ class Choice(models.Model):
     def is_enabled(self, *args, **kwargs):
         from apps.fsm.utils import AnswerSheetFacade
         player = kwargs.get('player')
+        if not player:
+            return False
+
         answer_sheet = player.answer_sheet
         facade = AnswerSheetFacade(answer_sheet)
 
