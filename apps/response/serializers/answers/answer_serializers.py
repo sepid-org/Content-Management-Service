@@ -70,8 +70,6 @@ class MultiChoiceAnswerSerializer(AnswerSerializer):
     def create(self, validated_data):
         choices_instances = validated_data.pop('choices', [])
 
-        print(validated_data, choices_instances)
-
         validated_data['answer_type'] = 'MultiChoiceAnswer'
         answer_instance = super().create(validated_data)
         answer_instance.choices.add(*choices_instances)
