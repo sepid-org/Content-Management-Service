@@ -104,4 +104,5 @@ class ProgramContactInfo(models.Model):
     eitaa_link = models.CharField(max_length=100, null=True, blank=True)
     bale_link = models.CharField(max_length=100, null=True, blank=True)
     instagram_link = models.CharField(max_length=100, null=True, blank=True)
+    rubika_link = models.CharField(max_length=100, null=True, blank=True)
     phone_number = models.CharField(max_length=100, null=True, blank=True)
