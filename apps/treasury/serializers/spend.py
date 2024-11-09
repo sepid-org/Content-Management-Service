@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.currency.models import Spend
+from apps.treasury.models import Spend
 
 
 class SpendSerializer(serializers.ModelSerializer):

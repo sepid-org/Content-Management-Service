@@ -46,7 +46,6 @@ CUSTOM_APPS = [
     'django_filters',
     'minio_storage',
     'shortener',
-    # 'django_cleanup.apps.CleanupConfig', todo: حواسم باشه که فایل‌ها روی درایو می‌مونن
     'manage_content_service.apps.MyAdminConfig',
     'apps.accounts.apps.AccountConfig',
     'apps.fsm.apps.FsmConfig',
@@ -58,7 +57,7 @@ CUSTOM_APPS = [
     'apps.attributes.apps.AttributesConfig',
     'apps.response.apps.ResponseConfig',
     'apps.widgets.apps.WidgetsConfig',
-    'apps.currency.apps.CurrencyConfig',
+    'apps.treasury.apps.TreasuryConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS

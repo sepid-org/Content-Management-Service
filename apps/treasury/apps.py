@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class CurrencyConfig(AppConfig):
+class TreasuryConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.currency'
+    name = 'apps.treasury'
