@@ -20,10 +20,11 @@ class SimpleLogin(TokenObtainPairView):
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
         website = request.headers.get("Website")
-
-        user, _ = create_or_get_user(user_data={**request.data, "password": request.data.get("email")},
-                                     website=request.headers.get("Website"))
-
+        user = find_user_in_website(
+            user_data=request.data,
+            website=website,
+            raise_exception=True,
+        )
         if not can_user_login(user=user, password=request.data.get("password"), website=website):
             raise ParseError(serialize_error('4009'))
 

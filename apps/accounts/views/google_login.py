@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.models import UserWebsiteLogin
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import create_or_get_user, generate_tokens_for_user
+from apps.accounts.utils import find_user_in_website, generate_tokens_for_user
 
 
 class GoogleLogin(TokenObtainPairView):
@@ -16,10 +16,13 @@ class GoogleLogin(TokenObtainPairView):
                                     400: "error code 4007 for not enough credentials",
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
-        user, created = create_or_get_user(user_data={**request.data, "password": request.data.get("email")},
-                                           website=request.headers.get("Website"))
-
         website = request.headers.get("Website")
+
+        user = find_user_in_website(
+            user_data=request.data,
+            website=website,
+            raise_exception=True,
+        )
 
         # create a login object to save users logins
         UserWebsiteLogin.objects.create(
@@ -32,4 +35,4 @@ class GoogleLogin(TokenObtainPairView):
             'user': UserSerializer(user).data,
             'access': str(access_token),
             'refresh': str(refresh_token)
-        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
