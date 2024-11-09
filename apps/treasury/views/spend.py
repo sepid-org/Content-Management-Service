@@ -3,10 +3,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from apps.treasury.models import Spend
 from apps.fsm.models import Object
 from proxies.bank_service.bank import get_user_balances
 from proxies.bank_service.utils import transfer_funds_to_user
-from .models import Spend
 from django.core.exceptions import ObjectDoesNotExist
 
 

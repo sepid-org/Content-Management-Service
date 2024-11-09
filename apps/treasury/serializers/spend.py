@@ -17,3 +17,7 @@ class SpendSerializer(serializers.ModelSerializer):
         if not isinstance(value, dict):
             raise serializers.ValidationError("Funds must be a dictionary.")
         return value
+
+
+class SpendCheckSerializer(serializers.Serializer):
+    item_id = serializers.IntegerField()
