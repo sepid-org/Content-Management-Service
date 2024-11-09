@@ -48,7 +48,7 @@ def spend_on_object(request):
 
         # Check if the user has already spent on this object
         user_uuid = str(request.user.id)
-        if Spend.objects.filter(user=user_uuid, object=obj.id).exists():
+        if Spend.objects.filter(user=user_uuid, object_id=obj.id).exists():
             return Response(
                 {"error": "You have already spent on this object."},
                 status=status.HTTP_400_BAD_REQUEST
@@ -81,7 +81,7 @@ def spend_on_object(request):
             # If transfer successful, create spend record
             spend = Spend.objects.create(
                 user=user_uuid,
-                object=obj.id,
+                object_id=obj.id,
                 fund=funds,
                 transaction_id=response.get('withdraw_transaction_id')
             )
