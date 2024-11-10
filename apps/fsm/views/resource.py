@@ -26,7 +26,7 @@ class ResourceViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ['retrieve', 'by_type']:
             return ResourceSerializer
         return PublicResourceSerializer
 
@@ -41,6 +41,30 @@ class ResourceViewSet(viewsets.ModelViewSet):
                 {"error": "Access to this resource is restricted."},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+    @action(detail=False, methods=['get'], url_path='by-type')
+    def by_type(self, request):
+        resource_type = request.query_params.get('type')
+        if not resource_type:
+            return Response(
+                {"error": "type query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        object_id = request.query_params.get('object_id')
+        if object_id:
+            resources = Resource.objects.filter(
+                target_object_id=object_id,
+                type=resource_type
+            )
+        else:
+            resources = Resource.objects.filter(type=resource_type)
+        serializer = self.get_serializer(
+            resources,
+            many=True,
+            context=self.get_serializer_context(),
+        )
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='by-object')
     def by_object(self, request):

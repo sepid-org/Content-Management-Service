@@ -169,12 +169,14 @@ class Widget(PolymorphicModel, ObjectMixin):
 class Resource(Object):
     type = models.CharField(
         max_length=30,
-        help_text="Type of resource (e.g., Hint, Document, Evidences, etc.)"
+        help_text="Type of resource (e.g., hint, document, evidence, book, etc.)"
     )
     target_object = models.ForeignKey(
         Object,
         on_delete=models.CASCADE,
         related_name='resources',
+        null=True,
+        blank=True,
         help_text="The object (e.g., question, lesson) this resource is associated with."
     )
     content = models.JSONField(
