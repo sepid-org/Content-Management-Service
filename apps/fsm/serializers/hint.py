@@ -3,14 +3,15 @@ from apps.fsm.serializers.object_serializer import ObjectSerializer, TreasuryObj
 
 
 class PublicGeneralHintSerializer(TreasuryObjectSerializer):
-    class Meta(ObjectSerializer.Meta):
+    class Meta(TreasuryObjectSerializer.Meta):
         model = GeneralHint
-        fields = ObjectSerializer.Meta.fields + []
-        read_only_fields = ObjectSerializer.Meta.read_only_fields
+        fields = TreasuryObjectSerializer.Meta.fields + ['id']
+        read_only_fields = TreasuryObjectSerializer.Meta.read_only_fields + \
+            ['id']
 
 
 class DetailedGeneralHintSerializer(ObjectSerializer):
     class Meta(ObjectSerializer.Meta):
         model = GeneralHint
-        fields = ObjectSerializer.Meta.fields + ['hint_content']
-        read_only_fields = ObjectSerializer.Meta.read_only_fields
+        fields = ObjectSerializer.Meta.fields + ['id', 'hint_content']
+        read_only_fields = ObjectSerializer.Meta.read_only_fields + ['id']
