@@ -11,7 +11,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
-from apps.fsm.models.base import GeneralHint
+from apps.fsm.models.base import GeneralHint, Resource
 from apps.fsm.models.content_widgets import Placeholder
 from apps.fsm.models.fsm import State, StatePaper
 
@@ -424,6 +424,13 @@ class ObjectAdmin(admin.ModelAdmin):
 class GeneralHintCustomAdmin(ObjectAdmin):
     list_display = ['id', 'title', 'target_object', 'hint_content']
     autocomplete_fields = ['target_object', 'hint_content']
+
+
+@admin.register(Resource)
+class ResourceCustomAdmin(ObjectAdmin):
+    list_display = ['id', 'title', 'type', 'target_object', 'content']
+    list_filter = ['type']
+    autocomplete_fields = ['target_object']
 
 
 @admin.register(Placeholder)

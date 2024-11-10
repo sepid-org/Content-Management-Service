@@ -7,16 +7,16 @@ from rest_framework.response import Response
 
 from apps.attributes.utils import is_object_free_to_buy
 from apps.fsm.models import Hint
-from apps.fsm.models.base import GeneralHint, Paper
+from apps.fsm.models.base import Resource, Paper
 from apps.fsm.permissions import IsHintModifier
-from apps.fsm.serializers.hint import PublicGeneralHintSerializer, DetailedGeneralHintSerializer
+from apps.fsm.serializers.resource import PublicResourceSerializer, ResourceSerializer
 from apps.fsm.serializers.papers.hint_serializer import HintSerializer
 from apps.treasury.utils import has_user_spent_on_object
 
 
-class GeneralHintViewSet(viewsets.ModelViewSet):
-    queryset = GeneralHint.objects.all()
-    my_tags = ['general-hint']
+class ResourceViewSet(viewsets.ModelViewSet):
+    queryset = Resource.objects.all()
+    my_tags = ['resources']
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list', 'by_object']:
@@ -27,8 +27,8 @@ class GeneralHintViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return DetailedGeneralHintSerializer
-        return PublicGeneralHintSerializer
+            return ResourceSerializer
+        return PublicResourceSerializer
 
     def retrieve(self, request, *args, **kwargs):
         user = request.user
@@ -38,7 +38,7 @@ class GeneralHintViewSet(viewsets.ModelViewSet):
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response(
-                {"error": "Access to this hint is restricted."},
+                {"error": "Access to this resource is restricted."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -51,9 +51,16 @@ class GeneralHintViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        general_hints = GeneralHint.objects.filter(target_object_id=object_id)
+        resource_type = request.query_params.get('type')
+        if resource_type:
+            resources = Resource.objects.filter(
+                target_object_id=object_id,
+                type=resource_type
+            )
+        else:
+            resources = Resource.objects.filter(target_object_id=object_id)
         serializer = self.get_serializer(
-            general_hints,
+            resources,
             many=True,
             context=self.get_serializer_context(),
         )

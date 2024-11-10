@@ -166,6 +166,26 @@ class Widget(PolymorphicModel, ObjectMixin):
 
 ################### HINTS ###################
 
+class Resource(Object):
+    type = models.CharField(
+        max_length=30,
+        help_text="Type of resource (e.g., Hint, Document, Evidences, etc.)"
+    )
+    target_object = models.ForeignKey(
+        Object,
+        on_delete=models.CASCADE,
+        related_name='resources',
+        help_text="The object (e.g., question, lesson) this resource is associated with."
+    )
+    content = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="The content of the resource, which can be a PaperId or other related material."
+    )
+
+    def __str__(self):
+        return f"{self.type.capitalize()} Resource for {self.target_object}"
+
 
 class GeneralHint(Object):
     target_object = models.ForeignKey(
