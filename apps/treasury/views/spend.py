@@ -57,6 +57,7 @@ def spend_on_object(request):
         # Get user's current balance
         user_balances = get_user_balances(user_uuid)
 
+        # todo: maybe object is free!
         # Validate user has enough balance
         for currency, amount in funds.items():
             if user_balances.get(currency, 0) < amount:
