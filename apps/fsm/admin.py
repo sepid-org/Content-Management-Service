@@ -416,7 +416,7 @@ class RegistrationFormCAdmin(admin.ModelAdmin):
 @admin.register(Object)
 class ObjectAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'updated_at')
-    search_fields = ('title',)
+    search_fields = ('id', 'title',)
     filter_horizontal = ['attributes',]
 
 
