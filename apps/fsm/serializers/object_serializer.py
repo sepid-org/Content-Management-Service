@@ -5,6 +5,7 @@ from apps.attributes.serializers.polymorphic_attribute_serializer import Attribu
 from apps.fsm.models import Object
 from apps.fsm.models.base import Position
 from apps.fsm.serializers.position_serializer import PositionSerializer
+from apps.treasury.utils import has_user_spent_on_object
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -22,12 +23,6 @@ class ObjectSerializer(serializers.ModelSerializer):
             )
         return PositionSerializer(obj.position).data
 
-    class Meta:
-        model = Object
-        fields = ['name', 'title', 'created_at', 'updated_at',
-                  'attributes', 'order', 'is_private', 'position', 'is_hidden', 'website']
-        read_only_fields = ['created_at', 'attributes', 'position']
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['object_id'] = instance.id
@@ -35,4 +30,20 @@ class ObjectSerializer(serializers.ModelSerializer):
         representation['attributes'] = AttributePolymorphicSerializer(
             instance.attributes.all(), many=True).data
 
+        return representation
+
+    class Meta:
+        model = Object
+        fields = ['name', 'title', 'created_at', 'updated_at',
+                  'attributes', 'order', 'is_private', 'position', 'is_hidden', 'website']
+        read_only_fields = ['created_at', 'attributes', 'position']
+
+
+class TreasuryObjectSerializer(ObjectSerializer):
+
+    def to_representation(self, instance):
+        user = self.context.get('request').user
+        representation = super().to_representation(instance)
+        representation['has_spent_on_object'] = has_user_spent_on_object(
+            user.id, instance.id)
         return representation

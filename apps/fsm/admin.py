@@ -11,6 +11,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
     UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
 
+from apps.fsm.models.base import GeneralHint
 from apps.fsm.models.content_widgets import Placeholder
 from apps.fsm.models.fsm import State, StatePaper
 
@@ -317,6 +318,12 @@ class ImageCustomAdmin(admin.ModelAdmin):
     list_filter = []
     search_fields = []
     actions = []
+
+
+@admin.register(GeneralHint)
+class GeneralHintCustomAdmin(admin.ModelAdmin):
+    list_display = ['id', 'target_object', 'hint_content']
+    list_filter = []
 
 
 @admin.register(Hint)

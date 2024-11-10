@@ -55,24 +55,25 @@ class FSMSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         creator = self.context.get('user', None)
-        merchandise = validated_data.pop('merchandise', None)
         team_size = validated_data.get('team_size', None)
         program = validated_data.get('program', None)
         fsm_p_type = validated_data.get('fsm_p_type')
         if team_size is None and program and fsm_p_type != FSM.FSMPType.Individual:
             validated_data['team_size'] = program.team_size
 
-        instance = super(FSMSerializer, self).create(
-            {'creator': creator, **validated_data})
+        validated_data['creator'] = creator
+        return super(FSMSerializer, self).create(validated_data)
 
-        if merchandise and merchandise.get('name', None) is None:
-            merchandise['name'] = validated_data.get('name', 'unnamed_program')
-            serializer = MerchandiseSerializer(data=merchandise)
-            if serializer.is_valid(raise_exception=True):
-                merchandise_instance = serializer.save()
-                instance.merchandise = merchandise_instance
-                instance.save()
-        return instance
+    def to_representation(self, instance):
+        # add object fields to representation
+        representation = super().to_representation(instance)
+        object_instance = instance.object
+        representation = {
+            **ObjectSerializer(object_instance, context=self.context).data,
+            **representation,
+        }
+
+        return representation
 
     class Meta:
         model = FSM

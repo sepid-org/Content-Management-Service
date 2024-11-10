@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from apps.treasury.models import Spend
 from apps.treasury.serializers.spend import SpendCheckSerializer
+from apps.treasury.utils import has_user_spent_on_object
 
 
 @api_view(['POST'])
@@ -26,9 +26,8 @@ def has_spent_on_object(request):
     object_id = serializer.validated_data['object_id']
     user_uuid = str(request.user.id)
 
-    # Check if a spend record exists
-    has_spent = Spend.objects.filter(
-        user=user_uuid, object_id=object_id).exists()
+    # Use utility function to check if a spend record exists
+    has_spent = has_user_spent_on_object(user_uuid, object_id)
 
     return Response({
         "object_id": object_id,

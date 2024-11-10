@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from apps.fsm.views.edge_view import EdgeViewSet
 from apps.fsm.views.form_view import FormViewSet
 from apps.fsm.views.fsm_view import FSMViewSet
-from apps.fsm.views.hint_view import HintViewSet
+from apps.fsm.views.hint import GeneralHintViewSet, HintViewSet
 from apps.fsm.views.paper_view import PaperViewSet
 from apps.fsm.views.object_view import ObjectViewSet
 from apps.fsm.views.player_view import PlayerViewSet
@@ -38,6 +38,7 @@ router.register(r'state', StateViewSet, basename='states')
 router.register(r'paper', PaperViewSet, basename='papers')
 router.register(r'edge', EdgeViewSet, basename='edges')
 router.register(r'hint', HintViewSet, basename='hints')
+router.register(r'general-hint', GeneralHintViewSet, basename='general_hints')
 router.register(r'objects', ObjectViewSet, basename='objects')
 router.register(r'player', PlayerViewSet, basename='players')
 

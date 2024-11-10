@@ -8,7 +8,7 @@ router = DefaultRouter()
 
 urlpatterns = [
     path('spend-on-object/', spend_on_object),
-    path('has-spent-on-item/', has_spent_on_object, name='has-spent-on-item'),
+    path('has-spent-on-object/', has_spent_on_object, name='has-spent-on-object'),
 ]
 
 urlpatterns += router.urls

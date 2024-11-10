@@ -164,6 +164,28 @@ class Widget(PolymorphicModel, ObjectMixin):
         pass
 
 
+################### HINTS ###################
+
+
+class GeneralHint(Object):
+    target_object = models.ForeignKey(
+        Object,
+        on_delete=models.CASCADE,
+        related_name='general_hints',
+        help_text="The object (e.g., question, lesson) this hint is associated with."
+    )
+    hint_content = models.ForeignKey(
+        Paper,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="The content of the hint, which can be a Paper or other related material."
+    )
+
+    def __str__(self):
+        return f"Hint for {self.target_object}"
+
+
 class Hint(Paper):
     reference = models.ForeignKey(
         'fsm.State', on_delete=models.SET_NULL, related_name='hints', null=True)
