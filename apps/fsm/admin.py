@@ -320,12 +320,6 @@ class ImageCustomAdmin(admin.ModelAdmin):
     actions = []
 
 
-@admin.register(GeneralHint)
-class GeneralHintCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'target_object', 'hint_content']
-    list_filter = []
-
-
 @admin.register(Hint)
 class HintCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper_type', 'creator']
@@ -424,6 +418,12 @@ class ObjectAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'updated_at')
     search_fields = ('title',)
     filter_horizontal = ['attributes',]
+
+
+@admin.register(GeneralHint)
+class GeneralHintCustomAdmin(ObjectAdmin):
+    list_display = ['id', 'title', 'target_object', 'hint_content']
+    autocomplete_fields = ['target_object', 'hint_content']
 
 
 @admin.register(Placeholder)
