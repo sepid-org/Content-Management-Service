@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.attributes.utils import is_object_free_to_buy
 from apps.fsm.models import Hint
 from apps.fsm.models.base import GeneralHint, Paper
 from apps.fsm.permissions import IsHintModifier
@@ -33,7 +34,7 @@ class GeneralHintViewSet(viewsets.ModelViewSet):
         user = request.user
         obj = self.get_object()
 
-        if has_user_spent_on_object(user.id, obj.id):
+        if has_user_spent_on_object(user.id, obj.id) or is_object_free_to_buy(obj):
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response(
