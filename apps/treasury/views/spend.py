@@ -6,7 +6,7 @@ from django.db import transaction
 from apps.treasury.models import Spend
 from apps.fsm.models import Object
 from proxies.bank_service.bank import get_user_balances
-from proxies.bank_service.utils import transfer_funds_to_user
+from proxies.bank_service.utils import transfer_funds_from_user
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -73,7 +73,7 @@ def spend_on_object(request):
         with transaction.atomic():
             # Spending money
             website_name = request.headers.get('Website')
-            response = transfer_funds_to_user(
+            response = transfer_funds_from_user(
                 website_name=website_name,
                 user_uuid=user_uuid,
                 funds=funds,
