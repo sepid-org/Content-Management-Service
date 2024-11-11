@@ -182,10 +182,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserPublicInfoSerializer(serializers.ModelSerializer):
+    truncated_username = serializers.SerializerMethodField()
+
+    def get_truncated_username(self, obj):
+        username = obj.username
+        if username and len(username) > 4:
+            return username[-4:]
+        return username
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name',
+        fields = ['id', 'truncated_username', 'first_name',
                   'last_name', 'bio', 'profile_image', 'gender']
         read_only_fields = fields
 
