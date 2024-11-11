@@ -190,9 +190,9 @@ class UserPublicInfoSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class UserRegistrationReceiptInfoSerializer(UserPublicInfoSerializer):
+class UserRegistrationReceiptInfoSerializer(serializers.ModelSerializer):
 
-    class Meta(UserPublicInfoSerializer.Meta):
+    class Meta:
         model = User
-        fields = UserPublicInfoSerializer.Meta.fields + \
-            ['phone_number', 'email', 'province', 'city', 'gender']
+        fields = ['id', 'username', 'first_name', 'last_name', 'bio', 'profile_picture',
+                  'gender', 'phone_number', 'email', 'province', 'city', 'gender']
