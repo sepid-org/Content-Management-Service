@@ -47,6 +47,7 @@ class OTPLoginView(APIView):
             user_data = {
                 'phone_number': phone_number,
                 'username': phone_number,
+                'is_temporary': True,
             }
 
             user, created = create_or_get_user(
