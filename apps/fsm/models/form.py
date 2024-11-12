@@ -165,7 +165,6 @@ class RegistrationForm(Form):
 class AnswerSheet(PolymorphicModel):
     class AnswerSheetType(models.TextChoices):
         RegistrationReceipt = "RegistrationReceipt"
-        StateAnswerSheet = "StateAnswerSheet"
         General = "General"
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -182,7 +181,7 @@ class AnswerSheet(PolymorphicModel):
         null=True,
         blank=True,
     )
-    # should be move to RegistrationReceipt:
+    # should be move to RegistrationReceipt?:
     form = models.ForeignKey(
         Form,
         related_name='answer_sheets',

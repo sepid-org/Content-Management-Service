@@ -1,4 +1,3 @@
-import csv
 from datetime import timedelta
 from django.utils import timezone
 
@@ -13,6 +12,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
 
 from apps.fsm.models.base import GeneralHint, Resource
 from apps.fsm.models.content_widgets import Placeholder
+from apps.fsm.models.form import Form
 from apps.fsm.models.fsm import State, StatePaper
 
 
@@ -408,7 +408,7 @@ class StateAdmin(admin.ModelAdmin):
 
 
 @admin.register(Position)
-class RegistrationFormCAdmin(admin.ModelAdmin):
+class PositionCustomAdmin(admin.ModelAdmin):
     list_display = ('object', 'x', 'y', 'width', 'height')
     search_fields = ('object__title',)
 
@@ -437,3 +437,10 @@ class ResourceCustomAdmin(ObjectAdmin):
 class PlaceholderAdmin(admin.ModelAdmin):
     model = Placeholder
     list_display = ['id', 'name', 'title']
+
+
+@admin.register(Form)
+class FormCustomAdmin(admin.ModelAdmin):
+    model = Form
+    list_display = ['id', 'audience_type', 'paper_type']
+    list_filter = ['audience_type', 'paper_type']
