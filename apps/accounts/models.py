@@ -36,7 +36,7 @@ class User(AbstractUser):
     province = models.CharField(max_length=50, null=True, blank=True)
     city = models.CharField(max_length=50, null=True, blank=True)
     postal_code = models.CharField(max_length=10, null=True, blank=True)
-    is_artificial = models.BooleanField(default=False)
+    is_temporary = models.BooleanField(default=False)
 
     def get_user_website(self, website):
         try:

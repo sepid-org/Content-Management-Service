@@ -34,7 +34,7 @@ class RegistrationAdminViewSet(GenericViewSet):
             for index, participant in participants_list_file.iterrows():
                 # remove None fields
                 participant = {
-                    'is_artificial': True,
+                    'is_temporary': True,
                     **{key: value for key,
                        value in participant.items() if value}
                 }
