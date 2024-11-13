@@ -12,6 +12,7 @@ from apps.accounts.views.institute_view import InstituteViewSet, SchoolViewSet
 from apps.accounts.views.profile_view import ProfileViewSet
 from apps.accounts.views.user import UserViewSet
 from apps.accounts.views.user_list_view import UserListAPIView
+from apps.accounts.views.uuid_login import UserIDLoginView
 from apps.accounts.views.verification_code import VerificationCodeView
 
 router = DefaultRouter()
@@ -25,6 +26,7 @@ urlpatterns = [
     path('accounts/simple-login/', SimpleLogin.as_view(), name='simple-login'),
     path('accounts/otp-login/', OTPLoginView.as_view(), name='otp-login'),
     path("accounts/google-login/", GoogleLogin.as_view(), name="google-login"),
+    path("accounts/uuid-login/", UserIDLoginView.as_view(), name="uuid-login"),
 
     path('accounts/verification-code/', VerificationCodeView.as_view(),
          name="send-verification-code"),

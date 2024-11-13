@@ -30,17 +30,28 @@ def standardize_phone_number(phone_number):
 
 
 def find_user(user_data):
-    # Consciously sat as -1. They should not be None:
-    phone_number = user_data.get('phone_number', -1)
+    # Get the user data fields
+    user_id = user_data.get('id')
+    phone_number = user_data.get('phone_number')
     phone_number = standardize_phone_number(phone_number)
-    email = user_data.get('email', -1)
-    username = user_data.get('username', -1)
+    email = user_data.get('email')
+    username = user_data.get('username')
+
+    # Build query based on the available fields
+    query = Q()
+
+    if user_id:
+        query |= Q(id=user_id)
+    if username:
+        query |= Q(username=username)
+    if phone_number:
+        query |= Q(phone_number=phone_number)
+    if email:
+        query |= Q(email=email)
 
     try:
-        return User.objects.get(Q(username=(username or phone_number or email)) |
-                                Q(phone_number=phone_number) |
-                                Q(email=email))
-    except:
+        return User.objects.get(query)
+    except User.DoesNotExist:
         return None
 
 
