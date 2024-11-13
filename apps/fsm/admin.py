@@ -119,13 +119,16 @@ class RegistrationReceiptsAdmin(admin.ModelAdmin):
     list_display = ['user', 'form', 'status', 'is_participating', 'team']
     list_filter = ['form', 'status', 'is_participating']
     actions = [delete_registration_receipts]
+    search_fields = ['user__username']
 
 
 class PlayerAdmin(admin.ModelAdmin):
     model = Player
     list_display = ['id', 'user', 'fsm', 'current_state', 'last_visit']
-    list_filter = ['last_visit', 'fsm', 'current_state']
-    search_fields = ['user__username']
+    list_filter = ['last_visit', 'fsm']
+    autocomplete_fields = ['user', 'fsm',
+                           '_answer_sheet', 'current_state', 'receipt']
+    search_fields = ['user__first_name', 'user__last_name', 'user__username']
 
 
 def clone_fsm(modeladmin, request, queryset):
