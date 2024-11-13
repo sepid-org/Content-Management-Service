@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from apps.fsm.utils import transit_player_in_fsm
 from apps.widgets.models.other_widgets.button import ButtonWidget
 
 
+@transaction.atomic
 @api_view(["POST"])
 def submit_button_widget(request):
     player_id = request.data.get('player_id', None)
