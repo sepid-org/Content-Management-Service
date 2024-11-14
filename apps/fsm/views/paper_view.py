@@ -4,12 +4,14 @@ from rest_framework import viewsets
 
 from apps.fsm.models import Paper
 from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
+from utils.safe_auth import SafeTokenAuthentication
 
 
 class PaperViewSet(viewsets.ModelViewSet):
     serializer_class = PaperSerializer
     queryset = Paper.objects.all()
     my_tags = ['paper']
+    authentication_classes = [SafeTokenAuthentication]
 
     def get_permissions(self):
         if self.action == 'retrieve':
@@ -21,11 +23,9 @@ class PaperViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-
         # Allow anonymous access to public papers
         if not instance.is_private:
             return Response(serializer.data)
-
         # Check IsAuthenticated permission for private objects
         if not IsAuthenticated().has_permission(request, self):
             self.permission_denied(
