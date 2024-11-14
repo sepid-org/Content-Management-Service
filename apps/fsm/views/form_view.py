@@ -7,8 +7,8 @@ from drf_yasg.utils import swagger_auto_schema
 from django.db import transaction
 
 from apps.fsm.models.form import Form
-from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer
 from apps.fsm.serializers.form_serializer import FormSerializer
+from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 
 class FormViewSet(ModelViewSet):
@@ -21,12 +21,12 @@ class FormViewSet(ModelViewSet):
         context['user'] = self.request.user
         return context
 
-    @swagger_auto_schema(responses={201: RegistrationReceiptSerializer})
+    @swagger_auto_schema(responses={201: AnswerSheetSerializer})
     @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=RegistrationReceiptSerializer)
+    @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         form = self.get_object()
-        serializer = RegistrationReceiptSerializer(data={
+        serializer = AnswerSheetSerializer(data={
             'user': request.user.id,
             'form': form,
             **request.data,

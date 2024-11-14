@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 
+from apps.accounts.models import User
 from apps.accounts.serializers.user_serializer import AcademicStudentshipReadOnlySerializer, SchoolStudentshipReadOnlySerializer, UserRegistrationReceiptInfoSerializer
 from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 from errors.error_codes import serialize_error
@@ -8,6 +9,7 @@ from apps.fsm.models import AnswerSheet, RegistrationReceipt
 
 
 class RegistrationReceiptSerializer(AnswerSheetSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     school_studentship = serializers.SerializerMethodField()
     academic_studentship = serializers.SerializerMethodField()
 
@@ -19,16 +21,12 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
 
     def create(self, validated_data):
         validated_data['answer_sheet_type'] = AnswerSheet.AnswerSheetType.RegistrationReceipt
-        registration_receipt = super().create(validated_data)
-        return registration_receipt
+        return super().create(validated_data)
 
     def validate(self, attrs):
         user = attrs.get('user')
-        # todo: complete it
-        if not user:
-            raise ParseError("registration receipt must have user")
         form = attrs.get('form')
-        if len(RegistrationReceipt.objects.filter(form=form, user=user)) > 0:
+        if RegistrationReceipt.objects.filter(form=form, user=user).count() > 0:
             raise ParseError(serialize_error('4028'))
         return super().validate(attrs)
 

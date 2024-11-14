@@ -182,7 +182,8 @@ class AnswerSheet(PolymorphicModel):
         null=True,
         blank=True,
     )
-    # should be move to RegistrationReceipt:
+
+    # todo: should be move to RegistrationReceipt?:
     form = models.ForeignKey(
         Form,
         related_name='answer_sheets',

@@ -59,7 +59,7 @@ class RegistrationViewSet(ModelViewSet):
 
     @swagger_auto_schema(responses={201: RegistrationReceiptSerializer})
     @transaction.atomic
-    @action(detail=True, methods=['post'], serializer_class=RegistrationReceiptSerializer)
+    @action(detail=True, methods=['post'])
     def register(self, request, pk=None):
         registration_form = self.get_object()
 
@@ -72,6 +72,7 @@ class RegistrationViewSet(ModelViewSet):
         })
         serializer.is_valid(raise_exception=True)
         registration_receipt = serializer.save()
+
         registration_receipt.register_in_form(registration_form)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

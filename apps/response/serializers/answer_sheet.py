@@ -2,13 +2,17 @@ from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 
 from apps.accounts.models import User
+from apps.fsm.models.form import Form
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, Problem
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), allow_null=True)
+    form = serializers.PrimaryKeyRelatedField(
+        queryset=Form.objects.all())
 
     def create(self, validated_data):
         answers = self.initial_data.get('answers', [])
@@ -25,12 +29,12 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         return answer_sheet
 
     def validate(self, attrs):
-        answers = self.initial_data.get('answers', [])
-        problems = [answer.get('problem', None) for answer in answers]
-        paper = self.context.get('form', None)
-        if paper is not None:
-            for widget in paper.widgets.all():
-                if isinstance(widget, Problem) and widget.is_required and widget.id not in problems:
+        form = attrs.get('form', None)
+        if form is not None:
+            answers = self.initial_data.get('answers', [])
+            answers_problems = [answer.get('problem', None) for answer in answers]
+            for widget in form.widgets.all():
+                if isinstance(widget, Problem) and widget.is_required and widget.id not in answers_problems:
                     raise ParseError(serialize_error(
                         '4029', {'problem': widget}))
         return attrs
@@ -45,5 +49,5 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnswerSheet
-        fields = ['id', 'answer_sheet_type', 'user']
+        fields = ['id', 'answer_sheet_type', 'user', 'form']
         read_only_fields = ['id', 'answer_sheet_type']
