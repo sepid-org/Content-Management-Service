@@ -122,6 +122,13 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='finish-fsm')
     def finish_fsm(self, request, pk=None):
         player = self.get_object()
+
+        if player.finished_at:
+            return Response(
+                data={"message": "you have already finished the court"},
+                status=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+
         player.finished_at = timezone.now()
         player.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
