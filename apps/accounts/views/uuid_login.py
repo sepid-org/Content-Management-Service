@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 
 class UserIDLoginView(BaseLoginView):
-    user_data_field = 'id'
+    user_data_field = 'username'
 
     @swagger_auto_schema(
         tags=['accounts'],
