@@ -60,7 +60,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def clear_question_answer(self, request, *args, **kwargs):
         question = get_question(request.data.get("question_id"))
-        question.unfinalize_older_answers(request.user)
+        question.unfinalize_user_previous_answers(request.user)
         return Response(status=status.HTTP_200_OK)
 
     @swagger_auto_schema(tags=['answers'])

@@ -10,17 +10,17 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = validated_data.get('submitted_by', None)
-        validated_data.get('problem').unfinalize_older_answers(user)
-        return super().create({'submitted_by': user, **validated_data})
+        validated_data.get('problem').unfinalize_user_previous_answers(user)
+        validated_data['is_final_answer'] = True
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         user = validated_data.get('submitted_by', None)
-        if 'problem' not in validated_data.keys():
-            validated_data['problem'] = instance.problem
-        elif validated_data.get('problem', None) != instance.problem:
+        if validated_data.get('problem', None) != instance.problem:
             raise ParseError(serialize_error('4102'))
-        instance.problem.unfinalize_older_answers(user)
-        return super(AnswerSerializer, self).update(instance, {'is_final_answer': True, **validated_data})
+        instance.problem.unfinalize_user_previous_answers(user)
+        validated_data['is_final_answer'] = True
+        return super(AnswerSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = Answer

@@ -21,19 +21,15 @@ class Problem(Widget):
     be_corrected = models.BooleanField(default=False)
     correctness_threshold = models.IntegerField(default=100)
 
-    @property
-    def correct_answer(self):
-        return self.answers.filter(is_correct=True).first()
+    def unfinalize_user_previous_answers(self, user):
+        answer_model = PROBLEM_ANSWER_MAPPING[self.widget_type]
 
-    def unfinalize_older_answers(self, user):
-        if isinstance(self.paper, State):
-            teammates = Team.objects.get_teammates_from_widget(
-                user=user, widget=self)
-            older_answers = PROBLEM_ANSWER_MAPPING[self.widget_type].objects.filter(problem=self, is_final_answer=True,
-                                                                                    submitted_by__in=teammates)
-            for a in older_answers:
-                a.is_final_answer = False
-                a.save()
+        # Bulk update older answers to unfinalized state
+        answer_model.objects.filter(
+            problem=self,
+            is_final_answer=True,
+            submitted_by=user,
+        ).update(is_final_answer=False)
 
     def __str__(self):
         return f'<{self.id}-{self.widget_type}>:{self.name}'
