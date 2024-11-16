@@ -1,7 +1,35 @@
 from django.shortcuts import get_object_or_404
 
+from apps.attributes.models.utils import SumDict
+from proxies.bank_service.utils import transfer_funds_to_user
+
 from .base import PerformableAction
 from django.db import models
+
+
+class Rewarding(PerformableAction):
+
+    def perform(self, *args, **kwargs):
+        player = kwargs.get('player')
+
+        if player:
+            total_rewards = SumDict({})
+
+            for answer in player.answer_sheet.answers.filter(is_final_answer=True):
+                total_rewards += SumDict(answer.get_allocated_rewards())
+
+
+            if total_rewards.is_zero():
+                return
+
+            # Process the transfer
+            request = kwargs.get('request')
+            website_name = request.headers.get('Website')
+            transfer_funds_to_user(
+                website_name=website_name,
+                user_uuid=str(request.user.id),
+                funds=total_rewards,
+            )
 
 
 class Start(PerformableAction):
@@ -14,6 +42,20 @@ class Start(PerformableAction):
         self.give_reward(*args, **kwargs)
 
         return True
+
+
+class Finish(PerformableAction):
+
+    def perform(self, *args, **kwargs):
+        if not super().perform(*args, **kwargs):
+            return False
+        
+        from apps.attributes.utils import perform_posterior_actions
+        perform_posterior_actions(
+            attributes=self.attributes,
+            *args,
+            **kwargs,
+        )
 
 
 class Submission(PerformableAction):

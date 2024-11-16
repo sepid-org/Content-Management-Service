@@ -1,7 +1,7 @@
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
-from apps.attributes.models.utils import SumDict
+from apps.attributes.models.utils import get_net_rewards
 from proxies.bank_service.utils import transfer_funds_to_user
 
 
@@ -50,14 +50,9 @@ class PerformableAction(Attribute):
     """Attributes representing actions that can be performed."""
 
     def give_reward(self, *args, **kwargs):
-        total_reward = SumDict({})
+        net_rewards = get_net_rewards(self)
 
-        from .intrinsic_attributes import Reward
-        reward_attributes = self.attributes.instance_of(Reward)
-        for reward in reward_attributes:
-            total_reward += SumDict(reward.value)
-
-        if total_reward.is_zero():
+        if net_rewards.is_zero():
             return
 
         # Process the transfer
@@ -66,7 +61,7 @@ class PerformableAction(Attribute):
         transfer_funds_to_user(
             website_name=website_name,
             user_uuid=str(request.user.id),
-            funds=total_reward,
+            funds=net_rewards,
         )
 
     def perform(self, *args, **kwargs) -> bool:

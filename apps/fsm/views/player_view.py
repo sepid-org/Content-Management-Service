@@ -95,7 +95,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             raise InternalServerError('Not implemented Yet😎')
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='transit-to-state')
+    @action(detail=False, methods=['post'], url_path='transit-to-state')
     def transit_to_state(self, request):
         state_id = request.data.get('state')
         state = get_object_or_404(State, id=state_id)
@@ -119,14 +119,23 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='finish-fsm')
+    @action(detail=True, methods=['get'], url_path='finish-fsm')
     def finish_fsm(self, request, pk=None):
-        player = self.get_object()
+        player: Player = self.get_object()
 
         if player.finished_at:
             return Response(
                 data={"message": "you have already finished the court"},
                 status=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+
+        fsm = player.fsm
+        from apps.attributes.models.performable_actions import Finish
+        finish_attributes = fsm.attributes.instance_of(Finish)
+        for finish_attribute in finish_attributes:
+            finish_attribute.perform(
+                player=player,
+                request=request,
             )
 
         player.finished_at = timezone.now()

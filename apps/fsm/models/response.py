@@ -1,8 +1,10 @@
 import json
+from typing import Literal
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
-from apps.fsm.models.form import AnswerSheet, RegistrationReceipt
+from apps.attributes.models.utils import get_allocated_rewards, get_net_rewards
+from apps.fsm.models.form import AnswerSheet
 
 
 class Answer(PolymorphicModel):
@@ -21,6 +23,14 @@ class Answer(PolymorphicModel):
     is_final_answer = models.BooleanField(default=False)
     is_correct = models.BooleanField(default=False)
 
+    def get_allocated_rewards(self):
+        assess_result = self.assess()
+        net_rewards = get_net_rewards(self.problem)
+        return get_allocated_rewards(net_rewards=net_rewards, allocation_percentage=assess_result)
+
+    def assess(self) -> Literal[0, 100]:
+        raise NotImplementedError("Subclasses should implement this method.")
+
     def __str__(self):
         return f'user: {self.submitted_by.username if self.submitted_by else "-"}'
 
@@ -38,13 +48,12 @@ class SmallAnswer(Answer):
                                 blank=True, on_delete=models.PROTECT, related_name='answers')
     text = models.TextField()
 
-    def correction_status(self):
+    def assess(self):
+        result = 100
         if self.problem.correct_answer:
-            if self.text.strip() == self.problem.correct_answer.text.strip():
-                # TODO - check for semi-correct answers too
-                return RegistrationReceipt.CorrectionStatus.Correct
-            return RegistrationReceipt.CorrectionStatus.Wrong
-        return RegistrationReceipt.CorrectionStatus.NoSolutionAvailable
+            if self.text.strip() != self.problem.correct_answer.text.strip():
+                return 0
+        return result
 
     @property
     def string_answer(self):
@@ -73,15 +82,12 @@ class MultiChoiceAnswer(Answer):
     def string_answer(self):
         return json.dumps([choice.id for choice in self.choices.all()])
 
-    def correction_status(self):
-        correct_answer = self.problem.correct_answer
-        if correct_answer:
-            correct_choices = correct_answer.choices.values_list(['choice'])
-            for c in self.choices.values_list(['choice']):
-                if c not in correct_choices:
-                    return RegistrationReceipt.CorrectionStatus.Wrong
-            return RegistrationReceipt.CorrectionStatus.Correct
-        return RegistrationReceipt.CorrectionStatus.NoSolutionAvailable
+    def assess(self):
+        result = 100
+        for choice in self.choices.all():
+            if not choice.is_correct:
+                result = 0
+        return result
 
 
 class UploadFileAnswer(Answer):
