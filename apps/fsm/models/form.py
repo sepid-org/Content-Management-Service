@@ -1,3 +1,4 @@
+from typing import Dict
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import QuerySet
@@ -191,6 +192,12 @@ class AnswerSheet(PolymorphicModel):
         null=True,
         blank=True,
     )
+
+    def assess(self) -> Dict[int, dict]:
+        result: Dict[int, dict] = {}
+        for answer in self.answers.filter(is_final_answer=True):
+            result[answer.id] = answer.assess()
+        return result
 
     def delete(self):
         self.answers.clear()

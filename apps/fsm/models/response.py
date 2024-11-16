@@ -1,5 +1,5 @@
 import json
-from typing import Literal
+from typing import Dict, Union
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
@@ -24,11 +24,11 @@ class Answer(PolymorphicModel):
     is_correct = models.BooleanField(default=False)
 
     def get_allocated_rewards(self):
-        assess_result = self.assess()
+        assess_result_score = self.assess()['score']
         net_rewards = get_net_rewards(self.problem)
-        return get_allocated_rewards(net_rewards=net_rewards, allocation_percentage=assess_result)
+        return get_allocated_rewards(net_rewards=net_rewards, allocation_percentage=assess_result_score)
 
-    def assess(self) -> Literal[0, 100]:
+    def assess(self) -> Dict[str, Union[int, str]]:
         raise NotImplementedError("Subclasses should implement this method.")
 
     def __str__(self):
@@ -48,12 +48,15 @@ class SmallAnswer(Answer):
                                 blank=True, on_delete=models.PROTECT, related_name='answers')
     text = models.TextField()
 
-    def assess(self):
+    def assess(self) -> Dict[str, Union[int, str]]:
         result = 100
         if self.problem.correct_answer:
             if self.text.strip() != self.problem.correct_answer.text.strip():
                 return 0
-        return result
+        return {
+            'score': result,
+            'feedback': 'empty',
+        }
 
     @property
     def string_answer(self):
@@ -82,12 +85,15 @@ class MultiChoiceAnswer(Answer):
     def string_answer(self):
         return json.dumps([choice.id for choice in self.choices.all()])
 
-    def assess(self):
-        result = 100
+    def assess(self) -> Dict[str, Union[int, str]]:
+        result: int = 100
         for choice in self.choices.all():
             if not choice.is_correct:
                 result = 0
-        return result
+        return {
+            'score': result,
+            'feedback': 'empty',
+        }
 
 
 class UploadFileAnswer(Answer):

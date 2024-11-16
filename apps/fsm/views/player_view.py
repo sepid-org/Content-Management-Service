@@ -141,3 +141,11 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         player.finished_at = timezone.now()
         player.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='performance')
+    def get_player_performance(self, request, pk=None):
+        player: Player = self.get_object()
+        return Response(
+            data=player.answer_sheet.assess(),
+            status=status.HTTP_200_OK,
+        )
