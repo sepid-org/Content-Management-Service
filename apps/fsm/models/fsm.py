@@ -119,7 +119,7 @@ class FSM(models.Model, ObjectMixin):
 
 
 class Player(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         to=User,
         related_name='players',

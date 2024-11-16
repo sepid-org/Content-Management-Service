@@ -7,8 +7,7 @@ class PlayerMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'current_state']
-        read_only_fields = ['id', 'current_state']
+        fields = ['id', 'current_state', 'started_at']
 
 
 class PlayerSerializer(serializers.ModelSerializer):
