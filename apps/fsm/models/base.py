@@ -151,8 +151,9 @@ class Widget(PolymorphicModel, ObjectMixin):
         MultiChoiceProblem = 'MultiChoiceProblem'
         UploadFileProblem = 'UploadFileProblem'
         ButtonWidget = 'ButtonWidget'
-        CustomWidget = 'CustomWidget'
+        RandomWidget = 'RandomWidget'
 
+    # todo: should it be nullable?
     paper = models.ForeignKey(
         Paper, null=True, blank=True, on_delete=models.CASCADE, related_name='widgets')
     widget_type = models.CharField(max_length=30, choices=WidgetTypes.choices)
@@ -161,7 +162,7 @@ class Widget(PolymorphicModel, ObjectMixin):
 
     @abstractmethod
     def clone(self, paper):
-        pass
+        raise NotImplementedError("Subclasses should implement this method.")
 
 
 ################### HINTS ###################

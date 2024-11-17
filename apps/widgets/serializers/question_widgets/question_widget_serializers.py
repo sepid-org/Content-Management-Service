@@ -130,13 +130,6 @@ class UploadFileProblemSerializer(WidgetSerializer):
         model = UploadFileProblem
         fields = QuestionWidgetSerializer.Meta.fields + []
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.correct_answer:
-            representation['correct_answer'] = UploadFileAnswerSerializer(
-            ).to_representation(instance.correct_answer)
-        return representation
-
     @transaction.atomic
     def create(self, validated_data):
         validated_data['widget_type'] = Widget.WidgetTypes.UploadFileProblem
