@@ -21,7 +21,7 @@ class RandomWidgetAdmin(WidgetAdmin):
 
 @admin.register(SeenWidget)
 class SeenWidgetAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'target_widget',
+    list_display = ['id', 'user', 'player', 'target_widget',
                     'container_random_widget', 'seen_at']
     list_filter = ['container_random_widget', 'seen_at']
     search_fields = []
