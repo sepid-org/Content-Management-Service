@@ -19,3 +19,18 @@ def is_object_free_to_buy(object: Object):
             result = False
 
     return result
+
+
+def does_object_have_any_reward(object: Object):
+    from apps.attributes.models import Reward
+    return object.attributes.instance_of(Reward).exists()
+
+
+def get_object_default_rewards(object: Object):
+    from apps.attributes.models import Default, Reward
+    default_attribute = object.attributes.instance_of(Default).first()
+    if default_attribute:
+        reward_attributes = default_attribute.attributes.instance_of(
+            Reward)
+        return reward_attributes
+    return []

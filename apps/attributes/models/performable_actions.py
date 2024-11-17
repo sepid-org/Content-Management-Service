@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 
-from apps.attributes.models.utils import SumDict
+from apps.attributes.models.utils import SumDict, get_response_allocated_rewards, sum_attribute_values
+from apps.attributes.utils import does_object_have_any_reward, get_object_default_rewards
 from proxies.bank_service.utils import transfer_funds_to_user
 
 from .base import PerformableAction
@@ -14,10 +15,21 @@ class Rewarding(PerformableAction):
 
         if player:
             total_rewards = SumDict({})
+            fsm = player.fsm
 
             for answer in player.answer_sheet.answers.filter(is_final_answer=True):
-                total_rewards += SumDict(answer.get_allocated_rewards())
-
+                if does_object_have_any_reward(answer.problem):
+                    total_rewards += SumDict(answer.get_allocated_rewards())
+                else:
+                    answer_assessment_score = answer.assess()['score']
+                    fsm_net_reward = sum_attribute_values(
+                        get_object_default_rewards(fsm))
+                    total_rewards += SumDict(
+                        get_response_allocated_rewards(
+                            response_net_rewards=fsm_net_reward,
+                            allocation_percentage=answer_assessment_score,
+                        )
+                    )
 
             if total_rewards.is_zero():
                 return
@@ -49,7 +61,7 @@ class Finish(PerformableAction):
     def perform(self, *args, **kwargs):
         if not super().perform(*args, **kwargs):
             return False
-        
+
         from apps.attributes.utils import perform_posterior_actions
         perform_posterior_actions(
             attributes=self.attributes,

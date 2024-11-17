@@ -72,3 +72,7 @@ class Cost(IntrinsicAttribute):
 
 class Reward(IntrinsicAttribute):
     pass
+
+
+class Default(IntrinsicAttribute):
+    pass

@@ -1,7 +1,7 @@
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
-from apps.attributes.models.utils import get_net_rewards
+from apps.attributes.models.utils import get_object_net_rewards
 from proxies.bank_service.utils import transfer_funds_to_user
 
 
@@ -50,7 +50,7 @@ class PerformableAction(Attribute):
     """Attributes representing actions that can be performed."""
 
     def give_reward(self, *args, **kwargs):
-        net_rewards = get_net_rewards(self)
+        net_rewards = get_object_net_rewards(self)
 
         if net_rewards.is_zero():
             return

@@ -3,7 +3,7 @@ from typing import Dict, Union
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
-from apps.attributes.models.utils import get_allocated_rewards, get_net_rewards
+from apps.attributes.models.utils import get_response_allocated_rewards, get_object_net_rewards
 from apps.fsm.models.form import AnswerSheet
 
 
@@ -25,8 +25,8 @@ class Answer(PolymorphicModel):
 
     def get_allocated_rewards(self):
         assess_result_score = self.assess()['score']
-        net_rewards = get_net_rewards(self.problem)
-        return get_allocated_rewards(net_rewards=net_rewards, allocation_percentage=assess_result_score)
+        net_rewards = get_object_net_rewards(self.problem)
+        return get_response_allocated_rewards(response_net_rewards=net_rewards, allocation_percentage=assess_result_score)
 
     def assess(self) -> Dict[str, Union[int, str]]:
         raise NotImplementedError("Subclasses should implement this method.")

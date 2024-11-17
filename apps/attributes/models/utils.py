@@ -32,20 +32,22 @@ class SumDict(dict):
         return True
 
 
-def get_net_rewards(self):
-    total_reward = SumDict({})
+def sum_attribute_values(attributes):
+    total_sum = SumDict({})
+    for attribute in attributes:
+        total_sum += SumDict(attribute.value)
+    return total_sum
 
+
+def get_object_net_rewards(object):
     from .intrinsic_attributes import Reward
-    reward_attributes = self.attributes.instance_of(Reward)
-    for reward in reward_attributes:
-        total_reward += SumDict(reward.value)
-
-    return total_reward
+    reward_attributes = object.attributes.instance_of(Reward)
+    return sum_attribute_values(reward_attributes)
 
 
-def get_allocated_rewards(net_rewards, allocation_percentage):
+def get_response_allocated_rewards(response_net_rewards, allocation_percentage):
     allocated_rewards = {}
-    for currency, amount in net_rewards.items():
+    for currency, amount in response_net_rewards.items():
         allocated_rewards[currency] = round(
             amount * allocation_percentage / 100)
     return allocated_rewards
