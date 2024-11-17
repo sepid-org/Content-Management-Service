@@ -76,7 +76,6 @@ class SeenWidget(models.Model):
         Player,
         on_delete=models.CASCADE,
         related_name="seen_widget_records",
-        null=True,
     )
     target_widget = models.ForeignKey(
         Widget,
