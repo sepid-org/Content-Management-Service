@@ -23,20 +23,26 @@ class RandomWidget(Widget):
         box_widgets = Widget.objects.filter(paper_id=self.box_paper_id)
 
         if self.unique_widgets_only:
-            # First check if user has seen any widgets through this random widget
-            seen_records = SeenWidget.objects.filter(
+            try:
+                # First check if player has seen any widget through this random widget
+                seen_record_of_this_random_widget = SeenWidget.objects.get(
+                    user=player.user,
+                    player=player,
+                    container_random_widget=self,
+                )
+
+                # If player has seen any widget, return that
+                return seen_record_of_this_random_widget.target_widget
+            except SeenWidget.DoesNotExist:
+                pass
+
+            # get all the seen widget records of user
+            all_seen_records = SeenWidget.objects.filter(
                 user=player.user,
-                player=player,
-                container_random_widget=self,
             )
 
-            if seen_records.exists():
-                # If user has seen widgets, return one of them randomly
-                random_seen_record = random.choice(seen_records)
-                return random_seen_record.target_widget
-
             # If no seen widgets, proceed with finding a new one
-            seen_widget_ids = seen_records.values_list(
+            seen_widget_ids = all_seen_records.values_list(
                 'target_widget_id', flat=True)
             available_widgets = box_widgets.exclude(id__in=seen_widget_ids)
         else:
@@ -52,7 +58,7 @@ class RandomWidget(Widget):
                     user=player.user,
                     player=player,
                     target_widget=random_widget,
-                    container_random_widget=self
+                    container_random_widget=self,
                 )
 
             return random_widget
