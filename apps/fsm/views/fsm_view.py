@@ -74,6 +74,18 @@ class FSMViewSet(CacheEnabledModelViewSet):
     def enter_fsm(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
+        is_mentor = user in fsm.mentors.all()
+
+        # Check if the fsm has a participant limit
+        if fsm.participant_limit > 0 and not is_mentor:
+            if user.is_anonymous:
+                raise PermissionDenied(
+                    "You must be logged in to submit this form.")
+            else:
+                count = get_players(user, fsm).count()
+                if count >= fsm.participant_limit:
+                    raise PermissionDenied(
+                        "You have exceeded the submission limit for this form.")
 
         if fsm.is_public:
             if isinstance(user, AnonymousUser):
