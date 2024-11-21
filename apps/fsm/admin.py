@@ -220,9 +220,10 @@ class BigAnswerProblemAdmin(admin.ModelAdmin):
 
 @admin.register(AnswerSheet)
 class AnswerSheetCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'answer_sheet_type']
+    list_display = ['id', 'answer_sheet_type', 'user', 'form']
     list_display_links = ['id', 'answer_sheet_type']
-    list_filter = ['answer_sheet_type']
+    autocomplete_fields = ['user', 'form']
+    list_filter = ['form']
     search_fields = ['answer_sheet_type']
 
 
