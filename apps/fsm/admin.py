@@ -91,6 +91,7 @@ class PaperAdmin(admin.ModelAdmin):
     list_display = ['id']
     list_filter = []
     search_fields = ['id']
+    autocomplete_fields = ['creator', '_object']
 
 
 class RegistrationFormAdmin(admin.ModelAdmin):
@@ -117,6 +118,7 @@ class FormAdmin(PaperAdmin):
         ['audience_type', 'start_date', 'end_date']
     list_filter = PaperAdmin.list_filter + []
     search_fields = PaperAdmin.search_fields + ['id']
+    autocomplete_fields = PaperAdmin.autocomplete_fields + []
 
 
 def delete_registration_receipts(modeladmin, request, queryset):
