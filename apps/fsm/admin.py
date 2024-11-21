@@ -13,6 +13,7 @@ from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransiti
 
 from apps.fsm.models.base import GeneralHint, Resource
 from apps.fsm.models.content_widgets import Placeholder
+from apps.fsm.models.form import Form
 from apps.fsm.models.fsm import State, StatePaper
 
 
@@ -108,6 +109,14 @@ class RegistrationFormAdmin(admin.ModelAdmin):
                     'min_grade', 'max_grade', 'audience_type', 'participants_count']
     list_display_links = ['id', 'program_or_fsm']
     actions = [get_registration_status_for_users]
+
+
+@admin.register(Form)
+class FormAdmin(PaperAdmin):
+    list_display = PaperAdmin.list_display + \
+        ['audience_type', 'start_date', 'end_date']
+    list_filter = PaperAdmin.list_filter + []
+    search_fields = PaperAdmin.search_fields + ['id']
 
 
 def delete_registration_receipts(modeladmin, request, queryset):
@@ -411,7 +420,7 @@ class StateAdmin(admin.ModelAdmin):
 
 
 @admin.register(Position)
-class RegistrationFormCAdmin(admin.ModelAdmin):
+class PositionCustomAdmin(admin.ModelAdmin):
     list_display = ('object', 'x', 'y', 'width', 'height')
     search_fields = ('object__title',)
 

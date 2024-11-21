@@ -25,6 +25,7 @@ class Form(Paper):
     )
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
+    participant_limit = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f'{self.id}: {self.paper_type}'
