@@ -82,7 +82,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
                 raise PermissionDenied(
                     "You must be logged in to submit this form.")
             else:
-                count = get_players(user, fsm).count()
+                count = get_players(user, fsm).filter(finished_at__isnull=False).count()
                 if count >= fsm.participant_limit:
                     raise PermissionDenied(
                         "You have exceeded the submission limit for this form.")
