@@ -27,7 +27,12 @@ class CustomTokenObtainSerializer(serializers.Serializer):
 
     def get_token(self, user):
         refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
+
+        refresh["origin"] = user.origin
+        access_token["origin"] = user.origin
+
         return {
             'refresh': str(refresh),
-            'access': str(refresh.access_token),
+            'access': str(access_token),
         }

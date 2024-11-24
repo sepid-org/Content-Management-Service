@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import DiscountCode, Merchandise
 from apps.accounts.permissions import IsDiscountCodeModifier
-from apps.accounts.utils import find_user_in_website
+from apps.accounts.utils.user_management import find_user_in_website
 from apps.sale.serializers.discount_code import DiscountCodeSerializer
 from django.db import transaction
 from rest_framework import status

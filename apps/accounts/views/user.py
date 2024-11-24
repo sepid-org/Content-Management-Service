@@ -10,7 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import User, UserWebsiteLogin
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
-from apps.accounts.utils import create_or_get_user, find_user_in_website, generate_tokens_for_user
+from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
 

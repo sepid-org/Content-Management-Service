@@ -10,7 +10,7 @@ from django.contrib.auth.models import AnonymousUser
 from django_filters import rest_framework as filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import find_user_in_website
+from apps.accounts.utils.user_management import find_user_in_website
 from apps.fsm.models.fsm import State
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.serializers.papers.state_serializer import StateSerializer

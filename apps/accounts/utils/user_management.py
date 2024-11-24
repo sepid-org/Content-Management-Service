@@ -1,16 +1,13 @@
-import string
-import secrets
 from django.db.models import Q
 from rest_framework.exceptions import ParseError
 from django.contrib.auth.hashers import make_password, check_password
 
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.models import User, UserWebsite, UserWebsiteLogin
+from apps.accounts.models import User, UserWebsite
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationForm, RegistrationReceipt, Team, AnswerSheet
 from apps.fsm.serializers.answer_sheet_serializers import MinimalRegistrationReceiptSerializer
-from proxies.instant_messaging_service.main import InstantMessagingServiceProxy
 
 
 def generate_tokens_for_user(user):
@@ -162,36 +159,3 @@ def create_team(**data):
         team.save()
 
     return team
-
-
-def generate_secure_password(length=12):
-    """
-    Generate a secure random password with:
-    - Minimum length of 12 characters
-    - At least one lowercase letter
-    - At least one uppercase letter
-    - At least one digit
-    - At least one special character
-    """
-    # Define character sets
-    lowercase = string.ascii_lowercase
-    uppercase = string.ascii_uppercase
-    digits = string.digits
-    special = "!@#$%^&*"
-
-    # Ensure at least one character from each set
-    password = [
-        secrets.choice(lowercase),
-        secrets.choice(uppercase),
-        secrets.choice(digits),
-        secrets.choice(special),
-    ]
-
-    # Fill the rest with random characters from all sets
-    all_characters = lowercase + uppercase + digits + special
-    password.extend(secrets.choice(all_characters) for _ in range(length - 4))
-
-    # Shuffle the password characters
-    secrets.SystemRandom().shuffle(password)
-
-    return ''.join(password)

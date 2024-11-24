@@ -3,7 +3,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer
-from apps.accounts.utils import find_user
+from apps.accounts.utils.user_management import find_user
 from errors.error_codes import serialize_error
 
 

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from apps.accounts.models import UserWebsiteLogin
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import create_or_get_user, find_user_in_website, generate_tokens_for_user
+from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website, generate_tokens_for_user
 
 
 class BaseLoginView(APIView):

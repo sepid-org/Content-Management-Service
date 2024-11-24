@@ -10,7 +10,7 @@ from apps.fsm.pagination import ProgramsPagination
 from apps.fsm.permissions import ProgramAdminPermission
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import find_user_in_website
+from apps.accounts.utils.user_management import find_user_in_website
 from apps.fsm.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet

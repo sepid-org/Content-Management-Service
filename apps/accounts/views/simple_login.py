@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.accounts.models import UserWebsiteLogin
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.serializers.custom_token_obtain import CustomTokenObtainSerializer
-from apps.accounts.utils import can_user_login, create_or_get_user, find_user_in_website, generate_tokens_for_user
+from apps.accounts.utils.user_management import can_user_login, create_or_get_user, find_user_in_website, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
 

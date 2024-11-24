@@ -11,7 +11,7 @@ from apps.accounts.models import EducationalInstitute, School
 from apps.accounts.permissions import IsInstituteOwner, IsInstituteAdmin
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.serializers.institute_serializer import InstituteSerializer
-from apps.accounts.utils import find_user_in_website
+from apps.accounts.utils.user_management import find_user_in_website
 from errors.error_codes import serialize_error
 
 

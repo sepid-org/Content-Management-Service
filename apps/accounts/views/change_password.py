@@ -5,7 +5,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
-from apps.accounts.utils import find_user_in_website
+from apps.accounts.utils.user_management import find_user_in_website
 
 
 class ChangePasswordView(GenericAPIView):

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import create_or_get_user, find_user_in_website
+from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website
 from apps.accounts.views.base_login import BaseLoginView
 
 

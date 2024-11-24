@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.accounts.models import UserWebsiteLogin
 from apps.accounts.serializers.user_serializer import UserSerializer
-from apps.accounts.utils import find_user_in_website, generate_tokens_for_user
+from apps.accounts.utils.user_management import find_user_in_website, generate_tokens_for_user
 
 
 class GoogleLogin(TokenObtainPairView):
