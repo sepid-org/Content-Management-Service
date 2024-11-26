@@ -22,7 +22,7 @@ class Command(BaseCommand):
         def do():
             for user_website in user_websites:
                 user = user_website.user
-                if is_valid_uuid(user.username):
+                if is_valid_uuid(user.username) or user.origin == 'SHAD':
                     if UserWebsite.objects.filter(user=user, website='filmbazi').exists():
                         user_website.delete()
                     else:
