@@ -9,7 +9,8 @@ class UserWebsiteAdmin(admin.ModelAdmin):
     model = UserWebsite
     list_display = ['user', 'website']
     list_filter = ['website']
-    search_fields = ['user__username', 'website']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
+    autocomplete_fields = ['user']
 
 
 @admin.register(UserWebsiteLogin)
@@ -17,31 +18,16 @@ class UserWebsiteLoginsCustomAdmin(admin.ModelAdmin):
     list_display = ['user_website', 'datetime']
     list_filter = ['user_website__website']
     search_fields = ['user_website__user', 'user_website__website']
+    autocomplete_fields = ['user_website']
 
 
 @admin.register(User)
 class CustomUserAdmin(admin.ModelAdmin):
-    def verify_school_documents(self, request, queryset):
-        # documents = queryset.exclude(
-        #     Q(school_studentship__document__isnull=True) | Q(school_studentship__document__exact='')
-        # ).values_list('school_studentship', flat=True)
-
-        documents = queryset.values_list('school_studentship', flat=True)
-
-        updated = SchoolStudentship.objects.filter(
-            pk__in=documents).update(is_document_verified=True)
-        self.message_user(
-            request, f'{updated} document verified.', messages.SUCCESS)
-
-    def school(self, obj):
-        return obj.school_studentship.school
-
     model = User
-    list_display = ['id', 'username', 'phone_number', 'national_code', 'first_name', 'last_name', 'gender', 'province',
-                    'city', 'school']
+    list_display = ['id', 'username', 'phone_number', 'national_code',
+                    'first_name', 'last_name', 'gender', 'province', 'city']
     search_fields = ['id', 'username', 'phone_number',
                      'national_code', 'first_name', 'last_name']
-    actions = [verify_school_documents]
     ordering = ['-date_joined']
 
 
