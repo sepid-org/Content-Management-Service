@@ -21,6 +21,7 @@ from apps.fsm.models.fsm import State, StatePaper
 class ProgramContactInfoCustomAdmin(admin.ModelAdmin):
     list_display = ['id']
     list_filter = []
+    search_fields = ['id']
 
 
 class EdgeAdmin(admin.ModelAdmin):
@@ -110,6 +111,7 @@ class RegistrationFormAdmin(admin.ModelAdmin):
                     'min_grade', 'max_grade', 'audience_type', 'participants_count']
     list_display_links = ['id', 'program_or_fsm']
     actions = [get_registration_status_for_users]
+    search_fields = ['id', '_object__title']
 
 
 @admin.register(Form)
@@ -352,6 +354,8 @@ class ProgramCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'registration_form', 'creator']
     list_display_links = ['id', 'name']
     search_fields = ['name']
+    autocomplete_fields = ['admins',  'registration_form',
+                           'program_contact_info', 'creator']
 
 
 @admin.register(UploadFileProblem)
