@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from manage_content_service.health_check import health_check
 from manage_content_service.settings.base import get_environment_var
 import sentry_sdk
 
@@ -29,6 +30,7 @@ if not settings.DEBUG:
     )
 
 urlpatterns = [
+    path('health-check/', health_check, name='health_check'),
     path('api/admin/', admin.site.urls),
     path('api/auth/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('api/fsm/', include('apps.fsm.urls')),
