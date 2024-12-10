@@ -229,18 +229,29 @@ METABASE_PASSWORD = get_environment_var('METABASE_PASSWORD', None)
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_ALL_ORIGINS = True  # Or specify allowed origins
+CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours (86400 seconds)
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+    "PATCH",
+]
+
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'Website',
-    'FSM',
+    "Accept",
+    "Accept-Encoding",
+    "Authorization",
+    "Content-Type",
+    "DNT",
+    "Origin",
+    "User-Agent",
+    "X-CSRFToken",
+    "X-Requested-With",
+    "Website",  # Custom header
+    "FSM",      # Custom header
 ]
 
 
