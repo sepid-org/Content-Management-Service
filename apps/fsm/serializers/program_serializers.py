@@ -81,6 +81,35 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Program
-        fields = '__all__'
-        read_only_fields = ['id', 'creator', 'is_approved',
-                            'registration_form', 'program_contact_info']
+        fields = [
+            'id',
+            'type',
+            'participation_type',
+            'slug',
+            'name',
+            'description',
+            'cover_page',
+            'is_active',
+            'is_approved',
+            'start_date',
+            'end_date',
+            'team_size',
+            'maximum_participant',
+            'accessible_after_closure',
+            'show_scores',
+            'site_help_paper_id',
+            'FAQs_paper_id',
+            'is_visible',
+            'is_public',
+            'creator',
+            'registration_form',
+            'program_contact_info',
+        ]
+        read_only_fields = [
+            'id',
+            'slug',
+            'creator',
+            'is_approved',
+            'registration_form',
+            'program_contact_info',
+        ]
