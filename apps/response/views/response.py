@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from apps.fsm.models.fsm import Player, State
-from apps.fsm.utils import transit_player_in_fsm
+from apps.fsm.utils.utils import transit_player_in_fsm
 from apps.widgets.models.other_widgets.button import ButtonWidget
 
 

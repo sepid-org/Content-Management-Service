@@ -11,7 +11,7 @@ from apps.fsm.models import Edge, Team
 from apps.fsm.permissions import IsEdgeModifier
 from apps.fsm.serializers.fsm_serializers import EdgeSerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils import transit_team_in_fsm
+from apps.fsm.utils.utils import transit_team_in_fsm
 
 
 class EdgeViewSet(ObjectViewSet):

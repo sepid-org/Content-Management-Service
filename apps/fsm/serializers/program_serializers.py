@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from apps.fsm.serializers.papers.registration_form_serializer import RegistrationFormSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
-from apps.fsm.utils import add_admin_to_program
+from apps.fsm.utils.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, RegistrationForm
 

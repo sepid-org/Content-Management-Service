@@ -11,7 +11,7 @@ from apps.fsm.permissions import ProgramAdminPermission
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils.user_management import find_user_in_website
-from apps.fsm.utils import add_admin_to_program
+from apps.fsm.utils.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet
 from utils.safe_auth import SafeTokenAuthentication
@@ -106,7 +106,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         user = request.user
         fsms = program.fsms.all()
         fsm_status_list = []
-        from apps.fsm.utils import get_players
+        from apps.fsm.utils.utils import get_players
         for fsm in fsms:
             players = get_players(user, fsm)
             fsm_status_list.append({

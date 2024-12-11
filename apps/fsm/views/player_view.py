@@ -17,7 +17,7 @@ from apps.fsm.models import FSM, Player
 from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.serializers.fsm_serializers import TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils import get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
+from apps.fsm.utils.utils import get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):

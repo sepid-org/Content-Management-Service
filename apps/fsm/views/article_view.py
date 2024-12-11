@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from apps.fsm.models import Article
 from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.papers.article_serializer import ArticleSerializer
-from apps.fsm.utils import SafeTokenAuthentication
+from apps.fsm.utils.utils import SafeTokenAuthentication
 
 
 class ArticleViewSet(viewsets.ModelViewSet):

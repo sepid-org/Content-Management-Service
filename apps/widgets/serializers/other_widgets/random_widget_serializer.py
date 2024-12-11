@@ -18,7 +18,7 @@ class RandomWidgetSerializer(WidgetSerializer):
 
     def to_representation(self, instance):
         from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
-        from apps.fsm.utils import get_players
+        from apps.fsm.utils.utils import get_players
         request = self.context.get('request')
         user = request.user
         fsm_id = request.headers.get('FSM')

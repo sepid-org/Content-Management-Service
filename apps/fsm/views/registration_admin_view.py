@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website, update_or_create_team, update_or_create_registration_receipt
-from apps.fsm.utils import register_user_in_program
+from apps.fsm.utils.utils import register_user_in_program
 from apps.fsm.models import RegistrationForm, transaction
 from apps.fsm.permissions import IsRegistrationFormModifier
 from apps.fsm.serializers.serializers import BatchRegistrationSerializer

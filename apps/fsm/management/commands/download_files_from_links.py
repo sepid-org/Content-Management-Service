@@ -1,4 +1,4 @@
-from fsm.utils import get_django_file
+from apps.fsm.utils.utils import get_django_file
 from apps.fsm.models import Image, Video
 
 from django.core.management import BaseCommand

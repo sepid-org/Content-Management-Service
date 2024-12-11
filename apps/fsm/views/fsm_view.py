@@ -21,7 +21,7 @@ from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerial
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
-from apps.fsm.utils import get_players, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
+from apps.fsm.utils.utils import get_players, get_receipt, get_a_player_from_team, _get_fsm_edges, register_user_in_program, transit_player_in_fsm
 from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet
 
 

@@ -8,7 +8,7 @@ class Enabled(IntrinsicAttribute):
 class Condition(IntrinsicAttribute):
 
     def is_true(self, *args, **kwargs):
-        from apps.fsm.utils import AnswerSheetFacade
+        from apps.fsm.utils.utils import AnswerSheetFacade
 
         player = kwargs.get('player')
         user = kwargs.get('user')

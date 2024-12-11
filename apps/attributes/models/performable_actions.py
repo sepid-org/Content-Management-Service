@@ -133,7 +133,7 @@ class Transition(PerformableAction):
             return False
 
         from apps.fsm.models.fsm import State
-        from apps.fsm.utils import transit_player_in_fsm
+        from apps.fsm.utils.utils import transit_player_in_fsm
         destination_state = get_object_or_404(
             State,
             id=self.destination_state_id
