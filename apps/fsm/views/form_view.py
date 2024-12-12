@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,8 +8,9 @@ from rest_framework.exceptions import PermissionDenied
 from drf_yasg.utils import swagger_auto_schema
 from django.db import transaction
 
-from apps.fsm.models.form import AnswerSheet, Form
+from apps.fsm.models.form import Form
 from apps.fsm.serializers.form_serializer import FormSerializer
+from apps.fsm.utils.submission.form_submission_handler import FormSubmissionHandler
 from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 
@@ -23,38 +25,20 @@ class FormViewSet(ModelViewSet):
         return context
 
     @swagger_auto_schema(responses={201: AnswerSheetSerializer})
-    @transaction.atomic
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
+        """
+        Submit an answer sheet for a specific form.
+        """
         form = self.get_object()
-        user = request.user
 
-        # Check if the form has a participant limit
-        if form.participant_limit > 0:
-            if user.is_anonymous:
-                raise PermissionDenied(
-                    "You must be logged in to submit this form.")
-            else:
-                count = AnswerSheet.objects.filter(
-                    user=user, form=form).count()
-                if count >= form.participant_limit:
-                    raise PermissionDenied(
-                        "You have exceeded the submission limit for this form.")
+        try:
+            handler = FormSubmissionHandler(form=form, user=request.user)
+            response = handler.submit(request)
+            return response
 
-        # Serialize and save the submitted data
-        serializer = AnswerSheetSerializer(data={
-            'user': request.user.id,
-            'form': form.id,
-            **request.data,
-        })
-
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        from apps.attributes.utils import perform_posterior_actions
-        perform_posterior_actions(
-            attributes=form.attributes,
-            request=request,
-        )
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except (PermissionDenied, ValidationError) as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

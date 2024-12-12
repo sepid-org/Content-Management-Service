@@ -4,6 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
+from django.forms import ValidationError
 from django.db import transaction
 
 from apps.attributes.models.performable_actions import Answer
@@ -11,9 +12,10 @@ from apps.fsm.models.base import Widget
 from apps.fsm.models.fsm import Player
 from apps.fsm.models.question_widgets import PROBLEM_ANSWER_MAPPING
 from apps.fsm.models.team import Team
+from apps.fsm.utils.submission.answer_submission_handler import AnswerSubmissionHandler
 from apps.response.serializers.answers.mock_answer_serializer import MockAnswerSerializer
-from apps.response.utils import AnswerFacade
 from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from rest_framework.exceptions import PermissionDenied
 
 
 def get_question(question_id: int):
@@ -28,32 +30,29 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(responses={200: MockAnswerSerializer}, tags=['answers'])
     @action(detail=False, methods=['post'], url_path='submit-answer')
-    @transaction.atomic
     def submit_answer(self, request, *args, **kwargs):
+        """
+        Submit an answer for a specific question.
+        """
         question = get_question(request.data.get("question"))
-        player_id = request.data.get("player_id")
-        player = None
-        if player_id:
-            player = get_object_or_404(Player, id=player_id)
-        user = request.user
 
-        facade = AnswerFacade()
-        facade.submit_answer(
-            user=user,
-            player=player,
-            provided_answer=request.data,
-            question=question,
-        )
+        # Optional: Get player if player_id is provided
+        player_id = request.data.get('player_id')
+        player = get_object_or_404(Player, id=player_id) if player_id else None
 
-        from apps.attributes.utils import perform_posterior_actions
-        perform_posterior_actions(
-            attributes=question.attributes,
-            player=player,
-            user=user,
-            request=request,
-        )
-
-        return Response(status=status.HTTP_202_ACCEPTED)
+        try:
+            handler = AnswerSubmissionHandler(
+                question=question,
+                user=request.user,
+                player=player
+            )
+            response = handler.submit(request)
+            return response
+        except (PermissionDenied, ValidationError) as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @swagger_auto_schema(tags=['answers'])
     @transaction.atomic

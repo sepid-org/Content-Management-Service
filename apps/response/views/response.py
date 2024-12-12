@@ -1,39 +1,33 @@
-from django.db import transaction
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from django.forms import ValidationError
+from rest_framework.exceptions import PermissionDenied
 
-from apps.fsm.models.fsm import Player, State
-from apps.fsm.utils.utils import transit_player_in_fsm
-from apps.widgets.models.other_widgets.button import ButtonWidget
+from apps.fsm.utils.submission.button_widget_submission_handler import ButtonWidgetSubmissionHandler
 
 
-@transaction.atomic
 @api_view(["POST"])
 def submit_button_widget(request):
+    """
+    Submit an button widget.
+    """
     player_id = request.data.get('player_id', None)
-    player = get_object_or_404(Player, id=player_id)
-
     state_id = request.data.get('state_id', None)
-    if state_id:
-        state = get_object_or_404(State, id=state_id)
-        transit_player_in_fsm(
-            player=player,
-            source_state=player.current_state,
-            target_state=state,
-        )
-
     button_id = request.data.get('button_id', None)
-    if button_id:
-        button = get_object_or_404(ButtonWidget, id=button_id)
 
-        from apps.attributes.utils import perform_posterior_actions
-        perform_posterior_actions(
-            attributes=button.attributes,
-            player=player,
+    try:
+        handler = ButtonWidgetSubmissionHandler(
             user=request.user,
-            request=request
+            player_id=player_id,
+            state_id=state_id,
+            button_id=button_id,
         )
+        response = handler.submit(request)
+        return response
 
-    return Response(status=status.HTTP_200_OK)
+    except (PermissionDenied, ValidationError) as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
