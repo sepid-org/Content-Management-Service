@@ -104,6 +104,7 @@ class Answer(PerformableAction):
         if not super().perform(*args, **kwargs):
             return False
 
+        # todo: needs refactoring (change AnswerFacade with AnswerSubmissionHandler)
         from apps.response.utils import AnswerFacade
 
         user = kwargs.get('user')
