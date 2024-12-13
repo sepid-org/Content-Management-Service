@@ -11,7 +11,7 @@ from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
-def _get_registration_receipts_excel_file(form_id):
+def _get_participants_excel_file(form_id):
     # Fetching data using ORM
     receipts = RegistrationReceipt.objects.filter(form_id=form_id).select_related(
         'user',
@@ -31,7 +31,6 @@ def _get_registration_receipts_excel_file(form_id):
         "Province",
         "Receipt Status",
         "Is Participating",
-        "Answers",
     ]
 
     # Collect data
@@ -39,7 +38,6 @@ def _get_registration_receipts_excel_file(form_id):
     for receipt in receipts:
         user = receipt.user
         school = user.school_studentship.school if user.school_studentship else None
-        answers = ", ".join(str(answer) for answer in receipt.answers.all())
 
         data.append({
             "ID": receipt.id,
@@ -52,7 +50,6 @@ def _get_registration_receipts_excel_file(form_id):
             "Province": school.province if school else "",
             "Receipt Status": receipt.status,
             "Is Participating": "Yes" if receipt.is_participating else "No",
-            "Answers": answers,
         })
 
     # Create DataFrame
@@ -69,7 +66,7 @@ def _get_registration_receipts_excel_file(form_id):
 
     # Create an in-memory file
     in_memory_file = SimpleUploadedFile(
-        f"form_{form_id}_receipts.xlsx", buffer.read(), content_type="application/vnd.ms-excel"
+        f"form_{form_id}_participants.xlsx", buffer.read(), content_type="application/vnd.ms-excel"
     )
 
     # Serialize and save the file
@@ -252,9 +249,9 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
 
 
 @api_view(["get"])
-def get_registration_receipts(request):
+def get_participants(request):
     registration_form_id = request.GET.get('registration_form_id')
-    file_content = _get_registration_receipts_excel_file(
+    file_content = _get_participants_excel_file(
         form_id=registration_form_id)
     return Response(file_content)
 
@@ -262,7 +259,7 @@ def get_registration_receipts(request):
 @api_view(["get"])
 def get_program_merchandises_purchases(request):
     program_id = request.GET.get('program_id')
-    # todo: EHSAN: this function should not get form_id. It should get program_id as input
+    # todo: this function should not get form_id. It should get program_id as input
     file_content = _get_program_merchandises_purchases_file(form_id=program_id)
     return Response(file_content)
 
