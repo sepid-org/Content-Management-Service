@@ -1,21 +1,13 @@
-from apps.fsm.models import RegistrationReceipt
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 import pandas as pd
-from django.conf import settings
-from apps.fsm.models.form import AnswerSheet
-from apps.fsm.models.question_widgets import Widget
-from apps.fsm.models.question_widgets import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer, UploadFileAnswer, MultiChoiceAnswer
+from apps.accounts.models import Purchase
+from apps.fsm.models import RegistrationReceipt, AnswerSheet, Widget, BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer, UploadFileAnswer, MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
-from proxies.metabase.main import MetabaseProxy
-
-url = settings.METABASE_URL
-
-Metabase_proxy = MetabaseProxy()
 
 
 def _get_registration_receipts_excel_file(form_id):
@@ -88,24 +80,78 @@ def _get_registration_receipts_excel_file(form_id):
 
 
 def _get_program_merchandises_purchases_file(form_id):
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {
-        "query": '{"database":2,"type":"query","query":{"source-table":104,"joins":[{"strategy":"left-join","alias":"Accounts+Merchandise+-+Merchandise","fields":[["field",103,{"base-type":"type/Text","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",105,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",107,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}]],"condition":["=",["field",123,{"base-type":"type/UUID"}],["field",106,{"base-type":"type/UUID","join-alias":"Accounts+Merchandise+-+Merchandise"}]],"source-table":73},{"strategy":"left-join","alias":"Accounts+User+-+User","fields":[["field",142,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",156,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",158,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",144,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}],["field",146,{"base-type":"type/Text","join-alias":"Accounts+User+-+User"}]],"condition":["=",["field",121,{"base-type":"type/UUID"}],["field",151,{"base-type":"type/UUID","join-alias":"Accounts+User+-+User"}]],"source-table":32},{"strategy":"left-join","alias":"Fsm+Program+-+Program","fields":"none","condition":["=",["field",786,{"base-type":"type/Integer","join-alias":"Accounts+Merchandise+-+Merchandise"}],["field",742,{"base-type":"type/Integer","join-alias":"Fsm+Program+-+Program"}]],"source-table":145}],"fields":[["field",116,{"base-type":"type/Integer"}],["field",114,{"base-type":"type/Text"}],["field",115,{"base-type":"type/DateTimeWithLocalTZ"}]],"filter":["=",["field",438,{"base-type":"type/Integer","source-field":762}],'+f'{form_id}'+']},"middleware":{"js-int-to-string?":true,"userland-query?":true,"add-default-userland-constraints?":true}}'
-    }
-    response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
+    # Fetch the required data using Django ORM
+    purchases = (
+        Purchase.objects.filter(
+            merchandise__program__registration_form_id=form_id)
+        .select_related(
+            "user",
+            "merchandise",
+            "merchandise__program"
+        )
+        .values(
+            "id",  # Purchase ID
+            "user__first_name",
+            "user__last_name",
+            "user__username",
+            "user__phone_number",
+            "user__national_code",
+            "merchandise__name",
+            "merchandise__price",
+            "merchandise__discounted_price",
+            "merchandise__program__name",  # Program Name
+            "amount",  # Purchase amount
+            "status",
+            "created_at",
+        )
+    )
 
-    if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile(
-            f"program{form_id}-merchandises-purchases.xlsx", response.content)
-        file = FileSerializer(data={"file": in_memory_file})
-        file.is_valid(raise_exception=True)
-        file.save()
-        print("File created successfully:")
-        return file.data
+    # Define headers for the Excel file
+    headers = [
+        "Purchase ID",
+        "User First Name",
+        "User Last Name",
+        "Username",
+        "Phone Number",
+        "National Code",
+        "Merchandise Name",
+        "Merchandise Price",
+        "Discounted Price",
+        "Program Name",
+        "Purchase Amount",
+        "Purchase Status",
+        "Created At",
+    ]
+
+    # Convert queryset to list of dictionaries for DataFrame
+    data = list(purchases)
+
+    # Create DataFrame
+    if not data:
+        # Create an empty DataFrame with only headers
+        df = pd.DataFrame(columns=headers)
     else:
-        print(f"Failed to retrieve data. Status code: {response.status_code}")
+        df = pd.DataFrame(data)
+        df.columns = headers
+
+    # Save DataFrame to an Excel file in memory
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+
+    # Create an in-memory file
+    in_memory_file = SimpleUploadedFile(
+        f"program_{form_id}_merchandises_purchases.xlsx",
+        buffer.read(),
+        content_type="application/vnd.ms-excel"
+    )
+
+    # Serialize and save the file
+    file = FileSerializer(data={"file": in_memory_file})
+    file.is_valid(raise_exception=True)
+    file.save()
+
+    return file.data
 
 
 def _get_answer_sheets_excel_file_by_form_id(form_id):
