@@ -1,3 +1,4 @@
+from apps.fsm.models import RegistrationReceipt
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -6,7 +7,7 @@ import pandas as pd
 from django.conf import settings
 from apps.fsm.models.form import AnswerSheet
 from apps.fsm.models.question_widgets import Widget
-from apps.fsm.models.question_widgets import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer ,UploadFileAnswer , Choice , MultiChoiceAnswer
+from apps.fsm.models.question_widgets import BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer, UploadFileAnswer, MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
@@ -18,24 +19,72 @@ Metabase_proxy = MetabaseProxy()
 
 
 def _get_registration_receipts_excel_file(form_id):
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {
-        "query": '{"query":{"source-table":60,"joins":[{"fields":[["field",143,{"join-alias":"Accounts+User+-+User"}],["field",142,{"join-alias":"Accounts+User+-+User"}],["field",156,{"join-alias":"Accounts+User+-+User"}],["field",158,{"join-alias":"Accounts+User+-+User"}],["field",144,{"join-alias":"Accounts+User+-+User"}],["field",161,{"join-alias":"Accounts+User+-+User"}],["field",159,{"join-alias":"Accounts+User+-+User"}],["field",146,{"join-alias":"Accounts+User+-+User"}],["field",147,{"join-alias":"Accounts+User+-+User"}],["field",152,{"join-alias":"Accounts+User+-+User"}],["field",154,{"join-alias":"Accounts+User+-+User"}],["field",153,{"join-alias":"Accounts+User+-+User"}]],"source-table":32,"condition":["=",["field",443,null],["field",151,{"join-alias":"Accounts+User+-+User"}]],"alias":"Accounts+User+-+User"},{"fields":"none","source-table":35,"condition":["=",["field",446,null],["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}]],"alias":"Fsm+Answersheet+-+Answersheet+Ptr"},{"fields":"none","source-table":106,"condition":["=",["field",271,{"join-alias":"Fsm+Answersheet+-+Answersheet+Ptr"}],["field",269,{"join-alias":"Fsm+Answer"}]],"alias":"Fsm+Answer"},{"fields":[],"source-table":96,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",449,{"join-alias":"Fsm+Smallanswer"}]],"alias":"Fsm+Smallanswer"},{"fields":[],"source-table":46,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",288,{"join-alias":"Fsm+Biganswer"}]],"alias":"Fsm+Biganswer"},{"fields":"none","source-table":9,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",371,{"join-alias":"Fsm+Multichoiceanswer+Choices"}]],"alias":"Fsm+Multichoiceanswer+Choices"},{"fields":[],"source-table":66,"condition":["=",["field",372,{"join-alias":"Fsm+Multichoiceanswer+Choices"}],["field",300,{"join-alias":"Fsm+Choice+-+Choice"}]],"alias":"Fsm+Choice+-+Choice"},{"fields":[],"source-table":107,"condition":["=",["field",263,{"join-alias":"Fsm+Answer"}],["field",466,{"join-alias":"Fsm+Uploadfileanswer"}]],"alias":"Fsm+Uploadfileanswer"},{"fields":[["field",133,{"join-alias":"Accounts+Schoolstudentship"}]],"source-table":31,"condition":["=",["field",151,{"join-alias":"Accounts+User+-+User"}],["field",131,{"join-alias":"Accounts+Schoolstudentship"}]],"alias":"Accounts+Schoolstudentship"},{"fields":[["field",96,{"join-alias":"Accounts+Educationalinstitute+-+School"}],["field",93,{"join-alias":"Accounts+Educationalinstitute+-+School"}],["field",99,{"join-alias":"Accounts+Educationalinstitute+-+School"}]],"source-table":98,"condition":["=",["field",129,{"join-alias":"Accounts+Schoolstudentship"}],["field",84,{"join-alias":"Accounts+Educationalinstitute+-+School"}]],"alias":"Accounts+Educationalinstitute+-+School"}],"expressions":{"answer":["concat",["field",451,{"join-alias":"Fsm+Smallanswer"}],["field",290,{"join-alias":"Fsm+Biganswer"}],["field",303,{"join-alias":"Fsm+Choice+-+Choice"}],["field",467,{"join-alias":"Fsm+Uploadfileanswer"}]]},"fields":[["field",444,null],["expression","answer"]],"filter":["=",["field",779,null],'+f'{form_id}'+']},"type":"query","database":2,"middleware":{"js-int-to-string?":true,"add-default-userland-constraints?":true}}'
-    }
-    response = Metabase_proxy.post(f'{url}api/dataset/xlsx', headers, data)
+    # Fetching data using ORM
+    receipts = RegistrationReceipt.objects.filter(form_id=form_id).select_related(
+        'user',
+        'user__school_studentship',
+        'user__school_studentship__school'
+    )
 
-    if response.status_code == 200:
-        in_memory_file = SimpleUploadedFile(
-            f"form{form_id}-respondents-answers.xlsx", response.content)
-        file = FileSerializer(data={"file": in_memory_file})
-        file.is_valid(raise_exception=True)
-        file.save()
-        print("File created successfully:")
-        return file.data
-    else:
-        print(f"Failed to retrieve data. Status code: {response.status_code}")
+    # Define headers
+    headers = [
+        "ID",
+        "Full Name",
+        "Username",
+        "Phone Number",
+        "National Code",
+        "School Name",
+        "City",
+        "Province",
+        "Receipt Status",
+        "Is Participating",
+        "Answers",
+    ]
+
+    # Collect data
+    data = []
+    for receipt in receipts:
+        user = receipt.user
+        school = user.school_studentship.school if user.school_studentship else None
+        answers = ", ".join(str(answer) for answer in receipt.answers.all())
+
+        data.append({
+            "ID": receipt.id,
+            "Full Name": user.full_name,
+            "Username": user.username,
+            "Phone Number": user.phone_number,
+            "National Code": user.national_code,
+            "School Name": school.name if school else "",
+            "City": school.city if school else "",
+            "Province": school.province if school else "",
+            "Receipt Status": receipt.status,
+            "Is Participating": "Yes" if receipt.is_participating else "No",
+            "Answers": answers,
+        })
+
+    # Create DataFrame
+    df = pd.DataFrame(data)
+    df.columns = headers
+
+    # Sort the DataFrame if needed
+    df = df.sort_values("ID")
+
+    # Save DataFrame to an Excel file in memory
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+
+    # Create an in-memory file
+    in_memory_file = SimpleUploadedFile(
+        f"form_{form_id}_receipts.xlsx", buffer.read(), content_type="application/vnd.ms-excel"
+    )
+
+    # Serialize and save the file
+    file = FileSerializer(data={"file": in_memory_file})
+    file.is_valid(raise_exception=True)
+    file.save()
+
+    return file.data
 
 
 def _get_program_merchandises_purchases_file(form_id):
@@ -97,7 +146,7 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
             'ID': sheet.id,
             'User': sheet.user.username if sheet.user else None,
             'Created At': gregorian_to_jalali(str(make_naive(sheet.created_at))),
-            "created At Hour" :sheet.created_at.strftime('%H:%M'),
+            "created At Hour": sheet.created_at.strftime('%H:%M'),
             'Updated At': gregorian_to_jalali(str(make_naive(sheet.updated_at))),
             "Updated At Hour": sheet.updated_at.strftime('%H:%M'),
         }
@@ -114,14 +163,15 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
 
         for answer in big_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_data[problem_column] = extract_content_from_html(answer.text)
+            answer_data[problem_column] = extract_content_from_html(
+                answer.text)
         for answer in choices:
             answer_choice = answer.choices.all()
             problem_column = f'Problem {answer.problem.id}'
             answer_text = ""
             counter = 0
             for i in answer_choice:
-                if counter == 0 :
+                if counter == 0:
                     answer_text += str(i)
                 else:
                     answer_text += "\n" + str(i)
@@ -134,8 +184,8 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
         data.append(answer_data)
 
     df = pd.DataFrame(data)
-    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد','زمان ساخت',
-                  'تاریخ بروزرسانی','زمان بروزرسانی'] + list(problem_headers.values())
+    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد', 'زمان ساخت',
+                  'تاریخ بروزرسانی', 'زمان بروزرسانی'] + list(problem_headers.values())
     df = df.sort_values('ID')
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
@@ -151,7 +201,8 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
 @api_view(["get"])
 def get_registration_receipts(request):
     registration_form_id = request.GET.get('registration_form_id')
-    file_content = _get_registration_receipts_excel_file(form_id=registration_form_id)
+    file_content = _get_registration_receipts_excel_file(
+        form_id=registration_form_id)
     return Response(file_content)
 
 

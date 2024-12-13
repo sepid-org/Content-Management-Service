@@ -35,10 +35,6 @@ class Answer(PolymorphicModel):
         return f'user: {self.submitted_by.username if self.submitted_by else "-"}'
 
     @property
-    def string_answer(self):
-        pass
-
-    @property
     def problem(self):
         return self.problem
 
@@ -58,10 +54,6 @@ class SmallAnswer(Answer):
             'feedback': 'empty',
         }
 
-    @property
-    def string_answer(self):
-        return self.text
-
     def __str__(self):
         return self.text
 
@@ -71,8 +63,7 @@ class BigAnswer(Answer):
                                 related_name='answers')
     text = models.TextField()
 
-    @property
-    def string_answer(self):
+    def __str__(self):
         return self.text
 
 
@@ -80,10 +71,6 @@ class MultiChoiceAnswer(Answer):
     problem = models.ForeignKey(
         'fsm.MultiChoiceProblem', on_delete=models.PROTECT, related_name='answers')
     choices = models.ManyToManyField('fsm.Choice')
-
-    @property
-    def string_answer(self):
-        return json.dumps([choice.id for choice in self.choices.all()])
 
     def assess(self) -> Dict[str, Union[int, str]]:
         result: int = 100
@@ -95,12 +82,14 @@ class MultiChoiceAnswer(Answer):
             'feedback': 'empty',
         }
 
+    def __str__(self):
+        return json.dumps([choice.id for choice in self.choices.all()])
+
 
 class UploadFileAnswer(Answer):
     problem = models.ForeignKey('fsm.UploadFileProblem', null=True, blank=True, on_delete=models.PROTECT,
                                 related_name='answers')
     answer_file = models.URLField(max_length=2000, blank=True)
 
-    @property
-    def string_answer(self):
+    def __str__(self):
         return self.answer_file

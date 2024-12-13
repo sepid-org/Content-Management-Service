@@ -21,11 +21,11 @@ def assess_answer(question, given_answer):
     body = {
         'question': question.text,
         'context': {
-            'correct_answer': correct_answer.string_answer,
+            'correct_answer': str(correct_answer),
         },
         'proposed_answer': {
             'type': type_caster[given_answer.answer_type],
-            'text': given_answer.string_answer,
+            'text': str(given_answer),
         }
     }
     score = -1
