@@ -1,3 +1,4 @@
+from django.utils.timezone import is_aware
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -125,6 +126,12 @@ def _get_program_merchandises_purchases_file(form_id):
 
     # Convert queryset to list of dictionaries for DataFrame
     data = list(purchases)
+
+    # Ensure datetimes are timezone-naive
+    for row in data:
+        if "created_at" in row and is_aware(row["created_at"]):
+            row["created_at"] = row["created_at"].astimezone(
+                None).replace(tzinfo=None)
 
     # Create DataFrame
     if not data:
