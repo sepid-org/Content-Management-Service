@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer
 from apps.fsm.models import RegistrationForm, transaction, RegistrationReceipt, Invitation
 from apps.fsm.permissions import IsRegistrationFormModifier
-from apps.fsm.serializers.papers.registration_form_serializer import RegistrationFormSerializer
+from apps.fsm.serializers.form.registration_form_serializer import RegistrationFormSerializer
 from apps.fsm.serializers.team_serializer import InvitationSerializer
 from apps.fsm.pagination import RegistrationReceiptSetPagination
 

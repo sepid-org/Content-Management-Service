@@ -103,7 +103,6 @@ class Paper(PolymorphicModel, ObjectMixin):
 
     class PaperType(models.TextChoices):
         RegistrationForm = 'RegistrationForm'
-        State = 'State'
         Hint = 'Hint'
         WidgetHint = 'WidgetHint'
         Article = 'Article'

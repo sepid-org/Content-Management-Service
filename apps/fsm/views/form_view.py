@@ -6,16 +6,15 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import PermissionDenied
 from drf_yasg.utils import swagger_auto_schema
-from django.db import transaction
 
 from apps.fsm.models.form import Form
-from apps.fsm.serializers.form_serializer import FormSerializer
+from apps.fsm.serializers.form.form_polymorphic_serializer import FormPolymorphicSerializer
 from apps.fsm.utils.submission.form_submission_handler import FormSubmissionHandler
 from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 
 class FormViewSet(ModelViewSet):
-    serializer_class = FormSerializer
+    serializer_class = FormPolymorphicSerializer
     queryset = Form.objects.all()
     permission_classes = [AllowAny]
 

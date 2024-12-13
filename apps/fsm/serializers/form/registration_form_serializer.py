@@ -1,5 +1,5 @@
 from apps.fsm.models.base import Paper
-from apps.fsm.serializers.form_serializer import FormSerializer
+from apps.fsm.serializers.form.form_serializer import FormSerializer
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from rest_framework import serializers
@@ -31,6 +31,6 @@ class RegistrationFormSerializer(FormSerializer):
 
     class Meta(FormSerializer.Meta):
         model = RegistrationForm
-        fields = FormSerializer.Meta.get_fields() + ['min_grade', 'max_grade', 'program', 'accepting_status',
-                                                     'certificate_templates', 'has_certificate', 'certificates_ready', 'gender_partition_status']
+        fields = FormSerializer.Meta.fields + ['min_grade', 'max_grade', 'program', 'accepting_status',
+                                               'certificate_templates', 'has_certificate', 'certificates_ready', 'gender_partition_status']
         read_only_fields = FormSerializer.Meta.read_only_fields + []

@@ -29,9 +29,6 @@ class PaperSerializer(serializers.ModelSerializer):
         fields = ['id', 'widgets', 'paper_type', 'creator']
         read_only_fields = ['id']
 
-        def get_fields():
-            return [field for field in PaperSerializer.Meta.fields if field != 'widgets']
-
 
 class ChangeWidgetOrderSerializer(serializers.Serializer):
     order = serializers.ListField(
