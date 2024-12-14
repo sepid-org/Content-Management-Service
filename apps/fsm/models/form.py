@@ -150,7 +150,7 @@ class RegistrationForm(Form):
     def check_time(self):
         if self.end_date and datetime.now(self.end_date.tzinfo) > self.end_date:
             return self.RegisterPermissionStatus.DeadlineMissed
-        if self.start_date and datetime.now(self.end_date.tzinfo) < self.start_date:
+        if self.start_date and datetime.now(self.start_date.tzinfo) < self.start_date:
             return self.RegisterPermissionStatus.NotStarted
         return 'ok'
 
