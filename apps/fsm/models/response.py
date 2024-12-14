@@ -40,8 +40,11 @@ class Answer(PolymorphicModel):
 
 
 class SmallAnswer(Answer):
-    problem = models.ForeignKey('fsm.SmallAnswerProblem', null=True,
-                                blank=True, on_delete=models.PROTECT, related_name='answers')
+    problem = models.ForeignKey(
+        'fsm.SmallAnswerProblem',
+        on_delete=models.PROTECT,
+        related_name='answers',
+    )
     text = models.TextField()
 
     def assess(self) -> Dict[str, Union[int, str]]:
@@ -59,8 +62,11 @@ class SmallAnswer(Answer):
 
 
 class BigAnswer(Answer):
-    problem = models.ForeignKey('fsm.BigAnswerProblem', null=True, blank=True, on_delete=models.PROTECT,
-                                related_name='answers')
+    problem = models.ForeignKey(
+        'fsm.BigAnswerProblem',
+        on_delete=models.PROTECT,
+        related_name='answers',
+    )
     text = models.TextField()
 
     def __str__(self):
@@ -69,7 +75,10 @@ class BigAnswer(Answer):
 
 class MultiChoiceAnswer(Answer):
     problem = models.ForeignKey(
-        'fsm.MultiChoiceProblem', on_delete=models.PROTECT, related_name='answers')
+        'fsm.MultiChoiceProblem',
+        on_delete=models.PROTECT,
+        related_name='answers',
+    )
     choices = models.ManyToManyField('fsm.Choice')
 
     def assess(self) -> Dict[str, Union[int, str]]:
@@ -87,8 +96,11 @@ class MultiChoiceAnswer(Answer):
 
 
 class UploadFileAnswer(Answer):
-    problem = models.ForeignKey('fsm.UploadFileProblem', null=True, blank=True, on_delete=models.PROTECT,
-                                related_name='answers')
+    problem = models.ForeignKey(
+        'fsm.UploadFileProblem',
+        on_delete=models.PROTECT,
+        related_name='answers',
+    )
     answer_file = models.URLField(max_length=2000, blank=True)
 
     def __str__(self):
