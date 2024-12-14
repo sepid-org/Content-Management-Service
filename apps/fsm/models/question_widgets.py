@@ -22,6 +22,9 @@ class Problem(Widget):
     correctness_threshold = models.IntegerField(default=100)
 
     def unfinalize_user_previous_answers(self, user):
+        if user is None:
+            return
+
         answer_model = PROBLEM_ANSWER_MAPPING[self.widget_type]
 
         # Bulk update older answers to unfinalized state
