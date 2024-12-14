@@ -41,12 +41,6 @@ class EdgeAdmin(admin.ModelAdmin):
     tail_title.short_description = "از "
 
 
-class UploadFileAnswerAdmin(admin.ModelAdmin):
-    model = UploadFileAnswer
-    list_display = ['id', 'problem', 'answer_file', 'is_final_answer']
-    list_filter = ['problem', 'is_final_answer']
-
-
 class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
     model = PlayerStateHistory
     list_display = ['player', 'state', 'delta_time']
@@ -229,13 +223,6 @@ class AnswerSheetCustomAdmin(admin.ModelAdmin):
     search_fields = ['answer_sheet_type']
 
 
-@admin.register(MultiChoiceAnswer)
-class MultiChoiceAnswerCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'problem']
-    list_display_links = ['id', 'problem']
-    list_filter = ['problem']
-
-
 @admin.register(Invitation)
 class InvitationCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'invitee', 'team', 'status']
@@ -251,17 +238,21 @@ class CertificateTemplateCustomAdmin(admin.ModelAdmin):
     search_fields = ['certificate_type']
 
 
+################### ANSWERS ###################
+
 @admin.register(Answer)
 class AnswerCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'answer_type', 'answer_sheet',
                     'submitted_by', 'is_final_answer', 'is_correct', 'created_at']
+    autocomplete_fields = ['answer_sheet', 'submitted_by']
     list_filter = ['answer_type', 'is_final_answer',
                    'is_correct', 'created_at']
-    search_fields = ['submitted_by__username']
+    search_fields = ['submitted_by__username',
+                     'submitted_by__first_name', 'submitted_by__last_name']
 
 
 @admin.register(BigAnswer)
-class BigAnswerCustomAdmin(admin.ModelAdmin):
+class BigAnswerCustomAdmin(AnswerCustomAdmin):
     list_display = ['id', 'is_final_answer']
     list_filter = ['problem', 'is_final_answer']
 
@@ -276,7 +267,7 @@ class BigAnswerCustomAdmin(admin.ModelAdmin):
 
 
 @admin.register(SmallAnswer)
-class SmallAnswerCustomAdmin(admin.ModelAdmin):
+class SmallAnswerCustomAdmin(AnswerCustomAdmin):
     list_display = ['id', 'widget_type', 'creator']
     list_filter = []
 
@@ -288,6 +279,23 @@ class SmallAnswerCustomAdmin(admin.ModelAdmin):
 
     def creator(self, obj):
         return obj.problem.creator
+
+
+@admin.register(MultiChoiceAnswer)
+class MultiChoiceAnswerCustomAdmin(AnswerCustomAdmin):
+    list_display = ['id', 'problem']
+    list_display_links = ['id', 'problem']
+    list_filter = ['problem']
+
+
+@admin.register(UploadFileAnswer)
+class UploadFileAnswerAdmin(AnswerCustomAdmin):
+    model = UploadFileAnswer
+    list_display = ['id', 'problem', 'answer_file', 'is_final_answer']
+    list_filter = ['problem', 'is_final_answer']
+
+
+############################
 
 
 @admin.register(Article)
@@ -379,7 +387,6 @@ admin.site.register(TextWidget, TextWidgetAdmin)
 admin.site.register(DetailBoxWidget, DetailBoxWidgetAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
-admin.site.register(UploadFileAnswer, UploadFileAnswerAdmin)
 admin.site.register(Tag)
 
 
