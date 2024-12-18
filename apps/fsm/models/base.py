@@ -88,12 +88,24 @@ class ObjectMixin:
         user = kwargs.get('user')
         if not user:
             return False
+
         result = False
-        from apps.attributes.models import Enabled
+
+        from apps.attributes.models import Default, Enabled
+
+        # Check `Default` attribute for `is_enabled` value
+        default_attributes = self.attributes.instance_of(Default)
+        for default_attribute in default_attributes:
+            if hasattr(default_attribute, 'is_enabled'):
+                result = default_attribute.is_enabled
+                break  # Use the first found Default's is_enabled value
+
+        # Apply `Enabled` attributes
         enabled_attributes = self.attributes.instance_of(Enabled)
         for enabled_attribute in enabled_attributes:
             if enabled_attribute.is_permitted(*args, **kwargs):
                 result |= enabled_attribute.value
+
         return result
 
 
