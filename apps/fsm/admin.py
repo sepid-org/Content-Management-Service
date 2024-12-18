@@ -421,6 +421,7 @@ class StatePaperAdmin(admin.ModelAdmin):
 
 class StatePaperInline(admin.TabularInline):
     model = StatePaper
+    autocomplete_fields = ['state', 'paper']
     extra = 1
 
 
@@ -430,6 +431,7 @@ class StateAdmin(admin.ModelAdmin):
     inlines = [StatePaperInline]
     list_display = ['id', 'title', 'fsm']
     list_filter = ['fsm']
+    autocomplete_fields = ['fsm']
     search_fields = ['title']
 
 
