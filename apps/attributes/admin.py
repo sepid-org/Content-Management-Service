@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from apps.attributes.models.base import Attribute, IntrinsicAttribute, PerformableAction
 from apps.attributes.models.intrinsic_attributes import Default, Enabled, Condition, Cost, Reward
 from apps.attributes.models.performable_actions import Answer, Buy, Finish, Rewarding, Start, Submission, Transition
 

@@ -1,3 +1,4 @@
+from proxies.bank_service.bank import get_user_balances
 from .base import IntrinsicAttribute
 
 
@@ -61,6 +62,17 @@ class Condition(IntrinsicAttribute):
                     completed_fsm_count == len(set(completed_fsm_ids))
             except:
                 total_condition_result = False
+
+        if 'name' in value:
+            condition_name = value.get('name')
+            if condition_name == 'has_minimum_currency':
+                currency = value.get('currency')
+                amount = value.get('amount')
+                user_balances = get_user_balances(user.id)
+                if user_balances.get(currency, 0) >= amount:
+                    total_condition_result = True
+                else:
+                    total_condition_result = False
 
         is_not = value.get('not', False)
         return total_condition_result ^ is_not
