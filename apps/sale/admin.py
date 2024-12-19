@@ -8,15 +8,22 @@ class MerchandiseCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'program',
                     'price', 'discounted_price', 'is_active', 'is_deleted']
     list_filter = ['is_active', 'program']
+    search_fields = ['name']
 
 
 @admin.register(Purchase)
 class CustomPurchaseAdmin(admin.ModelAdmin):
-    model = Purchase
     list_display = ['id', 'ref_id', 'amount',
                     'status', 'created_at', 'user', 'merchandise']
     search_fields = ['user__username']
+    autocomplete_fields = ['user', 'merchandise', 'voucher', 'discount_code']
 
 
-admin.site.register(Voucher)
-admin.site.register(DiscountCode)
+@admin.register(Voucher)
+class CustomVoucherAdmin(admin.ModelAdmin):
+    search_fields = ['code']
+
+
+@admin.register(DiscountCode)
+class CustomDiscountCodeAdmin(admin.ModelAdmin):
+    search_fields = ['code']
