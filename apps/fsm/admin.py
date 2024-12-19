@@ -59,7 +59,7 @@ class PlayerTransitionAdmin(admin.ModelAdmin):
     readonly_fields = ('time',)
     list_display = ['player', 'source_state',
                     'target_state', 'time', 'transited_edge']
-    list_filter = []
+    search_fields = ['player__id']
     raw_id_fields = ('player', 'source_state',
                      'target_state', 'transited_edge')
 
