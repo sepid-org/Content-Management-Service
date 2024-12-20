@@ -81,12 +81,27 @@ class DetailBoxWidgetAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'details']
 
 
+################### PAPER ###################
+
+
+@admin.register(Paper)
 class PaperAdmin(admin.ModelAdmin):
-    model = Paper
     list_display = ['id']
     list_filter = []
     search_fields = ['id']
     autocomplete_fields = ['creator', '_object']
+
+
+@admin.register(Article)
+class ArticleCustomAdmin(PaperAdmin):
+    list_display = ['id', 'name', 'publisher', 'all_tags', 'is_draft']
+    list_filter = ['is_draft', 'publisher']
+    autocomplete_fields = PaperAdmin.autocomplete_fields + ['publisher']
+
+    def all_tags(self, obj):
+        return ','.join(m.name for m in obj.tags.all())
+
+######################################
 
 
 class RegistrationFormAdmin(admin.ModelAdmin):
@@ -295,19 +310,6 @@ class UploadFileAnswerAdmin(AnswerCustomAdmin):
     list_filter = ['problem', 'is_final_answer']
 
 
-############################
-
-
-@admin.register(Article)
-class ArticleCustomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'publisher',
-                    'all_tags', 'is_draft']
-    list_filter = ['is_draft', 'publisher']
-
-    def all_tags(self, obj):
-        return ','.join(m.name for m in obj.tags.all())
-
-
 @admin.register(Iframe)
 class IframeCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper', 'creator', 'link']
@@ -374,7 +376,6 @@ class UploadFileProblemCustomAdmin(admin.ModelAdmin):
     search_fields = []
 
 
-admin.site.register(Paper, PaperAdmin)
 admin.site.register(RegistrationForm, RegistrationFormAdmin)
 admin.site.register(RegistrationReceipt, RegistrationReceiptsAdmin)
 admin.site.register(Team, TeamAdmin)

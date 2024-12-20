@@ -63,7 +63,13 @@ class UniversityCustomAdmin(admin.ModelAdmin):
     search_fields = ['name', 'city']
 
 
-admin.site.register(EducationalInstitute)
+@admin.register(EducationalInstitute)
+class EducationalInstituteCustomAdmin(admin.ModelAdmin):
+    model = EducationalInstitute
+    list_display = ['id']
+    search_fields = ['id', 'name']
+
+
 admin.site.register(VerificationCode)
 admin.site.register(SchoolStudentship)
 admin.site.register(AcademicStudentship)
