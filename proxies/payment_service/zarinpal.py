@@ -83,4 +83,4 @@ def get_payment_callback_url(purchase: Purchase, status: str = 'success') -> str
     if status not in {'success', 'failure'}:
         raise ValueError("Status must be either 'success' or 'failure'")
 
-    return f"http://{domain}/program/{program}/payment?status={status}&ref_id={purchase.ref_id}"
+    return f"http://{domain}/program/{program}/purchase/?status={status}&ref_id={purchase.ref_id}"
