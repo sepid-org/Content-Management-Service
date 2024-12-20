@@ -18,6 +18,10 @@ class TagSerializer(serializers.ModelSerializer):
 class ArticleSerializer(PaperSerializer):
     tags = serializers.ListSerializer(required=False, child=serializers.CharField(min_length=1, max_length=100),
                                       allow_null=True, allow_empty=True)
+    is_hidden = serializers.SerializerMethodField()
+
+    def get_is_hidden(self, obj):
+        return obj.is_hidden
 
     @transaction.atomic
     def create(self, validated_data):
@@ -62,5 +66,6 @@ class ArticleSerializer(PaperSerializer):
         model = Article
         ref_name = 'article'
         fields = [field for field in PaperSerializer.Meta.fields if field != 'widgets'] +\
-            ['name', 'description', 'tags', 'is_draft', 'publisher', 'cover_page']
+            ['name', 'description', 'tags', 'is_draft',
+                'publisher', 'cover_page', 'is_hidden']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
