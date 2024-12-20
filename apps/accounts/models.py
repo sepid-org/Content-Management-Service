@@ -327,16 +327,30 @@ class Purchase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     uniq_code = models.CharField(blank=False, max_length=100, default="")
     callback_domain = models.CharField(blank=True, null=True, max_length=100)
-
     user = models.ForeignKey(
-        User, related_name='purchases', on_delete=models.CASCADE)
-
+        User,
+        related_name='purchases',
+        on_delete=models.CASCADE,
+    )
     merchandise = models.ForeignKey(
-        Merchandise, related_name='purchases', on_delete=models.SET_NULL, null=True)
-    voucher = models.ForeignKey(Voucher, related_name='purchases', on_delete=models.SET_NULL, null=True,
-                                blank=True, default=None)
-    discount_code = models.ForeignKey(DiscountCode, related_name='purchases', on_delete=models.SET_NULL, null=True,
-                                      blank=True, default=None)
+        Merchandise,
+        related_name='purchases',
+        on_delete=models.PROTECT,
+    )
+    voucher = models.ForeignKey(
+        Voucher,
+        related_name='purchases',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    discount_code = models.ForeignKey(
+        DiscountCode,
+        related_name='purchases',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     objects = PurchaseManager()
 

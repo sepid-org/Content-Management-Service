@@ -207,16 +207,6 @@ ROOT_URLCONF = 'manage_content_service.urls'
 CELERY_BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
 
 
-########## Zarrinpal Payment ##########
-
-def GET_PAYMENT_CALLBACK_URL(domain, status):
-    PAYMENT = {
-        'success': f'http://{domain}/message/payment/success',
-        'failure': f'http://{domain}/message/payment/failure',
-    }
-    return PAYMENT[status]
-
-
 ########## METABASE ##########
 
 METABASE_URL = get_environment_var('METABASE_URL', None)

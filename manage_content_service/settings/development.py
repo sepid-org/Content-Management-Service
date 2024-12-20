@@ -54,18 +54,9 @@ LOGGING = {
     },
 }
 
-TESTING = sys.argv[1] == 'test'
-# TESTING = True
 STATIC_ROOT = get_environment_var('STATIC_ROOT', 'staticfiles')
 
-ZARINPAL_CONFIG = {
-    'ROUTE_START_PAY': 'https://sandbox.zarinpal.com/pg/StartPay/',
-    'ROUTE_WEB_GATE': 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl',
-    'MERCHANT': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',  # Required
-    'DESCRIPTION': 'ثبت‌نام در رویداد «رستاخیز: مسافر صفر» به صورت آزمایشی'  # Required
-}
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
-
 
 CACHES = {
     'default': {
@@ -73,5 +64,9 @@ CACHES = {
     }
 }
 
-
 CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]
+
+
+########## Zarrinpal Payment ##########
+
+SANDBOX = True

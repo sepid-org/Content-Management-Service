@@ -1,7 +1,6 @@
 import logging
 from urllib.parse import urlparse
 
-from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from drf_yasg.utils import swagger_auto_schema
@@ -11,8 +10,8 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.accounts import zarinpal
-from apps.accounts.models import Merchandise, Purchase, DiscountCode, User
+from proxies.payment_service import zarinpal
+from apps.accounts.models import Merchandise, Purchase, DiscountCode
 from apps.accounts.permissions import IsPurchaseOwner
 from apps.sale.serializers.discount_code import DiscountCodeValidationSerializer
 from apps.sale.serializers.purchase import PurchaseSerializer
@@ -104,19 +103,30 @@ class PaymentViewSet(GenericViewSet):
                 if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
                     raise ParseError(serialize_error('4046'))
                 if discount_code:
-                    price = discount_code.calculate_discounted_price(merchandise.price)
+                    price = discount_code.calculate_discounted_price(
+                        merchandise.price)
                     discount_code.remaining -= 1
                     discount_code.save()
                 else:
                     price = merchandise.price
 
-                website_domain = urlparse(
-                    request.META['HTTP_ORIGIN']).netloc
-                purchase = Purchase.objects.create_purchase(merchandise=merchandise, user=self.request.user,
-                                                            amount=price, discount_code=discount_code, callback_domain=website_domain)
-                callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?id={request.user.id}&uniq_code={purchase.uniq_code}'
-                response = zarinpal.send_request(amount=price, description=merchandise.name,
-                                                 callback_url=callback_url)
+                website_domain = urlparse(request.META['HTTP_ORIGIN']).netloc
+
+                purchase = Purchase.objects.create_purchase(
+                    merchandise=merchandise,
+                    user=self.request.user,
+                    amount=price,
+                    discount_code=discount_code,
+                    callback_domain=website_domain,
+                )
+
+                callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?purchase_id={purchase.id}'
+
+                response = zarinpal.send_request(
+                    amount=price,
+                    description=merchandise.name,
+                    callback_url=callback_url,
+                )
 
                 return Response({'payment_link': response, **PurchaseSerializer().to_representation(purchase)},
                                 status=status.HTTP_200_OK)
@@ -128,30 +138,40 @@ class PaymentViewSet(GenericViewSet):
     @transaction.atomic
     @action(detail=False, methods=['get'])
     def verify_payment(self, request):
-        user = get_object_or_404(User, id=request.GET.get('id', None))
-        purchase = get_object_or_404(Purchase, uniq_code=request.GET.get(
-            'uniq_code'), status=Purchase.Status.Started)
-        discount_code = purchase.discount_code
+        purchase = get_object_or_404(
+            Purchase,
+            id=request.GET.get('purchase_id'),
+            status=Purchase.Status.Started,
+        )
         logger.warning(f'Zarinpal callback: {request.GET}')
-        res = zarinpal.verify(status=request.GET.get('Status', None),
-                              authority=request.GET.get('Authority', None),
-                              amount=purchase.amount)
-        if 200 <= int(res["status"]) <= 299:
-            purchase.ref_id = str(res['ref_id'])
+
+        response = zarinpal.verify(
+            status=request.GET.get('Status', None),
+            authority=request.GET.get('Authority', None),
+            amount=purchase.amount,
+        )
+
+        if 200 <= int(response["status"]) <= 299:
+            purchase.ref_id = str(response['ref_id'])
             purchase.authority = request.GET.get('Authority', None)
-            if res['status'] == 200:
+            if response['status'] == 200:
                 purchase.status = Purchase.Status.Success
                 receipt = purchase.registration_receipt
                 receipt.is_participating = True
                 receipt.save()
             else:
                 purchase.status = Purchase.Status.Repetitious
+                discount_code = purchase.discount_code
                 if discount_code:
                     discount_code.remaining += 1
                     discount_code.save()
             purchase.save()
 
-            return redirect(f'{settings.GET_PAYMENT_CALLBACK_URL(purchase.callback_domain, "success")}/{purchase.uniq_code}')
+            success_payment_callback_url = zarinpal.get_payment_callback_url(
+                purchase=purchase,
+                status='SUCCESS',
+            )
+            return redirect(success_payment_callback_url)
         else:
             purchase.authority = request.GET.get('Authority')
             purchase.status = Purchase.Status.Failed
@@ -159,4 +179,8 @@ class PaymentViewSet(GenericViewSet):
                 discount_code.remaining += 1
                 discount_code.save()
             purchase.save()
-            return redirect(f'{settings.GET_PAYMENT_CALLBACK_URL(purchase.callback_domain, "failure")}/{purchase.uniq_code}')
+            failure_payment_callback_url = zarinpal.get_payment_callback_url(
+                purchase=purchase,
+                status='FAILURE',
+            )
+            return redirect(failure_payment_callback_url)
