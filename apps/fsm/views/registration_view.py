@@ -75,4 +75,4 @@ class RegistrationViewSet(ModelViewSet):
 
         registration_receipt.register_in_form(registration_form)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
