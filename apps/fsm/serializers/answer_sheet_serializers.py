@@ -14,10 +14,16 @@ class RegistrationReceiptSerializer(AnswerSheetSerializer):
     academic_studentship = serializers.SerializerMethodField()
 
     def get_school_studentship(self, obj):
-        return SchoolStudentshipReadOnlySerializer(obj.user.school_studentship).data
+        school_studentship = getattr(obj.user, 'school_studentship', None)
+        if school_studentship is not None:
+            return SchoolStudentshipReadOnlySerializer(school_studentship).data
+        return None
 
     def get_academic_studentship(self, obj):
-        return AcademicStudentshipReadOnlySerializer(obj.user.academic_studentship).data
+        academic_studentship = getattr(obj.user, 'academic_studentship', None)
+        if academic_studentship is not None:
+            return AcademicStudentshipReadOnlySerializer(academic_studentship).data
+        return None
 
     def create(self, validated_data):
         validated_data['answer_sheet_type'] = AnswerSheet.AnswerSheetType.RegistrationReceipt
