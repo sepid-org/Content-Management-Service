@@ -25,20 +25,22 @@ class ArticleSerializer(PaperSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        user = self.context.get('user', None)
-        tags = validated_data.pop(
-            'tags') if 'tags' in validated_data.keys() else []
-        article = super(ArticleSerializer, self).create(
-            {'paper_type': 'Article', 'creator': user, **validated_data})
-        for t in tags:
-            tag = Tag.objects.filter(name=t).first()
+        tags = validated_data.pop('tags', [])
+        validated_data['paper_type'] = 'Article'
+        article = super().create(validated_data)
+        for tag in tags:
+            tag = Tag.objects.filter(name=tag).first()
             if tag:
                 article.tags.add(tag)
             else:
-                tag_serializer = TagSerializer(
-                    data={'name': t}, context=self.context)
+                tag_serializer = TagSerializer(data={'name': tag})
                 if tag_serializer.is_valid(raise_exception=True):
-                    article.tags.add(tag_serializer.save())
+                    tag = tag_serializer.save()
+                    article.tags.add(tag)
+
+        # set is_private to False (articles are public objects)
+        article.is_private = False
+
         article.save()
         return article
 
@@ -49,22 +51,20 @@ class ArticleSerializer(PaperSerializer):
 
     def validate(self, attrs):
         publisher = attrs.get('publisher', None)
-        user = self.context.get('user', None)
-        if publisher and user not in publisher.admins.all():
+        creator = attrs.get('creator', None)
+        if publisher and creator not in publisher.admins.all():
             raise PermissionDenied(serialize_error('4105'))
 
         return super(ArticleSerializer, self).validate(attrs)
 
     def to_representation(self, instance):
-        representation = super(
-            ArticleSerializer, self).to_representation(instance)
+        representation = super().to_representation(instance)
         representation['tags'] = TagSerializer(
-            instance.tags.all(), context=self.context, many=True).data
+            instance.tags.all(), many=True).data
         return representation
 
     class Meta(PaperSerializer.Meta):
         model = Article
-        ref_name = 'article'
         fields = [field for field in PaperSerializer.Meta.fields if field != 'widgets'] +\
             ['name', 'description', 'tags', 'is_draft',
                 'publisher', 'cover_page', 'is_hidden']

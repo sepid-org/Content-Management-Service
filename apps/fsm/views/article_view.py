@@ -41,10 +41,3 @@ class ArticleViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'user': self.request.user})
-        context.update(
-            {'domain': self.request.build_absolute_uri('/api/')[:-5]})
-        return context
