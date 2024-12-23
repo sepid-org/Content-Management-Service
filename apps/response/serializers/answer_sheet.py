@@ -49,5 +49,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnswerSheet
-        fields = ['id', 'answer_sheet_type', 'user', 'form']
-        read_only_fields = ['id', 'answer_sheet_type']
+        fields = ['id', 'answer_sheet_type', 'user',
+                  'form', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'answer_sheet_type',
+                            'created_at', 'updated_at']
