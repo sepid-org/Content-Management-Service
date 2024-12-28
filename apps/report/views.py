@@ -22,7 +22,8 @@ def _get_participants_excel_file(form_id):
     # Define headers
     headers = [
         "ID",
-        "Full Name",
+        "First Name",
+        "Last Name",
         "Username",
         "Phone Number",
         "National Code",
@@ -37,17 +38,18 @@ def _get_participants_excel_file(form_id):
     data = []
     for receipt in receipts:
         user = receipt.user
-        school = user.school_studentship.school if user.school_studentship else None
+        school = user.school_studentship.school
 
         data.append({
             "ID": receipt.id,
-            "Full Name": user.full_name,
+            "First Name": user.first_name,
+            "Lastname Name": user.last_name,
             "Username": user.username,
             "Phone Number": user.phone_number,
             "National Code": user.national_code,
-            "School Name": school.name if school else "",
-            "City": school.city if school else "",
-            "Province": school.province if school else "",
+            "School Name": school.name,
+            "City": school.city,
+            "Province": school.province,
             "Receipt Status": receipt.status,
             "Is Participating": "Yes" if receipt.is_participating else "No",
         })
