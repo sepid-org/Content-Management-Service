@@ -1,10 +1,8 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from apps.fsm.models.response import BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from apps.fsm.models.base import Widget, clone_widget
-from apps.fsm.models.fsm import State
-from apps.fsm.models.team import Team
 
 PROBLEM_ANSWER_MAPPING = {
     'SmallAnswerProblem': SmallAnswer,
@@ -37,20 +35,41 @@ class Problem(Widget):
     def __str__(self):
         return f'<{self.id}-{self.widget_type}>:{self.name}'
 
+    @property
+    def correct_answer(self):
+        raise NotImplementedError(
+            f"The 'correct_answer' property must be implemented in the subclass of {self.__class__.__name__}."
+        )
+
 
 class SmallAnswerProblem(Problem):
     def clone(self, paper):
         return clone_widget(self, paper)
+
+    @property
+    def correct_answer(self):
+        # todo: not implemented
+        return None
 
 
 class BigAnswerProblem(Problem):
     def clone(self, paper):
         return clone_widget(self, paper)
 
+    @property
+    def correct_answer(self):
+        # todo: not implemented
+        return None
+
 
 class UploadFileProblem(Problem):
     def clone(self, paper):
         return clone_widget(self, paper)
+
+    @property
+    def correct_answer(self):
+        # todo: not implemented
+        return None
 
 
 class MultiChoiceProblem(Problem):
