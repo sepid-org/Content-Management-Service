@@ -35,15 +35,15 @@ class FSMFilter(filters.FilterSet):
 
 class FSMViewSet(CacheEnabledModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = FSM.objects.filter(is_deleted=False)
-    ordering_fields = ['order']
-    ordering = ['-order']
     serializer_class = FSMSerializer
     my_tags = ['fsm']
     filterset_class = FSMFilter
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['program']
     pagination_class = StandardPagination
+
+    def get_queryset(self):
+        return FSM.objects.filter(is_deleted=False).order_by('_object__order')
 
     def get_permissions(self):
         if self.action in ['partial_update', 'update', 'destroy', 'add_mentor', 'get_edges', 'get_player_from_team', 'players']:
@@ -82,7 +82,8 @@ class FSMViewSet(CacheEnabledModelViewSet):
                 raise PermissionDenied(
                     "You must be logged in to submit this form.")
             else:
-                count = get_players(user, fsm).filter(finished_at__isnull=False).count()
+                count = get_players(user, fsm).filter(
+                    finished_at__isnull=False).count()
                 if count >= fsm.participant_limit:
                     raise PermissionDenied(
                         "You have exceeded the submission limit for this form.")
