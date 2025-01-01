@@ -80,13 +80,15 @@ class FSMViewSet(CacheEnabledModelViewSet):
         if fsm.participant_limit > 0 and not is_mentor:
             if user.is_anonymous:
                 raise PermissionDenied(
-                    "You must be logged in to submit this form.")
+                    "You must be logged in to enter this fsm."
+                )
             else:
                 count = get_players(user, fsm).filter(
                     finished_at__isnull=False).count()
                 if count >= fsm.participant_limit:
                     raise PermissionDenied(
-                        "You have exceeded the submission limit for this form.")
+                        "You have exceeded the submission limit for this fsm."
+                    )
 
         if fsm.is_public:
             if isinstance(user, AnonymousUser):
