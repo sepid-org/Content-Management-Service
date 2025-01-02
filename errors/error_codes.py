@@ -162,3 +162,8 @@ class MyValidationError(ValidationError):
         super().__init__(params)
         if isinstance(self.detail, list):
             self.detail = self.detail[0]
+
+
+class ErrorCodes:
+    FORM_SUBMISSION_LIMIT_EXCEEDED = "ERR_FORM_SUBMISSION_LIMIT_EXCEEDED"
+    FSM_PARTICIPATION_LIMIT_EXCEEDED = "ERR_FSM_PARTICIPATION_LIMIT_EXCEEDED"

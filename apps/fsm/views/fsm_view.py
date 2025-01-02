@@ -14,7 +14,7 @@ from apps.accounts.utils.user_management import find_user_in_website
 from apps.fsm.models.fsm import State
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.serializers.papers.state_serializer import StateSerializer
-from errors.error_codes import serialize_error
+from errors.error_codes import ErrorCodes, serialize_error
 from apps.fsm.models import FSM, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
 from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, EdgeSerializer, TeamGetSerializer
@@ -87,7 +87,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
                     finished_at__isnull=False).count()
                 if count >= fsm.participant_limit:
                     raise PermissionDenied(
-                        "You have exceeded the submission limit for this fsm."
+                        ErrorCodes.FSM_PARTICIPATION_LIMIT_EXCEEDED
                     )
 
         if fsm.is_public:
