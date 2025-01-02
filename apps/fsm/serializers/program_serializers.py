@@ -62,7 +62,7 @@ class ProgramSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
-        team_size = attrs.get('team_size', 0)
+        team_size = attrs.get('team_size') or 0
         participation_type = attrs.get(
             'participation_type', Program.ParticipationType.INDIVIDUAL)
         if (team_size > 0 and participation_type != Program.ParticipationType.TEAM) or (

@@ -112,7 +112,7 @@ class StudentshipSerializer(serializers.ModelSerializer):
     grade = serializers.IntegerField(
         required=False, validators=[grade_validator])
     major = serializers.ChoiceField(
-        choices=SchoolStudentship.Major.choices, required=False)
+        choices=SchoolStudentship.Major.choices, required=False, allow_null=True)
 
     def create(self, validated_data):
         studentship_type = validated_data.get('studentship_type', None)
@@ -142,7 +142,7 @@ class StudentshipSerializer(serializers.ModelSerializer):
         model = Studentship
         fields = ['id', 'studentship_type', 'school', 'grade',
                   'degree', 'major', 'university', 'university_major', 'document']
-        read_only_fields = ['id', 'is_document_verified']
+        read_only_fields = ['id', 'is_document_verified', 'major', 'document']
 
 
 class SchoolStudentshipReadOnlySerializer(serializers.ModelSerializer):
