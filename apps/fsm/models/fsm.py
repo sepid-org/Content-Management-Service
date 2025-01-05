@@ -59,7 +59,7 @@ class FSM(models.Model, ObjectMixin):
     card_type = models.CharField(
         max_length=20, default=FSMCardType.vertical1, choices=FSMCardType.choices)
     show_roadmap = models.BooleanField(default=True)
-    participant_limit = models.PositiveIntegerField(default=1)
+    participant_limit = models.PositiveIntegerField(default=0)
     duration = models.PositiveIntegerField(
         default=0,
         help_text='Duration in minutes. 0 means unlimited.'
