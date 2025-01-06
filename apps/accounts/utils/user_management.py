@@ -28,7 +28,7 @@ def standardize_phone_number(phone_number):
 
 def find_user(user_data):
     # Get the user data fields
-    user_id = user_data.get('id')
+    id = user_data.get('id')
     phone_number = standardize_phone_number(user_data.get('phone_number'))
     email = user_data.get('email')
     username = user_data.get('username')
@@ -36,8 +36,8 @@ def find_user(user_data):
     # Build query based on the available fields
     query = Q()
 
-    if user_id:
-        query |= Q(id=user_id)
+    if id:
+        query |= Q(id=id)
     if username:
         query |= Q(username=username)
     if phone_number:
