@@ -58,10 +58,10 @@ class UserViewSet(ModelViewSet):
                                     })
     @transaction.atomic
     def create(self, request):
-
         # validate phone number with verification code:
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
         user = find_user_in_website(user_data=request.data,
                                     website=request.headers.get("Website"))
         if user:

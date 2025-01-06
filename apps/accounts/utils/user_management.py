@@ -29,8 +29,7 @@ def standardize_phone_number(phone_number):
 def find_user(user_data):
     # Get the user data fields
     user_id = user_data.get('id')
-    phone_number = user_data.get('phone_number')
-    phone_number = standardize_phone_number(phone_number)
+    phone_number = standardize_phone_number(user_data.get('phone_number'))
     email = user_data.get('email')
     username = user_data.get('username')
 
@@ -68,8 +67,9 @@ def find_user_in_website(user_data, website, raise_exception=False):
 
 def create_or_get_user(user_data, website):
     user = find_user(user_data=user_data)
+    has_user_website = bool(user.get_user_website(website=website))
 
-    if user and user.get_user_website(website=website):
+    if user and has_user_website:
         return user, False
 
     if not user:
@@ -77,8 +77,12 @@ def create_or_get_user(user_data, website):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-    UserWebsite.objects.create(
-        user=user, website=website, password=make_password(user_data.get("password")))
+    if not has_user_website:
+        UserWebsite.objects.create(
+            user=user,
+            password=make_password(user_data.get("password")),
+            website=website,
+        )
 
     # send greeting email
     # if user.email:
