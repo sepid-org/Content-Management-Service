@@ -42,6 +42,8 @@ def find_user(user_data):
         query |= Q(username=username)
     if phone_number:
         query |= Q(phone_number=phone_number)
+        # todo: this line is because of ambiguity in what username is!
+        query |= Q(username=phone_number)
     if email:
         query |= Q(email=email)
 
