@@ -69,7 +69,7 @@ def find_user_in_website(user_data, website, raise_exception=False):
 
 def create_or_get_user(user_data, website):
     user = find_user(user_data=user_data)
-    has_user_website = bool(user.get_user_website(website=website))
+    has_user_website = bool(user and user.get_user_website(website=website))
 
     if user and has_user_website:
         return user, False
