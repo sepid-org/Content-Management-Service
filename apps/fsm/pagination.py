@@ -17,7 +17,7 @@ class RegistrationReceiptSetPagination(PageNumberPagination):
 
 
 class ProgramsPagination(PageNumberPagination):
-    page_size = 18
+    page_size = 12
 
 
 class StandardPagination(PageNumberPagination):
