@@ -17,10 +17,15 @@ class ArticleViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         website = self.request.headers.get('Website')
 
-        if website:
-            queryset = queryset.filter(website=website)
-        else:
+        if not website:
             raise ValidationError("Website header is required")
+
+        queryset = queryset.filter(website=website)
+
+        is_hidden = self.request.query_params.get('is_hidden')
+        if is_hidden:
+            is_hidden = is_hidden == 'true'
+            queryset = queryset.filter(_object__is_hidden=is_hidden)
 
         return queryset
 

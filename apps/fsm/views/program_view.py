@@ -29,10 +29,15 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         queryset = super().get_queryset()
         website = self.request.headers.get('Website')
 
-        if website:
-            queryset = queryset.filter(website=website)
-        else:
+        if not website:
             raise ValidationError("Website header is required")
+
+        queryset = queryset.filter(website=website)
+
+        is_visible = self.request.query_params.get('is_visible')
+        if is_visible:
+            is_visible = is_visible.lower() == 'true'
+            queryset = queryset.filter(is_visible=is_visible)
 
         return queryset
 
