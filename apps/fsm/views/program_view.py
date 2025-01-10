@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from apps.fsm.models import Program
-from apps.fsm.pagination import ProgramsPagination
+from apps.fsm.pagination import StandardPagination
 from apps.fsm.permissions import ProgramAdminPermission
 from apps.fsm.serializers.program_serializers import ProgramSerializer, ProgramSummarySerializer
 from apps.accounts.serializers.user_serializer import UserSerializer
@@ -20,7 +20,7 @@ from utils.safe_auth import SafeTokenAuthentication
 class ProgramViewSet(CacheEnabledModelViewSet):
     queryset = Program.objects.filter(is_deleted=False)
     serializer_class = ProgramSerializer
-    pagination_class = ProgramsPagination
+    pagination_class = StandardPagination
     authentication_classes = [SafeTokenAuthentication]
     permission_classes = [IsAuthenticated]
     lookup_field = 'slug'
