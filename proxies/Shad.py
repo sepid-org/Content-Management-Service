@@ -54,6 +54,9 @@ def get_user_data_from_shad(user_uuid, landing_id):
     Raises:
         ValueError: If UUID is invalid, authentication fails, or response contains errors
     """
+    # Format uuid as Shad uuids format
+    user_uuid = _format_uuid_to_shad_format(user_uuid)
+
     # First ensure we have a valid UUID
     try:
         uuid.UUID(str(user_uuid))
@@ -93,3 +96,48 @@ def get_user_data_from_shad(user_uuid, landing_id):
         raise ValueError(f"API Error: {error_message} (Status: {status})")
 
     return response
+
+
+def _format_uuid_to_shad_format(input_uuid):
+    """
+    Formats a UUID string into the desired format: E7-17-70-D6-D0-37-26-FE-4F-74-A7-ED-89-23-46-FC.
+
+    Args:
+        input_uuid (str): A UUID string (with or without dashes).
+
+    Returns:
+        str: The formatted UUID string.
+    """
+    # Remove any existing dashes and convert to uppercase
+    clean_uuid = input_uuid.replace('-', '').upper()
+
+    # Split into groups of two characters and join with dashes
+    formatted_uuid = '-'.join(clean_uuid[i:i+2]
+                              for i in range(0, len(clean_uuid), 2))
+
+    return formatted_uuid
+
+
+def update_user_info_by_shad_data(user_instance, user_data):
+    """
+    Updates a user instance with the provided user_data dictionary.
+
+    Args:
+        user_instance: The user instance to update.
+        user_data (dict): The data containing user information.
+
+    Returns:
+        The updated user instance.
+    """
+    # Extracting relevant data from user_data
+    data = user_data.get("data", {})
+
+    # Mapping user_data fields to the user instance fields
+    user_instance.first_name = data.get("name") or user_instance.first_name
+    user_instance.last_name = data.get("family") or user_instance.last_name
+    user_instance.phone_number = data.get(
+        "mobile") or user_instance.phone_number
+    user_instance.gender = data.get("gender") or user_instance.gender
+    user_instance.province = data.get("provinceName") or user_instance.province
+
+    user_instance.save()

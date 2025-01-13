@@ -13,7 +13,7 @@ import uuid
 from rest_framework import status
 from rest_framework.response import Response
 
-from proxies.Shad import get_user_data_from_shad
+from proxies.Shad import get_user_data_from_shad, update_user_info_by_shad_data
 
 
 class UserIDLoginView(BaseLoginView):
@@ -48,22 +48,14 @@ class UserIDLoginView(BaseLoginView):
     def is_valid_uuid(self, value):
         try:
             uuid.UUID(str(value))
+            return True
         except ValueError:
             return False
-
-        try:
-            user_data = get_user_data_from_shad(
-                user_uuid=value,
-                landing_id=284
-            )
-        except ValueError as e:
-            return False
-
-        return True
 
     @transaction.atomic
     def handle_post(self, request, origin=""):
         user_identifier = self.get_user_identifier(request)
+        landing_id = request.data.get('landing_id')
         website = request.headers.get("Website")
 
         try:
@@ -80,14 +72,18 @@ class UserIDLoginView(BaseLoginView):
 
             if created:
                 user.set_unusable_password()
-                user.origin = origin  # Save origin for new users
+                user.origin = origin
                 user.save()
             response_status = status.HTTP_201_CREATED
 
-        # Update origin for existing users
-        if not created and origin:
-            user.origin = origin
-            user.save(update_fields=["origin"])
+        try:
+            user_data = get_user_data_from_shad(
+                user_uuid=user_identifier,
+                landing_id=landing_id,
+            )
+            update_user_info_by_shad_data(user, user_data)
+        except ValueError as e:
+            raise Exception('cant get data from Shad')
 
         self.create_login_event(user, website)
         return self.generate_response(user, created, response_status)
