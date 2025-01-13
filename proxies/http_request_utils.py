@@ -32,12 +32,13 @@ def get_retry_session(retries=5, backoff_factor=0.3,
     return session
 
 
-def get(url, params):
+def get(url, params, headers=None):
     try:
         session = get_retry_session()
         response = session.get(
             url,
             params=params,
+            headers=headers,
             timeout=10
         )
         response.raise_for_status()

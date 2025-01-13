@@ -13,6 +13,8 @@ import uuid
 from rest_framework import status
 from rest_framework.response import Response
 
+from proxies.Shad import get_user_data_from_shad
+
 
 class UserIDLoginView(BaseLoginView):
     user_data_field = 'username'
@@ -35,7 +37,7 @@ class UserIDLoginView(BaseLoginView):
 
         # Validate if user_id is a valid UUID
         if not self.is_valid_uuid(user_id):
-            return Response({"error": "Invalid UserID format. Must be a valid UUID."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid UserID. Must be a valid UUID."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Pass the origin to handle_post
         return self.handle_post(request, origin=origin)
@@ -46,9 +48,18 @@ class UserIDLoginView(BaseLoginView):
     def is_valid_uuid(self, value):
         try:
             uuid.UUID(str(value))
-            return True
         except ValueError:
             return False
+
+        try:
+            user_data = get_user_data_from_shad(
+                user_uuid=value,
+                landing_id=284
+            )
+        except ValueError as e:
+            return False
+
+        return True
 
     @transaction.atomic
     def handle_post(self, request, origin=""):
