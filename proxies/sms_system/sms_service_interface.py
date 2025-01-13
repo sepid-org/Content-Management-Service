@@ -5,7 +5,7 @@ class SMSService(ABC):
 
     class OtpTypes:
         CreateUserAccount = 'create-user-account'
-        ChangeUserPassword = 'change-user-password'
+        ResetUserPassword = 'reset-user-password'
         ChangeUserPhoneNumber = 'change-user-phone-number'
 
     class RegularSMSTypes:
