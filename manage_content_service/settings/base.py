@@ -273,3 +273,6 @@ BANK_URL = get_environment_var('BANK_URL', '"https://bank.sepid.org"')
 
 ASSESS_ANSWER_SERVICE_URL = get_environment_var(
     'ASSESS_ANSWER_SERVICE_URL', 'https://aas.sepid.org/')
+
+SHAD_LOGIN_USERNAME = get_environment_var('SHAD_LOGIN_USERNAME', None)
+SHAD_LOGIN_PASSWORD = get_environment_var('SHAD_LOGIN_PASSWORD', None)
