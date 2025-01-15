@@ -381,7 +381,7 @@ class VerificationCodeManager(models.Manager):
 class VerificationCode(models.Model):
     class VerificationType(models.TextChoices):
         CreateUserAccount = 'create-user-account'
-        ResetUserPassword = 'reset-user-password'
+        ChangeUserPassword = 'change-user-password'
         ChangeUserPhoneNumber = 'change-user-phone-number'
 
     # todo: set verification code while sending verification code
