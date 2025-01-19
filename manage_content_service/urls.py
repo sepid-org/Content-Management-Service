@@ -20,14 +20,13 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-if not settings.DEBUG:
-    sentry_sdk.init(
-        get_environment_var('SENTRY_DNS', None),
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
-        # We recommend adjusting this value in production.
-        traces_sample_rate=1.0,
-    )
+sentry_sdk.init(
+    get_environment_var('SENTRY_DNS', None),
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+)
 
 urlpatterns = [
     path('health-check/', health_check, name='health_check'),
