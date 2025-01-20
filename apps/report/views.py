@@ -8,6 +8,8 @@ from apps.accounts.models import Purchase
 from apps.fsm.models import RegistrationReceipt, AnswerSheet, Widget, BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer, UploadFileAnswer, MultiChoiceAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
+from apps.fsm.models.form import Form
+from apps.fsm.models.fsm import FSM, Player
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
@@ -160,11 +162,25 @@ def _get_program_merchandises_purchases_file(form_id):
     return file.data
 
 
-def _get_answer_sheets_excel_file_by_form_id(form_id):
-    answer_sheets = AnswerSheet.objects.filter(form__id=form_id)
+def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
+    fsm = FSM.objects.select_related().get(id=fsm_id)
 
-    widgets = Widget.objects.filter(
-        paper__id=form_id,
+    # Use select_related to fetch related answer_sheet in a single query
+    players = Player.objects.select_related('answer_sheet').filter(fsm=fsm)
+
+    # Extract answer_sheets efficiently
+    answer_sheets = [
+        player.answer_sheet for player in players if player.answer_sheet]
+
+    widgets = fsm.get_widgets()
+
+    return _get_answer_sheets_excel_file(widgets, answer_sheets)
+
+
+def _get_answer_sheets_excel_file_by_form_id(form_id):
+    form = Form.objects.get(id=form_id)
+    answer_sheets = form.answer_sheets.all()
+    questions = form.widgets.filter(
         widget_type__in=[
             Widget.WidgetTypes.SmallAnswerProblem,
             Widget.WidgetTypes.BigAnswerProblem,
@@ -173,51 +189,45 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
         ]
     )
 
+    return _get_answer_sheets_excel_file(questions, answer_sheets)
+
+
+def _get_answer_sheets_excel_file(questions, answer_sheets):
+
     data = []
+    question_headers = {}
+    sorted_questions = sorted(questions, key=lambda p: p.order, reverse=True)
+    for question in sorted_questions:
+        question_headers[f'Problem {question.id}'] = \
+            extract_content_from_html(question.text)
 
-    problem_headers = {}
-    problems = []
-    for widget in widgets:
-        if widget.widget_type == Widget.WidgetTypes.SmallAnswerProblem:
-            problems += SmallAnswerProblem.objects.filter(pk=widget.id)
-        elif widget.widget_type == Widget.WidgetTypes.BigAnswerProblem:
-            problems += BigAnswerProblem.objects.filter(pk=widget.id)
-        elif widget.widget_type == Widget.WidgetTypes.MultiChoiceProblem:
-            problems += MultiChoiceProblem.objects.filter(pk=widget.id)
-        elif widget.widget_type == Widget.WidgetTypes.UploadFileProblem:
-            problems += UploadFileProblem.objects.filter(pk=widget.id)
-        else:
-            continue
-    sorted_problems = sorted(problems, key=lambda p: p.order, reverse=True)
-    for problem in sorted_problems:
-        problem_headers[f'Problem {problem.id}'] = extract_content_from_html(
-            problem.text)
-
-    for sheet in answer_sheets:
-        answer_data = {
-            'ID': sheet.id,
-            'User': sheet.user.username if sheet.user else None,
-            'Created At': gregorian_to_jalali(str(make_naive(sheet.created_at))),
-            "created At Hour": sheet.created_at.strftime('%H:%M'),
-            'Updated At': gregorian_to_jalali(str(make_naive(sheet.updated_at))),
-            "Updated At Hour": sheet.updated_at.strftime('%H:%M'),
+    for answer_sheet in answer_sheets:
+        answer_sheet_data = {
+            'User ID': answer_sheet.user.id if answer_sheet.user else None,
+            'ID': answer_sheet.id,
+            'User': answer_sheet.user.username if answer_sheet.user else None,
+            'Created At': f"{gregorian_to_jalali(str(make_naive(answer_sheet.created_at)))} {answer_sheet.created_at.strftime('%H:%M')}",
+            'Updated At': f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}",
         }
-        for problem_header in problem_headers:
-            answer_data[problem_header] = None
+        for question_header in question_headers:
+            answer_sheet_data[question_header] = None
 
-        small_answers = SmallAnswer.objects.filter(answer_sheet=sheet)
-        big_answers = BigAnswer.objects.filter(answer_sheet=sheet)
-        choices = MultiChoiceAnswer.objects.filter(answer_sheet=sheet)
-        files = UploadFileAnswer.objects.filter(answer_sheet=sheet)
+        small_answers = SmallAnswer.objects.filter(answer_sheet=answer_sheet)
+        big_answers = BigAnswer.objects.filter(answer_sheet=answer_sheet)
+        choice_answers = MultiChoiceAnswer.objects.filter(
+            answer_sheet=answer_sheet)
+        file_answers = UploadFileAnswer.objects.filter(
+            answer_sheet=answer_sheet)
+        
         for answer in small_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_data[problem_column] = answer.text
+            answer_sheet_data[problem_column] = answer.text
 
         for answer in big_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_data[problem_column] = extract_content_from_html(
+            answer_sheet_data[problem_column] = extract_content_from_html(
                 answer.text)
-        for answer in choices:
+        for answer in choice_answers:
             answer_choice = answer.choices.all()
             problem_column = f'Problem {answer.problem.id}'
             answer_text = ""
@@ -228,22 +238,22 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
                 else:
                     answer_text += "\n" + str(i)
                 counter += 1
-            answer_data[problem_column] = answer_text
-        for answer in files:
+            answer_sheet_data[problem_column] = answer_text
+        for answer in file_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_data[problem_column] = answer.answer_file
+            answer_sheet_data[problem_column] = answer.answer_file
 
-        data.append(answer_data)
+        data.append(answer_sheet_data)
 
     df = pd.DataFrame(data)
-    df.columns = ['ID', 'کاربر', 'تاریخ ایجاد', 'زمان ساخت',
-                  'تاریخ بروزرسانی', 'زمان بروزرسانی'] + list(problem_headers.values())
+    df.columns = ['User ID', 'ID', 'کاربر', 'زمان ایجاد', 'زمان بروزرسانی'] +\
+        list(question_headers.values())
     df = df.sort_values('ID')
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
     buffer.seek(0)
     in_memory_file = SimpleUploadedFile(
-        f"form_{form_id}_answers.xlsx", buffer.read(), content_type='application/vnd.ms-excel')
+        f"answer_sheets.xlsx", buffer.read(), content_type='application/vnd.ms-excel')
     file = FileSerializer(data={"file": in_memory_file})
     file.is_valid(raise_exception=True)
     file.save()
@@ -269,5 +279,9 @@ def get_program_merchandises_purchases(request):
 @api_view(["get"])
 def get_answer_sheets(request):
     form_id = request.GET.get("form_id")
-    file_content = _get_answer_sheets_excel_file_by_form_id(form_id)
+    fsm_id = request.GET.get("fsm_id")
+    if form_id:
+        file_content = _get_answer_sheets_excel_file_by_form_id(form_id)
+    elif fsm_id:
+        file_content = _get_answer_sheets_excel_file_by_fsm_id(fsm_id)
     return Response(file_content)

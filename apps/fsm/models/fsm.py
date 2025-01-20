@@ -117,6 +117,9 @@ class FSM(models.Model, ObjectMixin):
     def get_fsm(fsm_id: int):
         return FSM.objects.filter(id=fsm_id).first()
 
+    def get_widgets(self):
+        return []
+
 
 class Player(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
