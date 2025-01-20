@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from apps.accounts.models import User
 
-from apps.fsm.models.base import Object, ObjectMixin, Paper, clone_paper
+from apps.fsm.models.base import Object, ObjectMixin, Paper, Widget, clone_paper
 from apps.fsm.models.form import AnswerSheet, RegistrationReceipt
 from apps.fsm.models.program import Program
 
@@ -117,8 +117,21 @@ class FSM(models.Model, ObjectMixin):
     def get_fsm(fsm_id: int):
         return FSM.objects.filter(id=fsm_id).first()
 
-    def get_widgets(self):
-        return []
+    def get_questions(self):
+        states = self.states.all()
+        questions = []
+        for state in states:
+            papers = state.papers.all()
+            for paper in papers:
+                questions += paper.widgets.filter(
+                    widget_type__in=[
+                        Widget.WidgetTypes.SmallAnswerProblem,
+                        Widget.WidgetTypes.BigAnswerProblem,
+                        Widget.WidgetTypes.MultiChoiceProblem,
+                        Widget.WidgetTypes.UploadFileProblem
+                    ]
+                )
+        return questions
 
 
 class Player(models.Model):

@@ -163,16 +163,13 @@ def _get_program_merchandises_purchases_file(form_id):
 
 
 def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
-    fsm = FSM.objects.select_related().get(id=fsm_id)
+    fsm = FSM.objects.get(id=fsm_id)
+    players = Player.objects.filter(fsm=fsm)
+    answer_sheets = []
+    for player in players:
+        answer_sheets.append(player.answer_sheet)
 
-    # Use select_related to fetch related answer_sheet in a single query
-    players = Player.objects.select_related('answer_sheet').filter(fsm=fsm)
-
-    # Extract answer_sheets efficiently
-    answer_sheets = [
-        player.answer_sheet for player in players if player.answer_sheet]
-
-    widgets = fsm.get_widgets()
+    widgets = fsm.get_questions()
 
     return _get_answer_sheets_excel_file(widgets, answer_sheets)
 
@@ -218,7 +215,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets):
             answer_sheet=answer_sheet)
         file_answers = UploadFileAnswer.objects.filter(
             answer_sheet=answer_sheet)
-        
+
         for answer in small_answers:
             problem_column = f'Problem {answer.problem.id}'
             answer_sheet_data[problem_column] = answer.text
