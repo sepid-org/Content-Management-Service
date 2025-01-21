@@ -1,4 +1,3 @@
-
 from django.db import models
 
 from apps.fsm.models.form import RegistrationForm

@@ -1,5 +1,3 @@
-
-
 from django.db import models
 
 from apps.fsm.models.base import Paper, Widget, clone_widget
