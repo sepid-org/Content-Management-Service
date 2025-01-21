@@ -11,7 +11,7 @@ from django_filters import rest_framework as filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
 from apps.accounts.utils.user_management import find_user_in_website
-from apps.fsm.models.fsm import State
+from apps.fsm.models.fsm import Player, State
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from errors.error_codes import ErrorCodes, serialize_error
@@ -98,9 +98,6 @@ class FSMViewSet(CacheEnabledModelViewSet):
         receipt = get_receipt(user, fsm)
         # is_mentor = user in fsm.mentors.all()
 
-        # if receipt is None:
-        #     raise ParseError(serialize_error('4079'))
-
         if fsm.fsm_p_type in [FSM.FSMPType.Team, FSM.FSMPType.Hybrid]:
             if receipt.team is None:
                 raise ParseError(serialize_error('4078'))
@@ -111,10 +108,9 @@ class FSMViewSet(CacheEnabledModelViewSet):
         # if fsm.entrance_lock and password != fsm.entrance_lock:
         #     raise PermissionDenied(serialize_error('4080'))
 
-        player = get_players(user, fsm).filter(finished_at__isnull=True).last()
-
-        # first time entering fsm
-        if not player:
+        try:
+            player = get_players(user, fsm).get(finished_at__isnull=True)
+        except Player.DoesNotExist:
             serializer = PlayerSerializer(
                 data={
                     'user': user.id,
@@ -135,7 +131,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
             player.current_state = fsm.first_state
             player.save()
 
-        return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_202_ACCEPTED)
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic

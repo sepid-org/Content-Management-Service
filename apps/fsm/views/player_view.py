@@ -120,12 +120,15 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
     @action(detail=True, methods=['get'], url_path='finish-fsm')
     def finish_fsm(self, request, pk=None):
+        """
+        Marks the FSM as finished for the player if not already done.
+        """
         player: Player = self.get_object()
 
         if player.finished_at:
             return Response(
-                data={"message": "you have already finished the court"},
-                status=status.HTTP_406_NOT_ACCEPTABLE,
+                {"message": "You have already finished the FSM."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         fsm = player.fsm
