@@ -51,48 +51,44 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
         return context
 
     @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
-    @action(detail=True, methods=['post'], serializer_class=RegistrationStatusSerializer)
+    @action(detail=True, methods=['post'], serializer_class=RegistrationStatusSerializer, url_path='update-registration-status')
     @transaction.atomic
-    def validate(self, request, pk=None):
+    def update_registration_status(self, request, pk=None):
         receipt = self.get_object()
-        if self.request.user not in receipt.form.program_or_fsm.modifiers:
+
+        if request.user not in receipt.form.program_or_fsm.modifiers:
             raise PermissionDenied(serialize_error('4061'))
-        # if not self.request.user.school_studentship.is_document_verified:
-        #     raise PermissionDenied(serialize_error('4062'))
-        status_serializer = RegistrationStatusSerializer(
-            data=self.request.data)
-        if status_serializer.is_valid(raise_exception=True):
-            registration_status = status_serializer.data.get(
-                'status', RegistrationReceipt.RegistrationStatus.Waiting)
 
-            if registration_status == RegistrationReceipt.RegistrationStatus.Accepted:
-                program = receipt.form.program
-                if program.is_free:
-                    receipt.is_participating = True
-            else:
-                receipt.is_participating = False
+        status_serializer = RegistrationStatusSerializer(data=request.data)
 
-            older_status = receipt.status
+        status_serializer.is_valid(raise_exception=True)
 
-            receipt.status = registration_status
-            receipt.save()
+        registration_status = status_serializer.data.get('status')
 
-            # todo: fix sending sms on registration receipt status change
-            # # todo: fix academy name
-            # if older_status != receipt.status:
-            #     sms_service_proxy = SMSServiceProxy(provider='kavenegar')
-            #     sms_service_proxy.send_otp(
-            #         receptor_phone_number=receipt.user.phone_number,
-            #         action=sms_service_proxy.RegularSMSTypes.UpdateRegistrationReceiptState,
-            #         # todo: get real academy name from mps
-            #         token='کاموا',
-            #         token2=receipt.form.program_or_fsm.name
-            #     )
+        receipt.status = registration_status
+        receipt.save()
 
+        return Response(status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: RegistrationReceiptSerializer})
+    @action(detail=True, methods=['post'], url_path='confirm-registration')
+    @transaction.atomic
+    def confirm_registration(self, request, pk=None):
+        receipt = self.get_object()
+
+        if request.user not in receipt.form.program_or_fsm.modifiers:
+            raise PermissionDenied(serialize_error('4061'))
+
+        if receipt.status != RegistrationReceipt.RegistrationStatus.Accepted:
             return Response(
-                RegistrationReceiptSerializer(
-                    context=self.get_serializer_context()).to_representation(receipt),
-                status=status.HTTP_200_OK)
+                {'detail': 'REGISTRATION_NOT_ACCEPTED'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        receipt.is_participating = True
+        receipt.save()
+
+        return Response(status=status.HTTP_200_OK)
 
     @swagger_auto_schema(tags=my_tags + ['certificates'])
     @action(detail=True, methods=['get'])

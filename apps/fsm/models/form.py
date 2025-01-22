@@ -170,6 +170,14 @@ class AnswerSheet(PolymorphicModel):
         StateAnswerSheet = "StateAnswerSheet"
         General = "General"
 
+    class CorrectionStatus(models.TextChoices):
+        CORRECT = "Correct", "Correct"
+        INCORRECT = "Wrong", "Incorrect"
+        MANUAL_REVIEW_REQUIRED = "ManualCorrectionRequired", "Manual Review Required"
+        NO_REVIEW_NEEDED = "NoCorrectionRequired", "No Review Needed"
+        NO_SOLUTION_PROVIDED = "NoSolutionAvailable", "No Solution Provided"
+        OTHER = "Other", "Other"
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     answer_sheet_type = models.CharField(
@@ -210,14 +218,6 @@ class RegistrationReceipt(AnswerSheet):
         Accepted = "Accepted"
         Rejected = "Rejected"
         Waiting = "Waiting"
-
-    class CorrectionStatus(models.TextChoices):
-        Correct = "Correct"
-        Wrong = "Wrong"
-        ManualCorrectionRequired = "ManualCorrectionRequired"
-        NoCorrectionRequired = "NoCorrectionRequired"
-        NoSolutionAvailable = "NoSolutionAvailable"
-        Other = "Other"
 
     status = models.CharField(max_length=25, blank=False,
                               default='Waiting', choices=RegistrationStatus.choices)
