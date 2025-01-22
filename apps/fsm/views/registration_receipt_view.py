@@ -8,6 +8,7 @@ from rest_framework.mixins import RetrieveModelMixin, DestroyModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.fsm.models.form import AnswerSheet
 from errors.error_codes import serialize_error
 from apps.fsm.models import RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
@@ -115,10 +116,13 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
     @action(detail=False, methods=['get'])
     def my_receipt(self, request, pk=None):
         form_id = request.GET.get('form')
+        if not form_id:
+            return Response({'error': 'Form ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         user = request.user
-        answer_sheet = None
+
         try:
             answer_sheet = user.answer_sheets.get(form__id=form_id)
-            return Response(RegistrationReceiptSerializer(answer_sheet).data)
-        except:
-            return Response({})
+            return Response(RegistrationReceiptSerializer(answer_sheet).data, status=status.HTTP_200_OK)
+        except AnswerSheet.DoesNotExist:
+            return Response({'error': 'Answer sheet not found.'}, status=status.HTTP_404_NOT_FOUND)
