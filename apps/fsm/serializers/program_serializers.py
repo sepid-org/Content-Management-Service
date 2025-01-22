@@ -25,7 +25,8 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
 
 class ProgramSerializer(serializers.ModelSerializer):
-    program_contact_info = ProgramContactInfoSerializer(required=False)
+    program_contact_info = ProgramContactInfoSerializer(
+        required=False, allow_null=True)
 
     def create(self, validated_data):
         registration_form_serializer = RegistrationFormSerializer(
