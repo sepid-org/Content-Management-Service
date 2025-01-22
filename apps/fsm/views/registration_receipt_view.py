@@ -81,7 +81,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
 
         if receipt.status != RegistrationReceipt.RegistrationStatus.Accepted:
             return Response(
-                {'detail': 'REGISTRATION_NOT_ACCEPTED'},
+                {'error_code': 'REGISTRATION_NOT_ACCEPTED'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
