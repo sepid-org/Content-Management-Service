@@ -104,6 +104,7 @@ class ProgramSerializer(serializers.ModelSerializer):
             'creator',
             'registration_form',
             'program_contact_info',
+            'website',
         ]
         read_only_fields = [
             'id',
