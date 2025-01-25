@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from apps.accounts.views.check_user_registration import check_user_registration
 from apps.accounts.views.change_password import ChangePasswordView
 from apps.accounts.views.change_phone_number import change_phone_number_view
 from apps.accounts.views.check_auth import CheckAuthenticationView
@@ -24,6 +25,10 @@ router.register(r'profile', ProfileViewSet, basename='profiles')
 router.register(r'studentship', StudentshipViewSet, basename='studentships')
 
 urlpatterns = [
+    path('accounts/check-user-registration/',
+         check_user_registration,
+         name='check-user-registration'),
+
     path('accounts/check-authentication/',
          CheckAuthenticationView.as_view(), name='check-authentication'),
     path('accounts/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
