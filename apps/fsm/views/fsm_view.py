@@ -69,38 +69,26 @@ class FSMViewSet(CacheEnabledModelViewSet):
         return context
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
-    @transaction.atomic
     @action(detail=True, methods=['post'])
     def enter_fsm(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
         is_mentor = user in fsm.mentors.all()
 
-        # Check if the fsm has a participant limit
+        # Check participant limit
         if fsm.participant_limit > 0 and not is_mentor:
             if user.is_anonymous:
                 raise PermissionDenied(
-                    "You must be logged in to enter this fsm."
-                )
-            else:
-                count = get_players(user, fsm).filter(
-                    finished_at__isnull=False).count()
-                if count >= fsm.participant_limit:
-                    raise PermissionDenied(
-                        ErrorCodes.FSM_PARTICIPATION_LIMIT_EXCEEDED
-                    )
+                    "You must be logged in to enter this fsm.")
+            count = get_players(user, fsm).filter(
+                finished_at__isnull=False).count()
+            if count >= fsm.participant_limit:
+                raise PermissionDenied("FSM participation limit exceeded.")
 
-        if fsm.is_public:
-            if isinstance(user, AnonymousUser):
-                pass
-
-        # password = self.request.data.get('password', None)
         receipt = get_receipt(user, fsm)
-        # is_mentor = user in fsm.mentors.all()
-
-        if fsm.fsm_p_type in [FSM.FSMPType.Team, FSM.FSMPType.Hybrid]:
-            if receipt.team is None:
-                raise ParseError(serialize_error('4078'))
+        # Validate receipt
+        # if fsm.fsm_p_type in [FSM.FSMPType.Team, FSM.FSMPType.Hybrid] and receipt.team is None:
+        #     raise ParseError(serialize_error('4078'))
 
         if not fsm.first_state:
             raise ParseError(serialize_error('4111'))
@@ -108,30 +96,30 @@ class FSMViewSet(CacheEnabledModelViewSet):
         # if fsm.entrance_lock and password != fsm.entrance_lock:
         #     raise PermissionDenied(serialize_error('4080'))
 
-        try:
-            player = get_players(user, fsm).get(finished_at__isnull=True)
-        except Player.DoesNotExist:
-            serializer = PlayerSerializer(
-                data={
-                    'user': user.id,
-                    'fsm': fsm.id,
+        with transaction.atomic():
+            player, created = Player.objects.select_for_update().get_or_create(
+                user=user,
+                fsm=fsm,
+                finished_at__isnull=True,
+                defaults={
                     'receipt': receipt,
-                    'current_state': fsm.first_state.id,
+                    'current_state': fsm.first_state,
                     'last_visit': timezone.now(),
-                },
-                context=self.get_serializer_context(),
+                }
             )
-            serializer.is_valid(raise_exception=True)
-            player = serializer.save()
-            transit_player_in_fsm(
-                player=player, source_state=None, target_state=fsm.first_state)
 
-        # if any state has been deleted and player has no current state:
-        if player.current_state is None:
-            player.current_state = fsm.first_state
-            player.save()
+            if created:
+                transit_player_in_fsm(
+                    player=player, source_state=None, target_state=fsm.first_state)
+                response_status = status.HTTP_201_CREATED
+            else:
+                response_status = status.HTTP_200_OK
 
-        return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_202_ACCEPTED)
+            if player.current_state is None:
+                player.current_state = fsm.first_state
+                player.save()
+
+        return Response(PlayerMinimalSerializer(player).data, status=response_status)
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @transaction.atomic
