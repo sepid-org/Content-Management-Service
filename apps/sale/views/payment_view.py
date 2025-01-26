@@ -81,6 +81,7 @@ class PaymentViewSet(GenericViewSet):
     def purchase(self, request, pk=None):
         merchandise_id = request.data.pop('merchandise', None)
         merchandise = get_object_or_404(Merchandise, id=merchandise_id)
+
         serializer = DiscountCodeValidationSerializer(
             data=request.data,
             context={
@@ -88,52 +89,65 @@ class PaymentViewSet(GenericViewSet):
                 **self.get_serializer_context(),
             }
         )
-
         serializer.is_valid(raise_exception=True)
+
         code = serializer.data.get('code', None)
         discount_code = get_object_or_404(
             DiscountCode, code=code) if code else None
+
         registration_form = merchandise.program.registration_form
         if not registration_form:
             raise InternalServerError(serialize_error('5004'))
         user_registration = registration_form.registration_receipts.filter(
             user=request.user).last()
-        if user_registration:
-            if user_registration.status == RegistrationReceipt.RegistrationStatus.Accepted:
-                if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
-                    raise ParseError(serialize_error('4046'))
-                if discount_code:
-                    price = discount_code.calculate_discounted_price(
-                        merchandise.price)
-                    discount_code.remaining -= 1
-                    discount_code.save()
-                else:
-                    price = merchandise.price
-
-                website_domain = urlparse(request.META['HTTP_ORIGIN']).netloc
-
-                purchase = Purchase.objects.create_purchase(
-                    merchandise=merchandise,
-                    user=self.request.user,
-                    amount=price,
-                    discount_code=discount_code,
-                    callback_domain=website_domain,
-                )
-
-                callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?purchase_id={purchase.id}'
-
-                response = zarinpal.send_request(
-                    amount=price,
-                    description=merchandise.name,
-                    callback_url=callback_url,
-                )
-
-                return Response({'payment_link': response, **PurchaseSerializer().to_representation(purchase)},
-                                status=status.HTTP_200_OK)
-            else:
-                raise ParseError(serialize_error('4045'))
-        else:
+        if not user_registration:
             raise ParseError(serialize_error('4044'))
+
+        if user_registration.status != RegistrationReceipt.RegistrationStatus.Accepted:
+            raise ParseError(serialize_error('4045'))
+
+        if len(merchandise.purchases.filter(user=request.user, status=Purchase.Status.Success)) > 0:
+            raise ParseError(serialize_error('4046'))
+
+        if discount_code:
+            price = discount_code.calculate_discounted_price(
+                merchandise.price)
+            discount_code.remaining -= 1
+            discount_code.save()
+        else:
+            price = merchandise.price
+
+        website_domain = urlparse(request.META['HTTP_ORIGIN']).netloc
+
+        purchase = Purchase.objects.create_purchase(
+            merchandise=merchandise,
+            user=self.request.user,
+            amount=price,
+            discount_code=discount_code,
+            callback_domain=website_domain,
+        )
+
+        callback_url = f'{self.reverse_action(self.verify_payment.url_name)}?purchase_id={purchase.id}'
+
+        if price == 0:
+            complete_purchase(purchase)
+            is_payment_required = False
+        else:
+            response = zarinpal.send_request(
+                amount=price,
+                description=merchandise.name,
+                callback_url=callback_url,
+            )
+            is_payment_required = True
+
+        return Response(
+            {
+                'is_payment_required': is_payment_required,
+                'payment_link': response if is_payment_required else None,
+                **PurchaseSerializer().to_representation(purchase)
+            },
+            status=status.HTTP_200_OK
+        )
 
     @transaction.atomic
     @action(detail=False, methods=['get'])
@@ -156,9 +170,7 @@ class PaymentViewSet(GenericViewSet):
             purchase.authority = request.GET.get('Authority', None)
             if response['status'] == 200:
                 purchase.status = Purchase.Status.Success
-                receipt = purchase.registration_receipt
-                receipt.is_participating = True
-                receipt.save()
+                complete_purchase(purchase)
             else:
                 purchase.status = Purchase.Status.Repetitious
                 discount_code = purchase.discount_code
@@ -184,3 +196,9 @@ class PaymentViewSet(GenericViewSet):
                 status='FAILURE',
             )
             return redirect(failure_payment_callback_url)
+
+
+def complete_purchase(purchase):
+    receipt = purchase.registration_receipt
+    receipt.is_participating = True
+    receipt.save()
