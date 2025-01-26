@@ -23,6 +23,7 @@ class Form(Paper):
         choices=AudienceType.choices,
         default=AudienceType.ALL
     )
+    background_image = models.URLField(null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     participant_limit = models.PositiveIntegerField(default=0)

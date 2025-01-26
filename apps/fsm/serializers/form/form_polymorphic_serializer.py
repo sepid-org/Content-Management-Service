@@ -10,3 +10,5 @@ class FormPolymorphicSerializer(PolymorphicSerializer):
         Form: FormSerializer,
         RegistrationForm: RegistrationFormSerializer,
     }
+
+    resource_type_field_name = 'type'
