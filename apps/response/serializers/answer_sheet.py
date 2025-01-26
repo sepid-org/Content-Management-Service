@@ -15,11 +15,13 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         queryset=Form.objects.all())
 
     def create(self, validated_data):
-        answers = self.initial_data.get('answers', [])
         answer_sheet = super().create(validated_data)
 
+        answers = self.initial_data.get('answers', [])
         for answer in answers:
+            # todo: use AnswerSubmissionHandler for submitting answers:
             serializer = AnswerPolymorphicSerializer(data={
+                'submitted_by': validated_data.get('user').id if validated_data.get('user') else None,
                 'answer_sheet': answer_sheet.id,
                 **answer
             })
@@ -32,7 +34,8 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
         form = attrs.get('form', None)
         if form is not None:
             answers = self.initial_data.get('answers', [])
-            answers_problems = [answer.get('problem', None) for answer in answers]
+            answers_problems = [answer.get('problem', None)
+                                for answer in answers]
             for widget in form.widgets.all():
                 if isinstance(widget, Problem) and widget.is_required and widget.id not in answers_problems:
                     raise ParseError(serialize_error(
