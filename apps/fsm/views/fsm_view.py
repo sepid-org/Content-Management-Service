@@ -104,7 +104,6 @@ class FSMViewSet(CacheEnabledModelViewSet):
                 defaults={
                     'receipt': receipt,
                     'current_state': fsm.first_state,
-                    'last_visit': timezone.now(),
                 }
             )
 

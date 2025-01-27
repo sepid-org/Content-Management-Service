@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from apps.accounts.models import User
+from django.db.models import Q
 
 from apps.fsm.models.base import Object, ObjectMixin, Paper, Widget, clone_paper
 from apps.fsm.models.form import AnswerSheet, RegistrationReceipt
@@ -170,7 +171,7 @@ class Player(models.Model):
         related_name='players',
     )
 
-    last_visit = models.DateTimeField(null=True, blank=True)
+    last_visit = models.DateTimeField(auto_now=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -189,6 +190,15 @@ class Player(models.Model):
 
     def __str__(self):
         return f'{self.user.full_name} in {self.fsm.name}'
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'fsm'],
+                condition=Q(finished_at__isnull=True),
+                name='unique_active_player'
+            )
+        ]
 
 
 class StatePaper(models.Model):

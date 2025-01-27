@@ -6,7 +6,7 @@ from apps.fsm.models.fsm import Player
 
 
 class Command(BaseCommand):
-    help = 'Deactivate duplicate active player records and keep the most recent one active.'
+    help = 'Delete duplicate active player records and keep the most recent one active.'
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Cleaning duplicate active players...")
@@ -28,14 +28,15 @@ class Command(BaseCommand):
             active_players = Player.objects.filter(
                 user_id=user_id, fsm_id=fsm_id, finished_at__isnull=True).order_by('-started_at')
 
-            # نگه داشتن جدیدترین رکورد و غیرفعال‌سازی بقیه
+            # نگه داشتن جدیدترین رکورد و حذف بقیه
             latest_player = active_players.first()
             old_active_players = active_players.exclude(id=latest_player.id)
 
-            old_active_players.update(is_active=False, finished_at=now())
+            # حذف رکوردهای قدیمی
+            deleted_count, _ = old_active_players.delete()
 
             self.stdout.write(
-                f'Updated {old_active_players.count()} duplicate active records for user {user_id} in FSM {fsm_id}')
+                f'Deleted {deleted_count} duplicate active records for user {user_id} in FSM {fsm_id}')
 
         self.stdout.write(self.style.SUCCESS(
             'Successfully cleaned duplicate active players!'))
