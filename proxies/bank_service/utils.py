@@ -8,7 +8,7 @@ class TransferResponse(TypedDict):
     deposit_transaction_id: str
 
 
-def transfer_funds_to_user(website_name, user_uuid, funds) -> TransferResponse:
+def deposit_funds_to_user(website_name, user_uuid, funds) -> TransferResponse:
     website = get_website(website_name)
 
     return request_transfer(
@@ -18,7 +18,7 @@ def transfer_funds_to_user(website_name, user_uuid, funds) -> TransferResponse:
     )
 
 
-def transfer_funds_from_user(website_name, user_uuid, funds) -> TransferResponse:
+def withdraw_funds_from_user(website_name, user_uuid, funds) -> TransferResponse:
     website = get_website(website_name)
 
     return request_transfer(

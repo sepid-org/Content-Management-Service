@@ -2,7 +2,7 @@ from django.db import models
 from polymorphic.models import PolymorphicModel
 
 from apps.attributes.models.utils import get_object_net_rewards
-from proxies.bank_service.utils import transfer_funds_to_user
+from proxies.bank_service.utils import deposit_funds_to_user
 
 
 class Attribute(PolymorphicModel):
@@ -58,7 +58,7 @@ class PerformableAction(Attribute):
         # Process the transfer
         request = kwargs.get('request')
         website_name = request.headers.get('Website')
-        transfer_funds_to_user(
+        deposit_funds_to_user(
             website_name=website_name,
             user_uuid=str(request.user.id),
             funds=net_rewards,

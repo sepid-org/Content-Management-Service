@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 
 from apps.attributes.models.utils import SumDict, get_response_allocated_rewards, sum_attribute_values
 from apps.attributes.utils import does_object_have_any_reward, get_object_default_rewards
-from proxies.bank_service.utils import transfer_funds_to_user
+from proxies.bank_service.utils import deposit_funds_to_user
 
 from .base import PerformableAction
 from django.db import models
@@ -37,7 +37,7 @@ class Rewarding(PerformableAction):
             # Process the transfer
             request = kwargs.get('request')
             website_name = request.headers.get('Website')
-            transfer_funds_to_user(
+            deposit_funds_to_user(
                 website_name=website_name,
                 user_uuid=str(request.user.id),
                 funds=total_rewards,
