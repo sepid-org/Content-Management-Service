@@ -8,6 +8,7 @@ class ButtonWidget(Widget):
     background_image = models.URLField(null=True, blank=True)
     destination_page_url = models.URLField(null=True, blank=True)
     destination_states = models.JSONField(default=[], null=True, blank=True)
+    disable_ripple = models.BooleanField(default=True)
 
     def clone(self, paper):
         return clone_widget(self, paper)
