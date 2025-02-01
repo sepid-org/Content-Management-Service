@@ -137,13 +137,6 @@ def delete_registration_receipts(modeladmin, request, queryset):
         obj.delete()
 
 
-class RegistrationReceiptsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'form', 'status', 'is_participating', 'team']
-    list_filter = ['form', 'status', 'is_participating']
-    actions = [delete_registration_receipts]
-    search_fields = ['user__username']
-
-
 class PlayerAdmin(admin.ModelAdmin):
     model = Player
     list_display = ['id', 'user', 'fsm', 'current_state', 'last_visit']
@@ -232,10 +225,18 @@ class BigAnswerProblemAdmin(admin.ModelAdmin):
 @admin.register(AnswerSheet)
 class AnswerSheetCustomAdmin(admin.ModelAdmin):
     list_display = ['id', 'answer_sheet_type', 'user', 'form']
-    list_display_links = ['id', 'answer_sheet_type']
     autocomplete_fields = ['user', 'form']
     list_filter = ['form']
     search_fields = ['answer_sheet_type']
+
+
+@admin.register(RegistrationReceipt)
+class RegistrationReceiptsAdmin(AnswerSheetCustomAdmin):
+    list_display = ['user', 'form', 'status', 'is_participating', 'team']
+    list_filter = ['form', 'status', 'is_participating']
+    actions = [delete_registration_receipts]
+    search_fields = ['user__username']
+    autocomplete_fields = AnswerSheetCustomAdmin.autocomplete_fields + ['team']
 
 
 @admin.register(Invitation)
@@ -377,7 +378,6 @@ class UploadFileProblemCustomAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RegistrationForm, RegistrationFormAdmin)
-admin.site.register(RegistrationReceipt, RegistrationReceiptsAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Font)
 admin.site.register(FSM, FSMAdmin)
