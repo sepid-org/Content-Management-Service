@@ -94,9 +94,9 @@ class PaperAdmin(admin.ModelAdmin):
 
 @admin.register(Article)
 class ArticleCustomAdmin(PaperAdmin):
-    list_display = ['id', 'name', 'publisher', 'all_tags', 'is_draft']
-    list_filter = ['is_draft', 'publisher']
-    autocomplete_fields = PaperAdmin.autocomplete_fields + ['publisher']
+    list_display = ['id', 'name', 'all_tags']
+    list_filter = ['website']
+    autocomplete_fields = PaperAdmin.autocomplete_fields + []
 
     def all_tags(self, obj):
         return ','.join(m.name for m in obj.tags.all())

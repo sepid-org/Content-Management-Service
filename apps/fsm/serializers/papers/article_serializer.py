@@ -49,14 +49,6 @@ class ArticleSerializer(PaperSerializer):
             raise ValidationError(serialize_error('4106'))
         return tags
 
-    def validate(self, attrs):
-        publisher = attrs.get('publisher', None)
-        creator = attrs.get('creator', None)
-        if publisher and creator not in publisher.admins.all():
-            raise PermissionDenied(serialize_error('4105'))
-
-        return super(ArticleSerializer, self).validate(attrs)
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['tags'] = TagSerializer(
@@ -66,6 +58,5 @@ class ArticleSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = Article
         fields = [field for field in PaperSerializer.Meta.fields if field != 'widgets'] +\
-            ['name', 'description', 'tags', 'is_draft',
-                'publisher', 'cover_page', 'is_hidden']
+            ['name', 'description', 'tags', 'cover_page', 'is_hidden']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
