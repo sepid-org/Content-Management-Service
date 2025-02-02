@@ -58,5 +58,5 @@ class ArticleSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = Article
         fields = [field for field in PaperSerializer.Meta.fields if field != 'widgets'] +\
-            ['name', 'description', 'tags', 'cover_page', 'is_hidden']
+            ['name', 'description', 'tags', 'cover_image', 'is_hidden']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
