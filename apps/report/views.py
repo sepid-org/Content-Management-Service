@@ -209,12 +209,14 @@ def _get_answer_sheets_excel_file(questions, answer_sheets):
         for question_header in question_headers:
             answer_sheet_data[question_header] = None
 
-        small_answers = SmallAnswer.objects.filter(answer_sheet=answer_sheet)
-        big_answers = BigAnswer.objects.filter(answer_sheet=answer_sheet)
+        small_answers = SmallAnswer.objects.filter(
+            answer_sheet=answer_sheet, is_final_answer=True)
+        big_answers = BigAnswer.objects.filter(
+            answer_sheet=answer_sheet, is_final_answer=True)
         choice_answers = MultiChoiceAnswer.objects.filter(
-            answer_sheet=answer_sheet)
+            answer_sheet=answer_sheet, is_final_answer=True)
         file_answers = UploadFileAnswer.objects.filter(
-            answer_sheet=answer_sheet)
+            answer_sheet=answer_sheet, is_final_answer=True)
 
         for answer in small_answers:
             problem_column = f'Problem {answer.problem.id}'
@@ -224,6 +226,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets):
             problem_column = f'Problem {answer.problem.id}'
             answer_sheet_data[problem_column] = extract_content_from_html(
                 answer.text)
+
         for answer in choice_answers:
             answer_choice = answer.choices.all()
             problem_column = f'Problem {answer.problem.id}'
@@ -236,6 +239,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets):
                     answer_text += "\n" + str(i)
                 counter += 1
             answer_sheet_data[problem_column] = answer_text
+
         for answer in file_answers:
             problem_column = f'Problem {answer.problem.id}'
             answer_sheet_data[problem_column] = answer.answer_file
