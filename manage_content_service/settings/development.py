@@ -70,3 +70,4 @@ CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]
 ########## Zarinpal Payment ##########
 
 SANDBOX = True
+ZARINPAL_MERCHANT_ID = get_environment_var('ZARINPAL_MERCHANT_ID', None)

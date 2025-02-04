@@ -1,86 +1,123 @@
 import logging
-
+import requests
 from django.conf import settings
-from zeep import Client
-
 from apps.accounts.models import Purchase
-from errors.error_codes import serialize_error
 from errors.exceptions import ServiceUnavailable
 
 logger = logging.getLogger(__name__)
+SANDBOX = settings.SANDBOX
 
-# ZP_API_REQUEST = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentRequest.json"
-# ZP_API_VERIFY = f"https://{sandbox}.zarinpal.com/pg/rest/WebGate/PaymentVerification.json"
-# ZP_API_STARTPAY = f"https://{sandbox}.zarinpal.com/pg/StartPay/"
+subdomain = 'sandbox' if SANDBOX else 'payment'
 
-DEVELOPMENT_ZARINPAL_CONFIG = {
-    'ROUTE_START_PAY': 'https://sandbox.zarinpal.com/pg/StartPay/',
-    'ROUTE_WEB_GATE': 'https://sandbox.zarinpal.com/pg/services/WebGate/wsdl',
-    'MERCHANT': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',  # Required
-    'DESCRIPTION': ''  # Required
+# New Zarinpal URLs
+ZP_API_REQUEST = f"https://{subdomain}.zarinpal.com/pg/v4/payment/request.json"
+ZP_API_VERIFY = f"https://{subdomain}.zarinpal.com/pg/v4/payment/verify.json"
+ZP_API_STARTPAY = f"https://{subdomain}.zarinpal.com/pg/StartPay/"
+
+# Zarinpal Configurations
+ZARINPAL_CONFIG = {
+    'MERCHANT': settings.ZARINPAL_MERCHANT_ID,
+    'DESCRIPTION': 'Online Payment',
+    'CURRENCY': 'IRR'
 }
 
-PRODUCTION_ZARINPAL_CONFIG = {
-    'ROUTE_START_PAY': 'https://www.zarinpal.com/pg/StartPay/',
-    'ROUTE_WEB_GATE': 'https://www.zarinpal.com/pg/services/WebGate/wsdl',
-    'MERCHANT': settings.ZARINPAL_MERCHANT_ID,  # Required
-    'DESCRIPTION': ''  # Required
+ERROR_MESSAGES = {
+    -9: "Validation error.",
+    -10: "Invalid merchant ID or IP address.",
+    -11: "Merchant ID is not active.",
+    -12: "Too many attempts, please try again later.",
+    -15: "Payment gateway has been suspended.",
+    -16: "Merchant verification level is below Silver.",
+    -17: "Merchant has Blue-level restrictions.",
+    -50: "Paid amount does not match the requested amount.",
+    -51: "Unsuccessful payment.",
+    -53: "Payment does not belong to this merchant ID.",
+    -54: "Invalid authority.",
+    -55: "Transaction not found.",
+    101: "Transaction has been verified."
 }
-
-ZARINPAL_CONFIG = DEVELOPMENT_ZARINPAL_CONFIG if settings.SANDBOX else PRODUCTION_ZARINPAL_CONFIG
 
 
 def send_request(amount, description, callback_url, email=None, mobile=None):
-    client = Client(ZARINPAL_CONFIG['ROUTE_WEB_GATE'])
-    result = client.service.PaymentRequest(
-        ZARINPAL_CONFIG['MERCHANT'], amount, description, email, mobile, callback_url)
-    if result.Status == 100:
-        return f'{ZARINPAL_CONFIG["ROUTE_START_PAY"]}{str(result.Authority)}'
-    else:
-        logger.error(f'Zarinpal send request error: {result}')
-        raise ServiceUnavailable(serialize_error('5001'))
+    """ Send payment request to Zarinpal """
+    payload = {
+        "merchant_id": ZARINPAL_CONFIG["MERCHANT"],
+        "amount": amount,
+        "callback_url": callback_url,
+        "description": description,
+        "currency": ZARINPAL_CONFIG["CURRENCY"],
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.post(ZP_API_REQUEST, json=payload, headers=headers)
+        result = response.json()
+
+        if response.status_code == 200 and result.get("data"):
+            code = result["data"].get("code")
+            if code == 100:
+                return f'{ZP_API_STARTPAY}{result["data"]["authority"]}'
+            else:
+                error_message = ERROR_MESSAGES.get(
+                    code, "An unknown error occurred.")
+                raise ServiceUnavailable(error_message)
+        else:
+            raise ServiceUnavailable("Invalid response from Zarinpal.")
+    except Exception as e:
+        logger.exception("Error in send_request")
+        raise ServiceUnavailable("Internal server error.")
 
 
 def verify(status, authority, amount):
-    client = Client(ZARINPAL_CONFIG['ROUTE_WEB_GATE'])
-    if status == 'OK':
-        result = client.service.PaymentVerification(
-            ZARINPAL_CONFIG['MERCHANT'], authority, amount)
-        if result.Status == 100:
-            logger.info(f'Transaction success: {result}')
-            return {
-                'message': 'Success',
-                'ref_id': str(result.RefID),
-                'status': 200
-            }
-        elif result.Status == 101:
-            logger.warning(f'Transaction submitted: {result}')
-            return {
-                'message': 'Repetitious',
-                'ref_id': str(result.RefID),
-                'status': 201
-            }
-        else:
-            logger.warning(f'Zarinpal verification error: {result}')
-            return {
-                'message': 'Failed',
-                'status': 400
-            }
-    else:
+    """ Verify payment status in Zarinpal """
+    if status != 'OK':
         logger.warning(
-            f'Transaction failed or canceled by authority: {authority}')
-        return {
-            'message': 'Failed or canceled',
-            'status': 403
-        }
+            f'Transaction failed or canceled. Authority: {authority}')
+        return {"message": "Payment failed or canceled.", "status": 403}
+
+    payload = {
+        "merchant_id": ZARINPAL_CONFIG["MERCHANT"],
+        "amount": amount,
+        "authority": authority
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.post(ZP_API_VERIFY, json=payload, headers=headers)
+        result = response.json()
+
+        if response.status_code == 200 and result.get("data"):
+            code = result["data"].get("code")
+            if code == 100:
+                return {"message": "Success", "ref_id": str(result["data"]["ref_id"]), "status": 200}
+            elif code == 101:
+                return {"message": "This transaction has already been verified.", "ref_id": str(result["data"]["ref_id"]), "status": 201}
+            else:
+                error_message = ERROR_MESSAGES.get(
+                    code, "Unknown error in transaction verification.")
+                return {"message": error_message, "status": 400}
+        else:
+            return {"message": "Invalid response from Zarinpal.", "status": 400}
+    except Exception as e:
+        logger.exception("Error in verify")
+        raise ServiceUnavailable("Internal server error.")
 
 
 def get_payment_callback_url(purchase: Purchase, status: str = 'success') -> str:
+    """ Generate callback URL after payment """
     domain = purchase.callback_domain
     program = purchase.merchandise.program.slug
-    status = status.lower()  # Ensure consistent case handling
+    status = status.lower()
 
     if status not in {'success', 'failure'}:
-        raise ValueError("Status must be either 'success' or 'failure'")
+        raise ValueError("Status must be either 'success' or 'failure'.")
 
     return f"http://{domain}/program/{program}/purchase/?status={status}&ref_id={purchase.ref_id}"

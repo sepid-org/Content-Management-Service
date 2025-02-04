@@ -187,6 +187,7 @@ class PaymentViewSet(GenericViewSet):
         else:
             purchase.authority = request.GET.get('Authority')
             purchase.status = Purchase.Status.Failed
+            discount_code = purchase.discount_code
             if discount_code:
                 discount_code.remaining += 1
                 discount_code.save()
