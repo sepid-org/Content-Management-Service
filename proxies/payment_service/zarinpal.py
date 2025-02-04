@@ -23,7 +23,7 @@ DEVELOPMENT_ZARINPAL_CONFIG = {
 PRODUCTION_ZARINPAL_CONFIG = {
     'ROUTE_START_PAY': 'https://www.zarinpal.com/pg/StartPay/',
     'ROUTE_WEB_GATE': 'https://www.zarinpal.com/pg/services/WebGate/wsdl',
-    'MERCHANT': '817461df-e332-4657-85d1-76e7e0a06f0e',  # Required
+    'MERCHANT': settings.ZARINPAL_MERCHANT_ID,  # Required
     'DESCRIPTION': ''  # Required
 }
 

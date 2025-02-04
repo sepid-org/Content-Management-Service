@@ -67,6 +67,6 @@ CACHES = {
 CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]
 
 
-########## Zarrinpal Payment ##########
+########## Zarinpal Payment ##########
 
 SANDBOX = True

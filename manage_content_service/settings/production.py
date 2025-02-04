@@ -102,6 +102,7 @@ MINIO_STORAGE_STATIC_BUCKET_NAME = 'static'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 
-########## Zarrinpal Payment ##########
+########## Zarinpal Payment ##########
 
 SANDBOX = False
+ZARINPAL_MERCHANT_ID = get_environment_var('ZARINPAL_MERCHANT_ID', None)
