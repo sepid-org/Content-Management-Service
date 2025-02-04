@@ -1,3 +1,5 @@
+# https://www.zarinpal.com/docs/paymentGateway/
+
 import logging
 import requests
 from django.conf import settings
