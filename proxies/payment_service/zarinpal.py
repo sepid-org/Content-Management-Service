@@ -20,7 +20,7 @@ ZP_API_STARTPAY = f"https://{subdomain}.zarinpal.com/pg/StartPay/"
 ZARINPAL_CONFIG = {
     'MERCHANT': settings.ZARINPAL_MERCHANT_ID,
     'DESCRIPTION': 'Online Payment',
-    'CURRENCY': 'IRR'
+    'CURRENCY': 'IRT'
 }
 
 ERROR_MESSAGES = {
