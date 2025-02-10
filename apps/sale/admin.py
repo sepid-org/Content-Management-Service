@@ -15,7 +15,8 @@ class MerchandiseCustomAdmin(admin.ModelAdmin):
 class CustomPurchaseAdmin(admin.ModelAdmin):
     list_display = ['id', 'ref_id', 'amount',
                     'status', 'created_at', 'user', 'merchandise']
-    search_fields = ['user__username']
+    search_fields = ['ref_id', 'user__username']
+    list_filter = ['merchandise']
     autocomplete_fields = ['user', 'merchandise', 'voucher', 'discount_code']
 
 

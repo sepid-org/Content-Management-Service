@@ -93,6 +93,7 @@ def _get_program_merchandises_purchases_file(form_id):
         )
         .values(
             "id",  # Purchase ID
+            "ref_id",
             "user__first_name",
             "user__last_name",
             "user__username",
@@ -111,6 +112,7 @@ def _get_program_merchandises_purchases_file(form_id):
     # Define headers for the Excel file
     headers = [
         "Purchase ID",
+        "Reference ID",
         "User First Name",
         "User Last Name",
         "Username",
