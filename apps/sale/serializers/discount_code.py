@@ -6,7 +6,7 @@ from rest_framework.exceptions import NotFound, ParseError
 from apps.accounts.serializers.user_serializer import UserPublicInfoSerializer
 from apps.sale.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
-from manage_content_service.settings.base import DISCOUNT_CODE_LENGTH
+from content_management_service.settings.base import DISCOUNT_CODE_LENGTH
 from apps.accounts.models import DiscountCode
 
 

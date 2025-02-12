@@ -5,15 +5,15 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from manage_content_service.health_check import health_check
-from manage_content_service.settings.base import get_environment_var
+from content_management_service.health_check import health_check
+from content_management_service.settings.base import get_environment_var
 import sentry_sdk
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Manage Content Service APIs",
+        title="Content Management Service APIs",
         default_version='v3',
-        description="APIs list of Manage Content Service",
+        description="APIs list of Content Management Service",
     ),
     url=settings.SWAGGER_URL,
     public=True,

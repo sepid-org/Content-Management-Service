@@ -1,5 +1,5 @@
 import sys
-from manage_content_service.settings.base import *
+from content_management_service.settings.base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,7 +46,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'manage_content_service': {
+        'content_management_service': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,

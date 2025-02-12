@@ -1,6 +1,6 @@
 import requests
 
-from manage_content_service.settings.base import get_environment_var
+from content_management_service.settings.base import get_environment_var
 from utils.singleton_class import Singleton
 
 url = get_environment_var(

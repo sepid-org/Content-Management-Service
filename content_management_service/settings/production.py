@@ -1,4 +1,4 @@
-from manage_content_service.settings.base import *
+from content_management_service.settings.base import *
 
 DEBUG = get_environment_var('DEBUG', 'False') == 'True'
 
@@ -75,7 +75,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'propagate': True,
         },
-        'manage_content_service': {
+        'content_management_service': {
             'handlers': ['file', 'console'],
             'level': LOG_LEVEL,
             'propagate': True,

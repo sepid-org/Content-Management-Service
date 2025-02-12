@@ -46,7 +46,7 @@ CUSTOM_APPS = [
     'django_filters',
     'minio_storage',
     'shortener',
-    'manage_content_service.apps.MyAdminConfig',
+    'content_management_service.apps.MyAdminConfig',
     'apps.accounts.apps.AccountConfig',
     'apps.fsm.apps.FsmConfig',
     'apps.roadmap.apps.RoadmapConfig',
@@ -91,7 +91,7 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'manage_content_service.wsgi.application'
+WSGI_APPLICATION = 'content_management_service.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -149,7 +149,7 @@ CONSTANTS = {
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"
 
-ASGI_APPLICATION = 'manage_content_service.routing.application'
+ASGI_APPLICATION = 'content_management_service.routing.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -184,7 +184,7 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization'
         }
     },
-    'DEFAULT_AUTO_SCHEMA_CLASS': 'manage_content_service.settings.custom_setting_classes.CustomAutoSchema',
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'content_management_service.settings.custom_setting_classes.CustomAutoSchema',
     'TAGS_SORTER': 'alpha',
     'DOC_EXPANSION': 'none',
 }
@@ -203,7 +203,7 @@ PURCHASE_UNIQ_CODE_LENGTH = 10
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-ROOT_URLCONF = 'manage_content_service.urls'
+ROOT_URLCONF = 'content_management_service.urls'
 CELERY_BROKER_URL = get_environment_var('BROKER_URL', 'amqp://')
 
 
