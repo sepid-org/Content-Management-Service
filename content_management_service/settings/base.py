@@ -229,6 +229,7 @@ CORS_ALLOW_HEADERS = [
 
 ########## CSRF ##########
 
+COOKIE_DOMAIN = get_environment_var("COOKIE_DOMAIN", ".sepid.com")
 
 # امنیت کوکی‌ها
 SESSION_COOKIE_HTTPONLY = True  # جلوگیری از دسترسی JavaScript به کوکی‌ها

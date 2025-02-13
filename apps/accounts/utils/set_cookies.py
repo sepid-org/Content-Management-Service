@@ -11,6 +11,7 @@ def set_cookies(response, access_token, refresh_token):
         httponly=True,
         secure=True,
         samesite='None',
+        domain=settings.COOKIE_DOMAIN,
         path='/',
         max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
     )
@@ -20,6 +21,7 @@ def set_cookies(response, access_token, refresh_token):
         httponly=True,
         secure=True,
         samesite='None',
+        domain=settings.COOKIE_DOMAIN,
         path='/',
         max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
     )
