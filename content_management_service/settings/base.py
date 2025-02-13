@@ -63,14 +63,14 @@ CUSTOM_APPS = [
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # برای مدیریت CORS
+    'django.middleware.security.SecurityMiddleware',  # برای امنیت
+    'django.contrib.sessions.middleware.SessionMiddleware',  # برای مدیریت session
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # برای محافظت در برابر CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # برای احراز هویت
+    'django.contrib.messages.middleware.MessageMiddleware',  # برای مدیریت پیام‌ها
+    # برای محافظت در برابر clickjacking
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -156,15 +156,17 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'apps.accounts.utils.custom_jwt_authentication.CustomJWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # احراز هویت JWT
+        'rest_framework.authentication.SessionAuthentication',  # احراز هویت session
+        # احراز هویت JWT از طریق کوکی‌ها:
+        'content_management_service.authentication.cookie_jwt_authentication.CookieJWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.OrderingFilter',
+        'django_filters.rest_framework.DjangoFilterBackend',  # فیلترها
+        'rest_framework.filters.OrderingFilter',  # مرتب‌سازی
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': '18'
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # صفحه‌بندی
+    'PAGE_SIZE': 18,  # تعداد آیتم‌ها در هر صفحه
 }
 
 
@@ -189,13 +191,71 @@ SWAGGER_SETTINGS = {
     'DOC_EXPANSION': 'none',
 }
 
-KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)
-
 VOUCHER_CODE_LENGTH = 5
 
 DISCOUNT_CODE_LENGTH = 10
 
 PURCHASE_UNIQ_CODE_LENGTH = 10
+
+
+########## CORS ##########
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight برای ۲۴ ساعت (۸۶۴۰۰ ثانیه)
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+    "PATCH",
+]
+
+CORS_ALLOW_HEADERS = [
+    "Accept",
+    "Accept-Encoding",
+    "Content-Type",
+    "DNT",
+    "Origin",
+    "User-Agent",
+    "X-CSRFToken",
+    "X-Requested-With",
+    "Website",  # هدر سفارشی
+    "FSM",      # هدر سفارشی
+]
+
+
+########## CSRF ##########
+
+
+# امنیت کوکی‌ها
+SESSION_COOKIE_HTTPONLY = True  # جلوگیری از دسترسی JavaScript به کوکی‌ها
+SESSION_COOKIE_SAMESITE = 'None'  # برای دامنه‌های مختلف
+SESSION_COOKIE_SECURE = True  # فقط از طریق HTTPS ارسال شود
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'None'  # برای دامنه‌های مختلف
+CSRF_COOKIE_SECURE = True  # فقط از طریق HTTPS ارسال شود
+
+
+########## JWT ##########
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
 
 
 ########## Celery ##########
@@ -214,54 +274,6 @@ METABASE_USERNAME = get_environment_var('METABASE_USERNAME', None)
 METABASE_PASSWORD = get_environment_var('METABASE_PASSWORD', None)
 
 
-########## CORS ##########
-
-CORS_ORIGIN_ALLOW_ALL = True
-
-CORS_ALLOW_ALL_ORIGINS = True  # Or specify allowed origins
-CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours (86400 seconds)
-
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "PUT",
-    "DELETE",
-    "OPTIONS",
-    "PATCH",
-]
-
-CORS_ALLOW_HEADERS = [
-    "Accept",
-    "Accept-Encoding",
-    "Authorization",
-    "Content-Type",
-    "DNT",
-    "Origin",
-    "User-Agent",
-    "X-CSRFToken",
-    "X-Requested-With",
-    "Website",  # Custom header
-    "FSM",      # Custom header
-]
-
-
-########## JWT ##########
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('JWT',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-}
-
 ########## OTHER SERVICES ##########
 
 WMS_URL = get_environment_var('WMS_URL', 'http://localhost:10000/')
@@ -276,3 +288,5 @@ ASSESS_ANSWER_SERVICE_URL = get_environment_var(
 
 SHAD_LOGIN_USERNAME = get_environment_var('SHAD_LOGIN_USERNAME', None)
 SHAD_LOGIN_PASSWORD = get_environment_var('SHAD_LOGIN_PASSWORD', None)
+
+KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)

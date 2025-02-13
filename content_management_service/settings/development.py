@@ -64,7 +64,7 @@ CACHES = {
     }
 }
 
-CSRF_TRUSTED_ORIGINS = [SERVICE_DOMAIN]
+CSRF_TRUSTED_ORIGINS = []
 
 
 ########## Zarinpal Payment ##########

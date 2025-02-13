@@ -13,14 +13,6 @@ def _get_fsm_edges(fsm: FSM) -> list[Edge]:
     return Edge.objects.filter(Q(tail__fsm=fsm) | Q(head__fsm=fsm)).order_by('-id')
 
 
-class SafeTokenAuthentication(JWTAuthentication):
-    def authenticate(self, request):
-        try:
-            return super().authenticate(request=request)
-        except:
-            return None
-
-
 logger = logging.getLogger(__name__)
 
 

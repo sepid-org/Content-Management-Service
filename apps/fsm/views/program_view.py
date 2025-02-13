@@ -14,7 +14,7 @@ from apps.accounts.utils.user_management import find_user_in_website
 from apps.fsm.utils.utils import add_admin_to_program
 from errors.error_codes import serialize_error
 from utils.cache_enabled_model_viewset import CacheEnabledModelViewSet
-from utils.safe_auth import SafeTokenAuthentication
+from content_management_service.authentication.safe_auth import SafeTokenAuthentication
 
 
 class ProgramViewSet(CacheEnabledModelViewSet):
@@ -43,10 +43,12 @@ class ProgramViewSet(CacheEnabledModelViewSet):
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
-            return [AllowAny()]
-        if self.action in ['get_user_permissions', 'get_user_fsms_status']:
-            return [IsAuthenticated()]
-        return [ProgramAdminPermission()]
+            permission_classes = [AllowAny]
+        elif self.action in ['get_user_permissions', 'get_user_fsms_status']:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = self.permission_classes
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action == 'list':

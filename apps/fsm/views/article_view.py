@@ -6,7 +6,7 @@ from apps.fsm.models import Article
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.papers.article_serializer import ArticleSerializer
-from apps.fsm.utils.utils import SafeTokenAuthentication
+from content_management_service.authentication.safe_auth import SafeTokenAuthentication
 
 
 class ArticleViewSet(viewsets.ModelViewSet):

@@ -1,10 +1,12 @@
 from django.db import transaction
+from django.conf import settings
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from apps.accounts.models import UserWebsiteLogin
 from apps.accounts.serializers.user_serializer import UserSerializer
+from apps.accounts.utils.set_cookies import set_cookies
 from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website, generate_tokens_for_user
 
 
@@ -22,16 +24,26 @@ class BaseLoginView(APIView):
 
     def create_login_event(self, user, website):
         UserWebsiteLogin.objects.create(
-            user_website=user.get_user_website(website=website))
+            user_website=user.get_user_website(website=website)
+        )
 
     def generate_response(self, user, created, response_status):
+        """
+        Generate the response with tokens in cookies or JSON.
+        """
         access_token, refresh_token = generate_tokens_for_user(user)
-        return Response({
+        response_data = {
             'user': self.response_serializer(user).data,
-            'access': str(access_token),
-            'refresh': str(refresh_token),
-            'is_new_user': created
-        }, status=response_status)
+            'is_new_user': created,
+        }
+
+        # Create the response
+        response = Response(response_data, status=response_status)
+
+        # Set tokens in cookies
+        response = set_cookies(response, access_token, refresh_token)
+
+        return response
 
     @transaction.atomic
     def handle_post(self, request):
@@ -46,7 +58,7 @@ class BaseLoginView(APIView):
             )
             created = False
             response_status = status.HTTP_200_OK
-        except:
+        except Exception as e:
             user_data = self.get_user_data(user_identifier)
             user, created = create_or_get_user(user_data, website=website)
 

@@ -1,12 +1,13 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.accounts.views.check_user_registration import check_user_registration
 from apps.accounts.views.change_password import ChangePasswordView
 from apps.accounts.views.change_phone_number import change_phone_number_view
 from apps.accounts.views.check_auth import CheckAuthenticationView
+from apps.accounts.views.cookie_token_refresh_view import CookieTokenRefreshView
 from apps.accounts.views.google_login import GoogleLogin
+from apps.accounts.views.logout import LogoutView
 from apps.accounts.views.otp_login import OTPLoginView
 from apps.accounts.views.simple_login import SimpleLogin
 from apps.accounts.views.studentship_view import StudentshipViewSet
@@ -29,9 +30,10 @@ urlpatterns = [
          check_user_registration,
          name='check-user-registration'),
 
+    path('accounts/logout/', LogoutView.as_view(), name='logout'),
     path('accounts/check-authentication/',
          CheckAuthenticationView.as_view(), name='check-authentication'),
-    path('accounts/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
+    path('accounts/refresh/', CookieTokenRefreshView.as_view(), name='refresh_token'),
 
     path('accounts/simple-login/', SimpleLogin.as_view(), name='simple-login'),
     path('accounts/otp-login/', OTPLoginView.as_view(), name='otp-login'),

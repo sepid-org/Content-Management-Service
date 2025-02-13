@@ -4,7 +4,7 @@ from rest_framework import viewsets
 
 from apps.fsm.models import Paper
 from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
-from utils.safe_auth import SafeTokenAuthentication
+from content_management_service.authentication.safe_auth import SafeTokenAuthentication
 
 
 class PaperViewSet(viewsets.ModelViewSet):

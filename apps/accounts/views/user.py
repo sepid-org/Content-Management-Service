@@ -10,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import User, UserWebsiteLogin
 from apps.accounts.permissions import IsHimself
 from apps.accounts.serializers.user_serializer import PhoneNumberVerificationCodeSerializer, UserSerializer
+from apps.accounts.utils.set_cookies import set_cookies
 from apps.accounts.utils.user_management import create_or_get_user, find_user_in_website, generate_tokens_for_user
 from errors.error_codes import serialize_error
 
@@ -61,7 +62,7 @@ class UserViewSet(ModelViewSet):
         # validate phone number with verification code:
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = find_user_in_website(user_data=request.data,
                                     website=request.headers.get("Website"))
         if user:
@@ -79,8 +80,12 @@ class UserViewSet(ModelViewSet):
 
         access_token, refresh_token = generate_tokens_for_user(user)
 
-        return Response({
+        response = Response({
             'user': UserSerializer(user).data,
             'access': str(access_token),
             'refresh': str(refresh_token),
         }, status=status.HTTP_201_CREATED)
+
+        response = set_cookies(response, access_token, refresh_token)
+
+        return response
