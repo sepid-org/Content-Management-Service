@@ -10,7 +10,7 @@ def set_cookies(response, access_token, refresh_token):
         value=access_token,
         httponly=True,
         secure=True,
-        samesite='Lax',
+        samesite='None',
         path='/',
         max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
     )
@@ -19,7 +19,7 @@ def set_cookies(response, access_token, refresh_token):
         value=refresh_token,
         httponly=True,
         secure=True,
-        samesite='Lax',
+        samesite='None',
         path='/',
         max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
     )
