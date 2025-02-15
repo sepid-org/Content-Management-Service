@@ -1,10 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 
 class CheckAuthenticationView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({'status': 'authenticated'})
+        try:
+            if not request.user.is_authenticated:
+                return Response({'status': 'unauthenticated'})
+
+            return Response({'status': 'authenticated'})
+
+        except Exception as e:
+            return Response({'error': 'An unexpected error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
