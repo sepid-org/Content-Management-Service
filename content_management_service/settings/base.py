@@ -156,7 +156,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # احراز هویت JWT
         'rest_framework.authentication.SessionAuthentication',  # احراز هویت session
         # احراز هویت JWT از طریق کوکی‌ها:
         'content_management_service.authentication.cookie_jwt_authentication.CookieJWTAuthentication',
