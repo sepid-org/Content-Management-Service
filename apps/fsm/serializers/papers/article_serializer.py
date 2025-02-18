@@ -28,18 +28,18 @@ class ArticleSerializer(PaperSerializer):
         tags = validated_data.pop('tags', [])
         validated_data['paper_type'] = 'Article'
         article = super().create(validated_data)
-        for tag in tags:
-            tag = Tag.objects.filter(name=tag).first()
-            if tag:
-                article.tags.add(tag)
-            else:
-                tag_serializer = TagSerializer(data={'name': tag})
-                if tag_serializer.is_valid(raise_exception=True):
-                    tag = tag_serializer.save()
-                    article.tags.add(tag)
+
+        for tag_name in tags:
+            tag_object = Tag.objects.filter(name=tag_name).first()
+            if not tag_object:
+                tag_serializer = TagSerializer(data={'name': tag_name})
+                tag_serializer.is_valid(raise_exception=True)
+                tag_object = tag_serializer.save()
+            article.tags.add(tag_object)
 
         # set is_private to False (articles are public objects)
-        article.is_private = False
+        article.object.is_private = False
+        article.object.save()
 
         article.save()
         return article
@@ -58,5 +58,5 @@ class ArticleSerializer(PaperSerializer):
     class Meta(PaperSerializer.Meta):
         model = Article
         fields = [field for field in PaperSerializer.Meta.fields if field != 'widgets'] +\
-            ['name', 'description', 'tags', 'cover_image', 'is_hidden']
+            ['name', 'description', 'tags', 'cover_image', 'is_hidden', 'website']
         read_only_fields = PaperSerializer.Meta.read_only_fields + []
