@@ -5,6 +5,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class LogoutView(APIView):
+    authentication_classes = []  # Disable authentication
+    permission_classes = []     # Disable permission checks
+
     def post(self, request):
         response = Response({"detail": "Successfully logged out"}, status=200)
 
