@@ -156,9 +156,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',  # احراز هویت session
         # احراز هویت JWT از طریق کوکی‌ها:
         'content_management_service.authentication.cookie_jwt_authentication.CookieJWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # احراز هویت session
     ),
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',  # فیلترها
