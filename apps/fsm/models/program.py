@@ -43,7 +43,7 @@ class Program(models.Model):
 
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.URLField(null=True, blank=True)
+    cover_image = models.URLField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)
     start_date = models.DateTimeField(null=True, blank=True)

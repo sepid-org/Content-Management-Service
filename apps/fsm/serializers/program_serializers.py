@@ -20,7 +20,7 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Program
-        fields = ['id', 'slug', 'cover_page', 'name', 'description', 'participation_type',
+        fields = ['id', 'slug', 'cover_image', 'name', 'description', 'participation_type',
                   'is_visible', 'is_active', 'team_size', 'is_free']
 
 
@@ -89,7 +89,7 @@ class ProgramSerializer(serializers.ModelSerializer):
             'slug',
             'name',
             'description',
-            'cover_page',
+            'cover_image',
             'is_active',
             'is_approved',
             'start_date',

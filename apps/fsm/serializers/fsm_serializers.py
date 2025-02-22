@@ -12,7 +12,7 @@ class FSMMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FSM
-        fields = ['id', 'name', 'description', 'cover_page', 'is_active', 'is_visible',
+        fields = ['id', 'name', 'description', 'cover_image', 'is_active', 'is_visible',
                   'fsm_learning_type', 'fsm_p_type', 'card_type', 'show_roadmap']
 
     def to_representation(self, instance):

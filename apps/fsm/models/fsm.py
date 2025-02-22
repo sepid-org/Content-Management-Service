@@ -45,7 +45,7 @@ class FSM(models.Model, ObjectMixin):
         'accounts.User', related_name='fsms', blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
-    cover_page = models.URLField()
+    cover_image = models.URLField()
     is_active = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=True)
     first_state = models.OneToOneField('fsm.State', null=True, blank=True, on_delete=models.SET_NULL,
@@ -91,7 +91,7 @@ class FSM(models.Model, ObjectMixin):
         cloned_fsm = FSM(
             name=self.name,
             description=self.description,
-            cover_page=self.cover_page,
+            cover_image=self.cover_image,
             is_active=self.is_active,
             fsm_learning_type=self.fsm_learning_type,
             fsm_p_type=self.fsm_p_type,
