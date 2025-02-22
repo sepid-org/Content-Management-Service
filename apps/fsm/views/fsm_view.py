@@ -226,7 +226,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         return Response(PlayerSerializer(context=self.get_serializer_context()).to_representation(player),
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='delete')
     def soft_delete(self, request, pk=None):
         fsm = self.get_object()
         fsm.is_deleted = True

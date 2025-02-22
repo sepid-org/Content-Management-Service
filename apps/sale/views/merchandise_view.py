@@ -50,7 +50,7 @@ class MerchandiseViewSet(ModelViewSet):
         merchandises = self.get_queryset().filter(program__slug=program_slug)
         return Response(self.serializer_class(merchandises, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='delete')
     def soft_delete(self, request, pk=None):
         merchandise = self.get_object()
         merchandise.is_deleted = True

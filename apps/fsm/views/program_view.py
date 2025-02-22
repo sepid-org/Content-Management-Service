@@ -91,7 +91,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         program.admins.remove(removed_admin)
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_path='delete')
     def soft_delete(self, request, slug=None):
         program = self.get_object()
         program.is_deleted = True
