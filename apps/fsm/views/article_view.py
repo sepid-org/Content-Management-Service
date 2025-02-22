@@ -4,7 +4,6 @@ from rest_framework.permissions import AllowAny
 
 from apps.fsm.models import Article
 from apps.fsm.pagination import StandardPagination
-from apps.fsm.permissions import IsArticleModifier
 from apps.fsm.serializers.papers.article_serializer import ArticleSerializer
 from content_management_service.authentication.safe_auth import SafeTokenAuthentication
 

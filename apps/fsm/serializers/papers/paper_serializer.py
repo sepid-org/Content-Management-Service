@@ -27,7 +27,7 @@ class PaperSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paper
         fields = ['id', 'widgets', 'paper_type', 'creator']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'paper_type']
 
 
 class ChangeWidgetOrderSerializer(serializers.Serializer):

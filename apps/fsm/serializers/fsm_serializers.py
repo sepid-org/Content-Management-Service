@@ -4,7 +4,6 @@ from rest_framework import serializers
 from apps.fsm.models import Player
 
 from apps.fsm.serializers.object_serializer import ObjectSerializer
-from apps.sale.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import Program, FSM, Edge, Team
 
