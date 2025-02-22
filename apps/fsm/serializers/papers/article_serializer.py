@@ -27,6 +27,7 @@ class ArticleSerializer(PaperSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         validated_data['paper_type'] = 'Article'
+        validated_data['creator'] = self.context['request'].user
         article = super().create(validated_data)
 
         for tag_name in tags:

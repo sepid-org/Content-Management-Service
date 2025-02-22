@@ -44,7 +44,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['update', 'destroy', 'partial_update', 'change_order']:
-            permission_classes = [IsArticleModifier]
+            # TODO: implement article permissions:
+            # permission_classes = [IsArticleModifier]
+            permission_classes = [AllowAny]
         else:
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
