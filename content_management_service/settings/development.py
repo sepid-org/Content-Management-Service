@@ -54,8 +54,6 @@ LOGGING = {
     },
 }
 
-STATIC_ROOT = get_environment_var('STATIC_ROOT', 'staticfiles')
-
 SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 
 CACHES = {

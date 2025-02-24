@@ -128,19 +128,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/api/static/'
-
-MEDIA_URL = '/api/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sepid.platform@gmail.com'
 EMAIL_HOST_PASSWORD = 'tmyz glmk cjsj urnw'
-
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 CONSTANTS = {
     "PAGINATION_NUMBER": 50,
@@ -290,3 +283,11 @@ SHAD_LOGIN_USERNAME = get_environment_var('SHAD_LOGIN_USERNAME', None)
 SHAD_LOGIN_PASSWORD = get_environment_var('SHAD_LOGIN_PASSWORD', None)
 
 KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)
+
+
+########## FILE STORAGE ##########
+
+STATIC_URL = '/api/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_URL = '/api/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

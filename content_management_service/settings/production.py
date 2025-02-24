@@ -36,11 +36,6 @@ CACHES = {
     }
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# STATICFILES_DIRS = (
-#     os.path.join(BASE_DIR, 'media'),
-# )
-
 LOG_LEVEL = get_environment_var('LOG_LEVEL', 'INFO')
 
 LOGGING = {
@@ -88,6 +83,9 @@ SWAGGER_URL = f'{SERVICE_DOMAIN}api/'
 CSRF_TRUSTED_ORIGINS = get_environment_var(
     'CSRF_TRUSTED_ORIGINS', '*').split(',')
 
+
+########## FILE STORAGE ##########
+
 DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
 STATICFILES_STORAGE = "minio_storage.storage.MinioStaticStorage"
 
@@ -101,6 +99,11 @@ MINIO_STORAGE_MEDIA_BUCKET_NAME = 'media'
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'static'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
+
+STATIC_URL = f'https://{MINIO_STORAGE_ENDPOINT}/{MINIO_STORAGE_STATIC_BUCKET_NAME}/'
+MEDIA_URL = f'https://{MINIO_STORAGE_ENDPOINT}/{MINIO_STORAGE_MEDIA_BUCKET_NAME}/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ########## Zarinpal Payment ##########
 
