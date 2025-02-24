@@ -36,6 +36,11 @@ CACHES = {
     }
 }
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'media'),
+# )
+
 LOG_LEVEL = get_environment_var('LOG_LEVEL', 'INFO')
 
 LOGGING = {
