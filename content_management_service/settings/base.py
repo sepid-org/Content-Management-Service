@@ -287,6 +287,8 @@ KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)
 
 ########## FILE STORAGE ##########
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
 STATIC_URL = '/api/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/api/media/'
