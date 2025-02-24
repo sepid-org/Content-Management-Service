@@ -100,9 +100,6 @@ MINIO_STORAGE_STATIC_BUCKET_NAME = 'static'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 
-# Static and Media roots (not used directly with MinIO, but required by Django)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ########## Zarinpal Payment ##########
 
