@@ -8,6 +8,7 @@ from datetime import timedelta, datetime
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
+from apps.accounts.utils.password import make_random_password
 from apps.sale.validators import percentage_validator
 from content_management_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
 from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
@@ -242,7 +243,7 @@ class DiscountCodeManager(models.Manager):
     @transaction.atomic
     def create_discount_code(self, **args):
 
-        code = User.objects.make_random_password(length=DISCOUNT_CODE_LENGTH)
+        code = make_random_password(length=DISCOUNT_CODE_LENGTH)
         return super().create(**{'code': code, **args})
 
 
@@ -274,7 +275,7 @@ class DiscountCode(models.Model):
 class VoucherManager(models.Manager):
     @transaction.atomic
     def create_voucher(self, **args):
-        code = User.objects.make_random_password(length=VOUCHER_CODE_LENGTH)
+        code = make_random_password(length=VOUCHER_CODE_LENGTH)
         return super().create(**{'remaining': args.get('amount', 0), 'code': code, **args})
 
 
@@ -307,8 +308,7 @@ class Voucher(models.Model):
 class PurchaseManager(models.Manager):
     @transaction.atomic
     def create_purchase(self, **args):
-        uniq_code = User.objects.make_random_password(
-            length=PURCHASE_UNIQ_CODE_LENGTH)
+        uniq_code = make_random_password(length=PURCHASE_UNIQ_CODE_LENGTH)
         return super(PurchaseManager, self).create(**{'uniq_code': uniq_code, **args})
 
 
@@ -365,7 +365,7 @@ class Purchase(models.Model):
 class VerificationCodeManager(models.Manager):
     @transaction.atomic
     def create_verification_code(self, phone_number, time_zone='Asia/Tehran'):
-        code = User.objects.make_random_password(
+        code = make_random_password(
             length=SMS_CODE_LENGTH, allowed_chars='1234567890')
         other_codes = VerificationCode.objects.filter(
             phone_number=phone_number, is_valid=True)
