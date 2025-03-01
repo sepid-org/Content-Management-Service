@@ -88,12 +88,31 @@ CSRF_TRUSTED_ORIGINS = get_environment_var(
 
 STORAGES = {
     "default": {
-        "BACKEND": "minio_storage.storage.MinioMediaStorage",
+        "BACKEND": "content_management_service.utils.storages.PublicS3Storage",
     },
     "staticfiles": {
         "BACKEND": "minio_storage.storage.MinioStaticStorage",
     },
 }
+
+###### S3 ######
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = get_environment_var('S3_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = get_environment_var('S3_SECRET_KEY')
+AWS_STORAGE_BUCKET_NAME = get_environment_var('S3_BUCKET_NAME')
+AWS_S3_REGION_NAME = get_environment_var('S3_REGION_NAME')
+AWS_S3_ENDPOINT_URL = get_environment_var('S3_ENDPOINT_URL')
+AWS_S3_USE_SSL = False
+AWS_S3_VERIFY = True
+AWS_DEFAULT_ACL = 'private'
+
+# Fix for MissingContentLength: Force Content-Length header
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+###### MINIO ######
 
 MINIO_STORAGE_ENDPOINT = get_environment_var('MINIO_STORAGE_ENDPOINT', None)
 MINIO_STORAGE_ACCESS_KEY = get_environment_var(
