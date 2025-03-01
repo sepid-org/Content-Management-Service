@@ -105,7 +105,8 @@ AWS_S3_REGION_NAME = get_environment_var('S3_REGION_NAME')
 AWS_S3_ENDPOINT_URL = get_environment_var('S3_ENDPOINT_URL')
 AWS_S3_USE_SSL = False
 AWS_S3_VERIFY = True
-AWS_DEFAULT_ACL = 'private'
+AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
 
 # Fix for MissingContentLength: Force Content-Length header
 AWS_S3_OBJECT_PARAMETERS = {
