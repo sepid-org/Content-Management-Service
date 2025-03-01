@@ -91,11 +91,9 @@ STORAGES = {
         "BACKEND": "content_management_service.utils.storages.PublicS3Storage",
     },
     "staticfiles": {
-        "BACKEND": "minio_storage.storage.MinioStaticStorage",
+        "BACKEND": "content_management_service.utils.storages.StaticS3Storage",
     },
 }
-
-###### S3 ######
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = get_environment_var('S3_ACCESS_KEY')
@@ -112,19 +110,6 @@ AWS_QUERYSTRING_AUTH = False
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
-
-###### MINIO ######
-
-MINIO_STORAGE_ENDPOINT = get_environment_var('MINIO_STORAGE_ENDPOINT', None)
-MINIO_STORAGE_ACCESS_KEY = get_environment_var(
-    'MINIO_STORAGE_ACCESS_KEY', None)
-MINIO_STORAGE_SECRET_KEY = get_environment_var(
-    'MINIO_STORAGE_SECRET_KEY', None)
-MINIO_STORAGE_USE_HTTPS = True
-MINIO_STORAGE_MEDIA_BUCKET_NAME = 'media'
-MINIO_STORAGE_STATIC_BUCKET_NAME = 'static'
-MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
-MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
 
 
 ########## Zarinpal Payment ##########
