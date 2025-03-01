@@ -105,6 +105,7 @@ AWS_S3_USE_SSL = False
 AWS_S3_VERIFY = True
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
+AWS_S3_CUSTOM_DOMAIN = get_environment_var('S3_DOMAIN')
 
 # Fix for MissingContentLength: Force Content-Length header
 AWS_S3_OBJECT_PARAMETERS = {
