@@ -1,36 +1,43 @@
-from rest_framework.viewsets import ModelViewSet
-from apps.accounts.models import DiscountCode, Merchandise
-from apps.accounts.permissions import IsDiscountCodeModifier
-from apps.accounts.utils.user_management import find_user_in_website
-from apps.sale.serializers.discount_code import DiscountCodeSerializer
 from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+
+from apps.accounts.models import DiscountCode, Merchandise
+from apps.accounts.permissions import IsDiscountCodeModifier
+from apps.accounts.utils.user_management import find_user_in_website
+from apps.sale.serializers.discount_code import DiscountCodeSerializer
 
 
 class DiscountCodeViewSet(ModelViewSet):
-    my_tags = ['payments']
+    my_tags = ["payments"]
     serializer_class = DiscountCodeSerializer
-    queryset = DiscountCode.objects.order_by('-id')
+    queryset = DiscountCode.objects.order_by("-id")
     permission_classes = [IsDiscountCodeModifier]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({'user': self.request.user})
+        context.update({"user": self.request.user})
         return context
 
     @transaction.atomic
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=["GET"])
     def program_discount_codes(self, request, pk=None):
-        program_slug = request.GET.get('program', None)
-        discount_codes = self.get_queryset().filter(
-            merchandises__program__slug=program_slug).distinct()
-        return Response(self.serializer_class(discount_codes, many=True).data, status=status.HTTP_200_OK)
+        program_slug = request.GET.get("program", None)
+        discount_codes = (
+            self.get_queryset()
+            .filter(merchandises__program__slug=program_slug)
+            .distinct()
+        )
+        return Response(
+            self.serializer_class(discount_codes, many=True).data,
+            status=status.HTTP_200_OK,
+        )
 
     def create(self, request, *args, **kwargs):
-        username = request.data.pop('user', None)
-        merchandises = request.data.pop('merchandises', [])
+        username = request.data.pop("user", None)
+        merchandises = request.data.pop("merchandises", [])
 
         # create discount code
         serializer = self.get_serializer(data=request.data)
@@ -44,9 +51,10 @@ class DiscountCodeViewSet(ModelViewSet):
 
         # add user (if provided)
         if username:
-            website = request.headers.get('Website')
+            website = request.headers.get("Website")
             target_user = find_user_in_website(
-                user_data={'username': username}, website=website)
+                user_data={"username": username}, website=website
+            )
 
             discount_code.user = target_user
             discount_code.save()
