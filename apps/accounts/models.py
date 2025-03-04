@@ -1,35 +1,43 @@
 import uuid
+from datetime import datetime, timedelta
+
 import pytz
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.contrib.auth.models import AbstractUser
-from datetime import timedelta, datetime
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
 from apps.accounts.utils.password import make_random_password
 from apps.sale.validators import percentage_validator
-from content_management_service.settings.base import VOUCHER_CODE_LENGTH, DISCOUNT_CODE_LENGTH, PURCHASE_UNIQ_CODE_LENGTH
+from content_management_service.settings.base import (
+    DISCOUNT_CODE_LENGTH,
+    PURCHASE_UNIQ_CODE_LENGTH,
+    VOUCHER_CODE_LENGTH,
+)
 from proxies.sms_system.settings import SMS_CODE_DELAY, SMS_CODE_LENGTH
 from proxies.sms_system.sms_service_proxy import SMSServiceProxy
 
 
 class User(AbstractUser):
     class Gender(models.TextChoices):
-        Male = 'Male'
-        Female = 'Female'
+        Male = "Male"
+        Female = "Female"
 
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     phone_number = models.CharField(
-        max_length=15, blank=True, null=True, unique=True)
+        max_length=15, blank=True, null=True, unique=True
+    )
     # national code should not be unique, due it's not validated
     national_code = models.CharField(max_length=10, null=True, blank=True)
     profile_image = models.URLField(blank=True, null=True, max_length=2000)
     bio = models.CharField(max_length=300, blank=True, null=True)
-    gender = models.CharField(max_length=10, null=True,
-                              blank=True, choices=Gender.choices)
+    gender = models.CharField(
+        max_length=10, null=True, blank=True, choices=Gender.choices
+    )
     birth_date = models.DateField(null=True, blank=True)
 
     country = models.CharField(max_length=50, null=True, blank=True)
@@ -48,6 +56,7 @@ class User(AbstractUser):
 
     def get_receipt(self, form):
         from apps.fsm.models import RegistrationReceipt
+
         try:
             return RegistrationReceipt.objects.get(user=self, form=form)
         except:
@@ -55,7 +64,7 @@ class User(AbstractUser):
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.last_name}'
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
         return self.username
@@ -63,21 +72,23 @@ class User(AbstractUser):
 
 class UserWebsite(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name='user_websites')
+        User, on_delete=models.PROTECT, related_name="user_websites"
+    )
     website = models.CharField(max_length=50)
     password = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now=True)
 
     def set_password(self, new_password):
         from django.contrib.auth.hashers import make_password
+
         self.password = make_password(new_password)
         self.save()
 
     class Meta:
-        unique_together = ('user', 'website')
+        unique_together = ("user", "website")
 
     def __str__(self):
-        return f'{self.user} | {self.website}'
+        return f"{self.user} | {self.website}"
 
 
 class UserWebsiteLogin(models.Model):
@@ -100,13 +111,14 @@ class InstituteManager(PolymorphicManager):
 
 class EducationalInstitute(PolymorphicModel):
     class InstituteType(models.TextChoices):
-        School = 'School'
-        University = 'University'
-        Other = 'Other'
+        School = "School"
+        University = "University"
+        Other = "Other"
 
     name = models.CharField(max_length=100, null=False, blank=False)
     institute_type = models.CharField(
-        max_length=10, null=False, blank=False, choices=InstituteType.choices)
+        max_length=10, null=False, blank=False, choices=InstituteType.choices
+    )
     address = models.CharField(max_length=100, null=True, blank=True)
     province = models.CharField(max_length=50, null=True, blank=True)
     city = models.CharField(max_length=50, null=True, blank=True)
@@ -118,18 +130,23 @@ class EducationalInstitute(PolymorphicModel):
 
     is_approved = models.BooleanField(null=True, blank=True)
     date_added = models.DateField(auto_now_add=True)
-    owner = models.ForeignKey(User, related_name='owned_institutes',
-                              on_delete=models.SET_NULL, null=True, blank=True)
+    owner = models.ForeignKey(
+        User,
+        related_name="owned_institutes",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     creator = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True)
-    admins = models.ManyToManyField(
-        User, related_name='institutes', blank=True)
+        User, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    admins = models.ManyToManyField(User, related_name="institutes", blank=True)
 
     objects = InstituteManager()
 
     class Meta:
         permissions = [
-            ('add_admin', 'Can add new admins to educational institute')
+            ("add_admin", "Can add new admins to educational institute")
         ]
 
     def __str__(self):
@@ -138,21 +155,27 @@ class EducationalInstitute(PolymorphicModel):
 
 class School(EducationalInstitute):
     class Gender(models.TextChoices):
-        Male = 'Male'
-        Female = 'Female'
+        Male = "Male"
+        Female = "Female"
 
     class SchoolType(models.Choices):
-        Elementary = 'Elementary'
-        JuniorHigh = 'JuniorHigh'
-        High = 'High'
-        SchoolOfArt = 'SchoolOfArt'
+        Elementary = "Elementary"
+        JuniorHigh = "JuniorHigh"
+        High = "High"
+        SchoolOfArt = "SchoolOfArt"
 
     principal_name = models.CharField(max_length=30, null=True, blank=True)
     principal_phone = models.CharField(max_length=15, null=True, blank=True)
     school_type = models.CharField(
-        max_length=15, null=True, blank=True, choices=SchoolType.choices)
+        max_length=15, null=True, blank=True, choices=SchoolType.choices
+    )
     gender_type = models.CharField(
-        max_length=10, null=True, blank=True, choices=Gender.choices, default='Male')
+        max_length=10,
+        null=True,
+        blank=True,
+        choices=Gender.choices,
+        default="Male",
+    )
 
 
 class University(EducationalInstitute):
@@ -161,11 +184,12 @@ class University(EducationalInstitute):
 
 class Studentship(PolymorphicModel):
     class StudentshipType(models.Choices):
-        School = 'School'
-        Academic = 'Academic'
+        School = "School"
+        Academic = "Academic"
 
     studentship_type = models.CharField(
-        max_length=10, null=False, blank=False, choices=StudentshipType.choices)
+        max_length=10, null=False, blank=False, choices=StudentshipType.choices
+    )
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     document = models.URLField(max_length=2000, null=True)
@@ -174,37 +198,55 @@ class Studentship(PolymorphicModel):
 
 class SchoolStudentship(Studentship):
     class Major(models.TextChoices):
-        Math = 'Math'
-        Biology = 'Biology'
-        Literature = 'Literature'
-        IslamicStudies = 'IslamicStudies'
-        TechnicalTraining = 'TechnicalTraining'
-        Others = 'Others'
+        Math = "Math"
+        Biology = "Biology"
+        Literature = "Literature"
+        IslamicStudies = "IslamicStudies"
+        TechnicalTraining = "TechnicalTraining"
+        Others = "Others"
 
     school = models.ForeignKey(
-        School, related_name='students', on_delete=models.SET_NULL, null=True)
-    grade = models.IntegerField(null=True, blank=True, validators=[
-                                MaxValueValidator(12), MinValueValidator(0)])
-    major = models.CharField(max_length=25, null=True,
-                             blank=True, choices=Major.choices)
+        School, related_name="students", on_delete=models.SET_NULL, null=True
+    )
+    grade = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(12), MinValueValidator(0)],
+    )
+    major = models.CharField(
+        max_length=25, null=True, blank=True, choices=Major.choices
+    )
     user = models.OneToOneField(
-        User, related_name='school_studentship', on_delete=models.CASCADE, null=False)
+        User,
+        related_name="school_studentship",
+        on_delete=models.CASCADE,
+        null=False,
+    )
 
 
 class AcademicStudentship(Studentship):
     class Degree(models.TextChoices):
-        BA = 'BA'
-        MA = 'MA'
-        PHD = 'PHD'
-        Postdoc = 'Postdoc'
+        BA = "BA"
+        MA = "MA"
+        PHD = "PHD"
+        Postdoc = "Postdoc"
 
     university = models.ForeignKey(
-        University, related_name='academic_students', on_delete=models.SET_NULL, null=True)
-    degree = models.CharField(max_length=15, null=True,
-                              blank=True, choices=Degree.choices)
+        University,
+        related_name="academic_students",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    degree = models.CharField(
+        max_length=15, null=True, blank=True, choices=Degree.choices
+    )
     university_major = models.CharField(max_length=30, null=True, blank=True)
     user = models.OneToOneField(
-        User, related_name='academic_studentship', on_delete=models.CASCADE, null=False)
+        User,
+        related_name="academic_studentship",
+        on_delete=models.CASCADE,
+        null=False,
+    )
 
 
 # class OwnableMixin(models.Model):
@@ -216,14 +258,16 @@ class AcademicStudentship(Studentship):
 
 
 class Merchandise(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True,
-                          default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True, unique=True, default=uuid.uuid4, editable=False
+    )
     name = models.CharField(max_length=50)
     price = models.IntegerField()
     discounted_price = models.IntegerField(null=True)
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
-        to='fsm.Program', on_delete=models.CASCADE, related_name='merchandises')
+        to="fsm.Program", on_delete=models.CASCADE, related_name="merchandises"
+    )
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
@@ -242,23 +286,29 @@ class Merchandise(models.Model):
 class DiscountCodeManager(models.Manager):
     @transaction.atomic
     def create_discount_code(self, **args):
-
         code = make_random_password(length=DISCOUNT_CODE_LENGTH)
-        return super().create(**{'code': code, **args})
+        return super().create(**{"code": code, **args})
 
 
 # TODO - add date validators for datetime fields
 class DiscountCode(models.Model):
-    code = models.CharField(max_length=10, unique=True,
-                            null=False, blank=False)
-    value = models.FloatField(null=False, blank=False,
-                              validators=[percentage_validator])
+    code = models.CharField(max_length=10, unique=True, null=False, blank=False)
+    value = models.FloatField(
+        null=False, blank=False, validators=[percentage_validator]
+    )
     expiration_date = models.DateTimeField(blank=True, null=True)
     remaining = models.IntegerField(default=1)
-    user = models.ForeignKey(User, related_name='discount_codes', on_delete=models.CASCADE, null=True, blank=True,
-                             default=None)
+    user = models.ForeignKey(
+        User,
+        related_name="discount_codes",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+    )
     merchandises = models.ManyToManyField(
-        to=Merchandise, related_name='discount_codes')
+        to=Merchandise, related_name="discount_codes"
+    )
     discount_code_limit = models.IntegerField(null=True, blank=True)
     objects = DiscountCodeManager()
 
@@ -267,7 +317,10 @@ class DiscountCode(models.Model):
 
     def calculate_discounted_price(self, price):
         if self.discount_code_limit:
-            return max(((price * (1 - self.value) + 50) // 100) * 100, price - self.discount_code_limit)
+            return max(
+                ((price * (1 - self.value) + 50) // 100) * 100,
+                price - self.discount_code_limit,
+            )
         else:
             return ((price * (1 - self.value) + 50) // 100) * 100
 
@@ -276,12 +329,15 @@ class VoucherManager(models.Manager):
     @transaction.atomic
     def create_voucher(self, **args):
         code = make_random_password(length=VOUCHER_CODE_LENGTH)
-        return super().create(**{'remaining': args.get('amount', 0), 'code': code, **args})
+        return super().create(
+            **{"remaining": args.get("amount", 0), "code": code, **args}
+        )
 
 
 class Voucher(models.Model):
     user = models.ForeignKey(
-        User, related_name='vouchers', on_delete=models.CASCADE, null=False)
+        User, related_name="vouchers", on_delete=models.CASCADE, null=False
+    )
     code = models.CharField(max_length=10, null=False)
     amount = models.IntegerField(null=False)
     remaining = models.IntegerField(null=False)
@@ -309,7 +365,9 @@ class PurchaseManager(models.Manager):
     @transaction.atomic
     def create_purchase(self, **args):
         uniq_code = make_random_password(length=PURCHASE_UNIQ_CODE_LENGTH)
-        return super(PurchaseManager, self).create(**{'uniq_code': uniq_code, **args})
+        return super(PurchaseManager, self).create(
+            **{"uniq_code": uniq_code, **args}
+        )
 
 
 class Purchase(models.Model):
@@ -323,30 +381,34 @@ class Purchase(models.Model):
     amount = models.IntegerField()
     authority = models.CharField(blank=True, max_length=37, null=True)
     status = models.CharField(
-        blank=False, default=Status.Started, choices=Status.choices, max_length=25)
+        blank=False,
+        default=Status.Started,
+        choices=Status.choices,
+        max_length=25,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     uniq_code = models.CharField(blank=False, max_length=100, default="")
     callback_domain = models.CharField(blank=True, null=True, max_length=100)
     user = models.ForeignKey(
         User,
-        related_name='purchases',
+        related_name="purchases",
         on_delete=models.CASCADE,
     )
     merchandise = models.ForeignKey(
         Merchandise,
-        related_name='purchases',
+        related_name="purchases",
         on_delete=models.PROTECT,
     )
     voucher = models.ForeignKey(
         Voucher,
-        related_name='purchases',
+        related_name="purchases",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
     discount_code = models.ForeignKey(
         DiscountCode,
-        related_name='purchases',
+        related_name="purchases",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -356,37 +418,47 @@ class Purchase(models.Model):
 
     @property
     def registration_receipt(self):
-        return self.merchandise.program.registration_form.registration_receipts.filter(user=self.user).last()
+        return self.merchandise.program.registration_form.registration_receipts.filter(
+            user=self.user
+        ).last()
 
     def __str__(self):
-        return f'{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}'
+        return (
+            f"{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}"
+        )
 
 
 class VerificationCodeManager(models.Manager):
     @transaction.atomic
-    def create_verification_code(self, phone_number, time_zone='Asia/Tehran'):
+    def create_verification_code(self, phone_number, time_zone="Asia/Tehran"):
         code = make_random_password(
-            length=SMS_CODE_LENGTH, allowed_chars='1234567890')
+            length=SMS_CODE_LENGTH, allowed_chars="1234567890"
+        )
         other_codes = VerificationCode.objects.filter(
-            phone_number=phone_number, is_valid=True)
+            phone_number=phone_number, is_valid=True
+        )
         for c in other_codes:
             c.is_valid = False
             c.save()
-        verification_code = VerificationCode.objects.create(code=code, phone_number=phone_number,
-                                                            expiration_date=datetime.now(pytz.timezone(time_zone)) +
-                                                            timedelta(minutes=SMS_CODE_DELAY))
+        verification_code = VerificationCode.objects.create(
+            code=code,
+            phone_number=phone_number,
+            expiration_date=datetime.now(pytz.timezone(time_zone))
+            + timedelta(minutes=SMS_CODE_DELAY),
+        )
         return verification_code
 
 
 class VerificationCode(models.Model):
     class VerificationType(models.TextChoices):
-        CreateUserAccount = 'create-user-account'
-        ChangeUserPassword = 'change-user-password'
-        ChangeUserPhoneNumber = 'change-user-phone-number'
+        CreateUserAccount = "create-user-account"
+        ChangeUserPassword = "change-user-password"
+        ChangeUserPhoneNumber = "change-user-phone-number"
 
     # todo: set verification code while sending verification code
     verification_type = models.CharField(
-        blank=False, null=True, choices=VerificationType.choices, max_length=30)
+        blank=False, null=True, choices=VerificationType.choices, max_length=30
+    )
     phone_number = models.CharField(blank=True, max_length=13, null=True)
     code = models.CharField(blank=True, max_length=10, null=True)
     expiration_date = models.DateTimeField(blank=False, null=False)
@@ -394,13 +466,13 @@ class VerificationCode(models.Model):
 
     objects = VerificationCodeManager()
 
-    def notify(self, verification_type, website_display_name='سپید'):
-        sms_service_proxy = SMSServiceProxy(provider='kavenegar')
+    def notify(self, verification_type, website_display_name="سپید"):
+        sms_service_proxy = SMSServiceProxy(provider="kavenegar")
         sms_service_proxy.send_otp(
             receptor_phone_number=self.phone_number,
             action=verification_type,
             token=website_display_name,
-            token2=str(self.code)
+            token2=str(self.code),
         )
 
     def __str__(self):
