@@ -2,7 +2,6 @@ import logging
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ParseError
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.accounts.models import User
 from apps.fsm.models import FSM, AnswerSheet, Edge, Player, PlayerStateHistory, PlayerTransition, Program, RegistrationReceipt, State, Team

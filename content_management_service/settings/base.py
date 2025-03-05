@@ -37,7 +37,7 @@ DEFAULT_APPS = [
 
 CUSTOM_APPS = [
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt.token_blacklist',
     'import_export',
     'drf_yasg',
     'celery',
@@ -63,14 +63,14 @@ CUSTOM_APPS = [
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # برای مدیریت CORS
-    'django.middleware.security.SecurityMiddleware',  # برای امنیت
-    'django.contrib.sessions.middleware.SessionMiddleware',  # برای مدیریت session
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',  # برای محافظت در برابر CSRF
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # برای احراز هویت
-    'django.contrib.messages.middleware.MessageMiddleware',  # برای مدیریت پیام‌ها
-    # برای محافظت در برابر clickjacking
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -149,16 +149,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # احراز هویت JWT از طریق کوکی‌ها:
-        'content_management_service.authentication.cookie_jwt_authentication.CookieJWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # احراز هویت session
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',  # فیلترها
-        'rest_framework.filters.OrderingFilter',  # مرتب‌سازی
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # صفحه‌بندی
-    'PAGE_SIZE': 18,  # تعداد آیتم‌ها در هر صفحه
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 18
 }
 
 
@@ -214,6 +213,7 @@ CORS_ALLOW_HEADERS = [
     "User-Agent",
     "X-CSRFToken",
     "X-Requested-With",
+    "Authorization",
     "Website",  # هدر سفارشی
     "FSM",      # هدر سفارشی
 ]
