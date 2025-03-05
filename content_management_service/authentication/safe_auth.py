@@ -1,7 +1,7 @@
-from content_management_service.authentication.cookie_jwt_authentication import CookieJWTAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
-class SafeTokenAuthentication(CookieJWTAuthentication):
+class SafeTokenAuthentication(JWTAuthentication):
     def authenticate(self, request):
         try:
             return super().authenticate(request=request)
