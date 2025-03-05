@@ -1,15 +1,9 @@
-import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from content_management_service.authentication.safe_auth import SafeTokenAuthentication
-
-logger = logging.getLogger(__file__)
-
 
 class CheckAuthenticationView(APIView):
-    authentication_classes = [SafeTokenAuthentication]
 
     def get(self, request):
         try:
