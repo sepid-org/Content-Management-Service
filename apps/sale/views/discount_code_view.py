@@ -1,13 +1,12 @@
-from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.accounts.models import DiscountCode, Merchandise
+from apps.accounts.models import DiscountCode
 from apps.accounts.permissions import IsDiscountCodeModifier
-from apps.accounts.utils.user_management import find_user_in_website
 from apps.sale.serializers.discount_code import DiscountCodeSerializer
+from apps.sale.services.discount_code_service import DiscountCodeService
 
 
 class DiscountCodeViewSet(ModelViewSet):
@@ -21,14 +20,11 @@ class DiscountCodeViewSet(ModelViewSet):
         context.update({"user": self.request.user})
         return context
 
-    @transaction.atomic
     @action(detail=False, methods=["GET"])
     def program_discount_codes(self, request, pk=None):
         program_slug = request.GET.get("program", None)
-        discount_codes = (
-            self.get_queryset()
-            .filter(merchandises__program__slug=program_slug)
-            .distinct()
+        discount_codes = DiscountCodeService.get_program_discount_codes(
+            program_slug
         )
         return Response(
             self.serializer_class(discount_codes, many=True).data,
@@ -39,24 +35,15 @@ class DiscountCodeViewSet(ModelViewSet):
         username = request.data.pop("user", None)
         merchandises = request.data.pop("merchandises", [])
 
-        # create discount code
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        discount_code = serializer.save()
 
-        # add merchandises
-        for merchandise_id in merchandises:
-            merchandise = Merchandise.objects.get(id=merchandise_id)
-            discount_code.merchandises.add(merchandise)
-
-        # add user (if provided)
-        if username:
-            website = request.headers.get("Website")
-            target_user = find_user_in_website(
-                user_data={"username": username}, website=website
-            )
-
-            discount_code.user = target_user
-            discount_code.save()
+        website = request.headers.get("Website")
+        DiscountCodeService.create_discount_code(
+            data=serializer.validated_data,
+            merchandise_ids=merchandises,
+            username=username,
+            website=website,
+        )
 
         return Response(status=status.HTTP_201_CREATED)
