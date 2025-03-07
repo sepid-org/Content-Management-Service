@@ -11,23 +11,32 @@ class InstituteInfoSummarySerializer(serializers.ModelSerializer):
 
 
 class InstituteSerializer(serializers.ModelSerializer):
-    principal_name = serializers.CharField(max_length=30, required=False)
+    principal_name = serializers.CharField(
+        max_length=30,
+        allow_blank=True,
+        required=False,
+    )
     principal_phone = serializers.CharField(
-        max_length=15, validators=[phone_number_validator], required=False)
-    phone_number = serializers.CharField(max_length=15, validators=[
-                                         phone_number_validator], required=False)
+        max_length=15,
+        validators=[phone_number_validator],
+        required=False,
+        allow_blank=True,
+    )
+    phone_number = serializers.CharField(
+        max_length=15,
+        validators=[phone_number_validator],
+        required=False,
+        allow_blank=True,
+    )
     school_type = serializers.ChoiceField(
-        choices=School.SchoolType.choices, required=False)
+        choices=School.SchoolType.choices,
+        allow_blank=True,
+    )
     gender_type = serializers.ChoiceField(
-        choices=School.Gender.choices, required=False)
-
-    is_approved = serializers.BooleanField(read_only=True)
-    creator = serializers.PrimaryKeyRelatedField(
-        many=False, required=False, read_only=True)
-    owner = serializers.PrimaryKeyRelatedField(
-        many=False, required=False, read_only=True)
-    admins = serializers.PrimaryKeyRelatedField(
-        many=True, required=False, read_only=True)
+        choices=School.Gender.choices,
+        required=False,
+        allow_blank=True,
+    )
 
     def create(self, validated_data):
         institute_type = validated_data.get('institute_type', None)
@@ -43,4 +52,5 @@ class InstituteSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'institute_type', 'school_type', 'gender_type', 'address', 'province', 'city', 'postal_code',
                   'phone_number', 'contact_info', 'description', 'principal_name', 'principal_phone', 'is_approved',
                   'created_at', 'owner', 'admins', 'date_added', 'creator']
-        read_only_fields = ['id', 'date_added']
+        read_only_fields = ['id', 'date_added',
+                            'is_approved', 'creator', 'owner', 'admins']
