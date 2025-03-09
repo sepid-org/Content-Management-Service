@@ -8,7 +8,9 @@ from apps.accounts.utils.user_management import find_user_in_website
 
 class DiscountCodeService:
     @staticmethod
-    def get_program_discount_codes(program_slug: str) -> list[DiscountCode]:
+    def get_program_discount_codes(
+        program_slug: str | None = None,
+    ) -> list[DiscountCode]:
         """Get all discount codes for a specific program."""
         return (
             DiscountCode.objects.filter(
