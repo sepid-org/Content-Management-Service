@@ -264,6 +264,7 @@ source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "celery" },
+    { name = "coverage" },
     { name = "django" },
     { name = "django-cors-headers" },
     { name = "django-extensions" },
@@ -304,6 +305,7 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.13.3" },
     { name = "celery", specifier = "==5.4.0" },
+    { name = "coverage", specifier = ">=7.6.12" },
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.6.12" },
     { name = "django", specifier = "==5.1" },
     { name = "django-cors-headers", specifier = "==3.13.0" },
