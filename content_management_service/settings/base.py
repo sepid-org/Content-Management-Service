@@ -41,6 +41,7 @@ CUSTOM_APPS = [
     'import_export',
     'drf_yasg',
     'celery',
+    'coverage',
     'polymorphic',
     'django_extensions',
     'django_filters',

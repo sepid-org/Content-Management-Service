@@ -1,13 +1,7 @@
-.PHONY: base test.% test lint format install install-dev clean run
+.PHONY: test.% test lint format install install-dev clean run
 
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
-# export DJANGO_SETTINGS_MODULE := content_management_service.settings.development
-
-# Environment setup
-base:
-	@echo "Environment is set up:"
-	@echo "PYTHONPATH: $(PYTHONPATH)"
-	@echo "DJANGO_SETTINGS_MODULE: $(DJANGO_SETTINGS_MODULE)"
+export DJANGO_SETTINGS_MODULE := content_management_service.settings.development
 
 # Installation targets
 install:
@@ -28,11 +22,12 @@ format:
 	@ruff format .
 
 # Test targets
-test: base
+test:
 	@echo "Running all tests"
-	@coverage run manage.py test
+	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.test coverage run manage.py test
 
-test.%: base
+test.%:
+	$(eval export DJANGO_SETTINGS_MODULE=content_management_service.settings.test)
 	$(eval PARTS := $(subst ., ,$*))
 	$(eval APP := $(word 1,$(PARTS)))
 	$(eval CLASS := $(word 2,$(PARTS)))
@@ -60,7 +55,7 @@ run:
 
 run-prod:
 	@echo "Starting production server..."
-	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.production && python manage.py runserver
+	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.production python manage.py runserver
 
 # Cleanup
 clean:
