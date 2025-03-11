@@ -105,7 +105,7 @@ class Answer(PerformableAction):
             return False
 
         # todo: needs refactoring (change AnswerFacade with AnswerSubmissionHandler)
-        from apps.response.utils import AnswerFacade
+        from apps.response.utils.answer_facade import AnswerFacade
 
         user = kwargs.get('user')
         player = kwargs.get('player')

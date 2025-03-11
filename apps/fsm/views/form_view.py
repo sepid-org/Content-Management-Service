@@ -9,7 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from apps.fsm.models.form import Form
 from apps.fsm.serializers.form.form_polymorphic_serializer import FormPolymorphicSerializer
-from apps.fsm.utils.submission.form_submission_handler import FormSubmissionHandler
+from apps.response.utils.submission.form_submission_handler import FormSubmissionHandler
 from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 
