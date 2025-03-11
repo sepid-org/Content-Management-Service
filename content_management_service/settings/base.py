@@ -135,10 +135,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sepid.platform@gmail.com'
 EMAIL_HOST_PASSWORD = 'tmyz glmk cjsj urnw'
 
-CONSTANTS = {
-    "PAGINATION_NUMBER": 50,
-}
-
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"
 
