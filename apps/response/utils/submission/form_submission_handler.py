@@ -2,7 +2,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.attributes.utils import perform_posterior_actions
 from apps.fsm.models.form import AnswerSheet
-from apps.fsm.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
+from apps.response.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
 from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 

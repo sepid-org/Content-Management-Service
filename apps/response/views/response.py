@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from django.forms import ValidationError
 from rest_framework.exceptions import PermissionDenied
 
-from apps.fsm.utils.submission.button_widget_submission_handler import ButtonWidgetSubmissionHandler
+from apps.response.utils.submission.button_widget_submission_handler import ButtonWidgetSubmissionHandler
 
 
 @api_view(["POST"])
