@@ -10,9 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='state',
-            name='papers',
-            field=models.ManyToManyField(default=list, related_name='states', through='fsm.StatePaper', to='fsm.paper'),
-        ),
+
     ]
