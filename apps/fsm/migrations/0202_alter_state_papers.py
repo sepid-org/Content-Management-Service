@@ -18,9 +18,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(preserve_m2m_data),
-        migrations.RemoveField(
-            model_name='state',
-            name='papers',
-        ),
+
     ]
