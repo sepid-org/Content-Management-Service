@@ -17,13 +17,13 @@ class Attribute(PolymorphicModel):
         related_name='related_to',
     )
 
-    def is_permitted(self, *args, **kwargs) -> bool:
+    def is_permitted(self, user, player, website) -> bool:
         is_permitted = True
 
         from .intrinsic_attributes import Condition
         condition_attributes = self.attributes.instance_of(Condition)
         for condition in condition_attributes:
-            is_permitted &= condition.is_true(*args, **kwargs)
+            is_permitted &= condition.is_true(user, player, website)
 
         return is_permitted
 
@@ -49,23 +49,21 @@ class IntrinsicAttribute(Attribute):
 class PerformableAction(Attribute):
     """Attributes representing actions that can be performed."""
 
-    def give_reward(self, *args, **kwargs):
+    def give_reward(self, user, player, website):
         net_rewards = get_object_net_rewards(self)
 
         if net_rewards.is_zero():
             return
 
         # Process the transfer
-        request = kwargs.get('request')
-        website_name = request.headers.get('Website')
         transfer_funds_to_user(
-            website_name=website_name,
-            user_uuid=str(request.user.id),
+            website_name=website,
+            user_uuid=str(user.id),
             funds=net_rewards,
         )
 
-    def perform(self, *args, **kwargs) -> bool:
-        if not self.is_permitted(*args, **kwargs):
+    def perform(self, user, player, website) -> bool:
+        if not self.is_permitted(user, player, website):
             return False
         return True
 

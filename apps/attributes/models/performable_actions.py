@@ -10,8 +10,7 @@ from django.db import models
 
 class Rewarding(PerformableAction):
 
-    def perform(self, *args, **kwargs):
-        player = kwargs.get('player')
+    def perform(self, user, player, website):
 
         if player:
             total_rewards = SumDict({})
@@ -35,55 +34,55 @@ class Rewarding(PerformableAction):
                 return
 
             # Process the transfer
-            request = kwargs.get('request')
-            website_name = request.headers.get('Website')
             transfer_funds_to_user(
-                website_name=website_name,
-                user_uuid=str(request.user.id),
+                website_name=website,
+                user_uuid=str(user.id),
                 funds=total_rewards,
             )
 
 
 class Start(PerformableAction):
 
-    def perform(self, *args, **kwargs):
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website):
+        if not super().perform(user, player, website):
             return False
 
         # perform main action:
-        self.give_reward(*args, **kwargs)
+        self.give_reward(user, player, website)
 
         return True
 
 
 class Finish(PerformableAction):
 
-    def perform(self, *args, **kwargs):
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website):
+        if not super().perform(user, player, website):
             return False
 
         from apps.attributes.utils import perform_posterior_actions
         perform_posterior_actions(
             attributes=self.attributes,
-            *args,
-            **kwargs,
+            user=user,
+            player=player,
+            website=website,
         )
 
 
 class Submission(PerformableAction):
 
-    def perform(self, *args, **kwargs):
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website):
+        if not super().perform(user, player, website):
             return False
 
         # perform main action:
-        self.give_reward(*args, **kwargs)
+        self.give_reward(user, player, website)
 
         from apps.attributes.utils import perform_posterior_actions
         perform_posterior_actions(
             attributes=self.attributes,
-            *args,
-            **kwargs,
+            user=user,
+            player=player,
+            website=website,
         )
 
         return True
@@ -100,15 +99,13 @@ class Answer(PerformableAction):
     answer_type = models.CharField(max_length=20, choices=AnswerTypes.choices)
     provided_answer = models.JSONField(default=dict)
 
-    def perform(self, *args, **kwargs) -> bool:
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website) -> bool:
+        if not super().perform(user, player, website):
             return False
 
         # todo: needs refactoring (change AnswerFacade with AnswerSubmissionHandler)
         from apps.response.utils.answer_facade import AnswerFacade
 
-        user = kwargs.get('user')
-        player = kwargs.get('player')
         if not user:
             return False
 
@@ -129,8 +126,8 @@ class Answer(PerformableAction):
 class Transition(PerformableAction):
     destination_state_id = models.IntegerField()
 
-    def perform(self, *args, **kwargs) -> bool:
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website) -> bool:
+        if not super().perform(user, player, website):
             return False
 
         from apps.fsm.models.fsm import State
@@ -140,7 +137,6 @@ class Transition(PerformableAction):
             id=self.destination_state_id
         )
 
-        player = kwargs.get('player')
         transit_player_in_fsm(
             player,
             player.current_state,
@@ -152,8 +148,8 @@ class Transition(PerformableAction):
 
 class Buy(PerformableAction):
 
-    def perform(self, *args, **kwargs):
-        if not super().perform(*args, **kwargs):
+    def perform(self, user, player, website):
+        if not super().perform(user, player, website):
             return False
 
         return True

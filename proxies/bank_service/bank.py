@@ -25,7 +25,12 @@ def request_transfer(sender_id: str, receiver_id: str, funds: dict):
         "funds": funds
     }
 
-    return post(url, payload)
+    response = post(url, payload)
+
+    if response.status_code != 200:
+        raise Exception(response.data['error'])
+
+    return response
 
 
 def get_user_balances(user_uuid):

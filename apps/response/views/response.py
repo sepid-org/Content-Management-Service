@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from django.forms import ValidationError
 from rest_framework.exceptions import PermissionDenied
 
+from apps.fsm.models.fsm import Player
 from apps.response.utils.submission.button_widget_submission_handler import ButtonWidgetSubmissionHandler
 
 
@@ -13,17 +14,20 @@ def submit_button_widget(request):
     Submit an button widget.
     """
     player_id = request.data.get('player_id', None)
+    player = Player.get_player(player_id)
     state_id = request.data.get('state_id', None)
     button_id = request.data.get('button_id', None)
+    website = request.headers.get("Website")
 
     try:
         handler = ButtonWidgetSubmissionHandler(
             user=request.user,
-            player_id=player_id,
+            player=player,
+            website=website,
             state_id=state_id,
             button_id=button_id,
         )
-        response = handler.submit(request)
+        response = handler.submit(request.data)
         return response
 
     except (PermissionDenied, ValidationError) as e:
