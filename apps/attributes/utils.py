@@ -1,12 +1,12 @@
 from apps.fsm.models.base import Object
 
 
-def perform_posterior_actions(attributes, *args, **kwargs):
+def perform_posterior_actions(attributes, user, player, website):
     from apps.attributes.models import PerformableAction
-    performable_attributes = attributes.instance_of(
+    performable_attributes: list[PerformableAction] = attributes.instance_of(
         PerformableAction)
     for performable_attribute in performable_attributes:
-        performable_attribute.perform(*args, **kwargs)
+        performable_attribute.perform(user, player, website)
 
 
 def is_object_free_to_buy(object: Object):

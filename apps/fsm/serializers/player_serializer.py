@@ -16,17 +16,20 @@ class PlayerSerializer(serializers.ModelSerializer):
         context = self.context
         request = context.get('request')
         fsm = validated_data.get('fsm')
+        player = super().create(validated_data)
+        website = request.headers.get("Website")
 
         # perform fsm start actions
         from apps.attributes.models import Start
         start_attributes = fsm.attributes.instance_of(Start)
         for start_attribute in start_attributes:
             start_attribute.perform(
-                request=request,
                 user=request.user,
+                player=player,
+                website=website,
             )
 
-        return super().create(validated_data)
+        return player
 
     class Meta:
         model = Player

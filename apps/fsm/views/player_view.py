@@ -132,12 +132,14 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             )
 
         fsm = player.fsm
+        website = request.headers.get("Website")
         from apps.attributes.models.performable_actions import Finish
         finish_attributes = fsm.attributes.instance_of(Finish)
         for finish_attribute in finish_attributes:
             finish_attribute.perform(
+                user=request.user,
                 player=player,
-                request=request,
+                website=website,
             )
 
         player.finished_at = timezone.now()

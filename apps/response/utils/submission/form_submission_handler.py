@@ -7,11 +7,11 @@ from apps.response.serializers.answer_sheet import AnswerSheetSerializer
 
 
 class FormSubmissionHandler(AbstractSubmissionHandler):
-    def __init__(self, form, user):
-        super().__init__(user=user)
+    def __init__(self, form, **kwargs):
+        super().__init__(**kwargs)
         self.form = form
 
-    def validate_submission(self, request, *args, **kwargs):
+    def validate_submission(self, data):
         if self.form.participant_limit > 0:
             if self.user.is_anonymous:
                 raise PermissionDenied(
@@ -24,11 +24,11 @@ class FormSubmissionHandler(AbstractSubmissionHandler):
                     f"You have exceeded the submission limit of {self.form.participant_limit} for this form."
                 )
 
-    def prepare_submission_data(self, request, *args, **kwargs):
+    def prepare_submission_data(self, data):
         submission_data = {
             'user': self.user.id,
             'form': self.form.id,
-            **request.data
+            **data
         }
         self._validate_submission_data(submission_data)
         return submission_data
@@ -39,16 +39,17 @@ class FormSubmissionHandler(AbstractSubmissionHandler):
             if field not in data:
                 raise ValidationError(f"Missing required field: {field}")
 
-    def save_submission(self, data, *args, **kwargs):
-        serializer = AnswerSheetSerializer(data=data)
+    def save_submission(self, validated_data):
+        serializer = AnswerSheetSerializer(data=validated_data)
         serializer.is_valid(raise_exception=True)
         return serializer.save()
 
-    def perform_post_submission_actions(self, submission, request, *args, **kwargs):
+    def perform_post_submission_actions(self, submission):
         perform_posterior_actions(
             attributes=self.form.attributes,
-            request=request,
-            answer_sheet=submission
+            user=self.user,
+            player=self.player,
+            website=self.website,
         )
 
     def get_response_data(self, submission):

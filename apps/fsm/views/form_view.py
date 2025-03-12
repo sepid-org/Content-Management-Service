@@ -30,10 +30,16 @@ class FormViewSet(ModelViewSet):
         Submit an answer sheet for a specific form.
         """
         form = self.get_object()
+        website = request.headers.get("Website")
 
         try:
-            handler = FormSubmissionHandler(form=form, user=request.user)
-            response = handler.submit(request)
+            handler = FormSubmissionHandler(
+                user=request.user,
+                player=None,
+                website=website,
+                form=form,
+            )
+            response = handler.submit(request.data)
             return response
 
         except (PermissionDenied, ValidationError) as e:
