@@ -12,7 +12,7 @@ class ButtonWidgetSubmissionHandler(AbstractSubmissionHandler):
         self.state_id = state_id
         self.button_id = button_id
 
-    def validate_submission(self):
+    def validate_submission(self, data):
         # Validation for button widget submission
         pass
 
