@@ -46,18 +46,7 @@ class AnswerSubmissionHandler(AbstractSubmissionHandler):
             **data
         }
 
-        # Validate the submission data
-        self._validate_submission_data(submission_data)
         return submission_data
-
-    def _validate_submission_data(self, data):
-        # Validate required fields (customize based on question type)
-        required_fields = []  # Add required fields based on question type
-        for field in required_fields:
-            if field not in data or not data[field]:
-                raise ValidationError(
-                    f"Missing or empty required field: {field}"
-                )
 
     def save_submission(self, validated_data):
         # Use AnswerPolymorphicSerializer to save the answer
