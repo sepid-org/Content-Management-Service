@@ -34,7 +34,8 @@ def _login_to_shad(landing_id):
 
     response = post(url, payload)
 
-    if response.get('data'):
+    # Assuming that on success, the token is in response["data"]
+    if response.get('success'):
         TokenManager.set_token(response['data'])
 
     return response
@@ -54,10 +55,10 @@ def get_user_data_from_shad(user_uuid, landing_id):
     Raises:
         ValueError: If UUID is invalid, authentication fails, or response contains errors
     """
-    # Format uuid as Shad uuids format
+    # Format uuid into Shad's UUID format
     user_uuid = _format_uuid_to_shad_format(user_uuid)
 
-    # First ensure we have a valid UUID
+    # Validate UUID format
     try:
         uuid.UUID(str(user_uuid))
     except ValueError:
@@ -66,10 +67,10 @@ def get_user_data_from_shad(user_uuid, landing_id):
     # Ensure we're logged in or try initial login
     if not TokenManager.get_token():
         login_response = _login_to_shad(landing_id)
-        if not login_response.get('data'):
+        if login_response.get('success') is False:
             raise ValueError("Initial login failed")
 
-    # Try to get user data
+    # Get user data from Shad
     url = f'{SHAD_API_URL}/ShadEvent?UserHashId={user_uuid}'
     headers = {
         "Authorization": f"Bearer {TokenManager.get_token()}"
@@ -78,22 +79,24 @@ def get_user_data_from_shad(user_uuid, landing_id):
 
     response = get(url, params, headers=headers)
 
-    # Check for expired token and try relogin once
-    if response.get('status') == 401 or response.get('error') == 'token_expired':
+    # Check for expired token and try re-login once
+    if response.get('status_code') == 401 or response.get('error') == 'token_expired':
         login_response = _login_to_shad(landing_id)
-        if not login_response.get('data'):
+        if login_response.get('success') is False:
             raise ValueError("Failed to refresh token")
 
-        # Retry the request with new token
-        response = get(url, params, headers={
-            "Authorization": f"Bearer {TokenManager.get_token()}"
-        })
+        # Retry the request with the new token
+        headers = {"Authorization": f"Bearer {TokenManager.get_token()}"}
+        response = get(url, params, headers=headers)
 
-    status = response.get('status_code')
-    error_message = response.get('data').get('error')
+    status_code = response.get('status_code')
+    # If the response includes error details in the 'data' key, extract it
+    error_message = None
+    if response.get('data') and isinstance(response.get('data'), dict):
+        error_message = response['data'].get('error')
 
-    if error_message or (isinstance(status, int) and status >= 400):
-        raise ValueError(f"API Error: {error_message} (Status: {status})")
+    if error_message or (isinstance(status_code, int) and status_code >= 400):
+        raise ValueError(f"API Error: {error_message} (Status: {status_code})")
 
     return response
 
@@ -129,10 +132,10 @@ def update_user_info_by_shad_data(user_instance, user_data):
     Returns:
         The updated user instance.
     """
-    # Extracting relevant data from user_data
+    # Extract relevant data from the response
     data = user_data.get("data", {})
 
-    # Mapping user_data fields to the user instance fields
+    # Map user_data fields to the user instance fields
     user_instance.first_name = data.get("name") or user_instance.first_name
     user_instance.last_name = data.get("family") or user_instance.last_name
     user_instance.phone_number = data.get(
