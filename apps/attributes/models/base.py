@@ -17,13 +17,13 @@ class Attribute(PolymorphicModel):
         related_name='related_to',
     )
 
-    def is_permitted(self, user, player, website) -> bool:
+    def is_permitted(self, user, player=None) -> bool:
         is_permitted = True
 
         from .intrinsic_attributes import Condition
         condition_attributes = self.attributes.instance_of(Condition)
         for condition in condition_attributes:
-            is_permitted &= condition.is_true(user, player, website)
+            is_permitted &= condition.is_true(user, player)
 
         return is_permitted
 
@@ -63,7 +63,7 @@ class PerformableAction(Attribute):
         )
 
     def perform(self, user, player, website) -> bool:
-        if not self.is_permitted(user, player, website):
+        if not self.is_permitted(user, player):
             return False
         return True
 

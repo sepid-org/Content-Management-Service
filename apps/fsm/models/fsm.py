@@ -72,9 +72,7 @@ class FSM(models.Model, ObjectMixin):
         return self.name
 
     # default is False
-    def is_enabled(self, *args, **kwargs) -> bool:
-        user = kwargs.get('user')
-
+    def is_enabled(self, user) -> bool:
         # check ceil of participation
         finished_players = Player.objects.filter(
             user=user,
