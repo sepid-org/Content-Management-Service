@@ -7,7 +7,7 @@ class Enabled(IntrinsicAttribute):
 
 class Condition(IntrinsicAttribute):
 
-    def is_true(self, user, player, website):
+    def is_true(self, user, player=None):
         from apps.fsm.utils.answer_sheet_facade import AnswerSheetFacade
         value = self.value
         total_condition_result = True
