@@ -42,12 +42,17 @@ def get(url, params, headers=None):
             timeout=10
         )
         response.raise_for_status()
-        return response.json()
+        return {
+            "success": True,
+            "status_code": response.status_code,
+            "data": response.json()
+        }
     except requests.RequestException as e:
-        return Response(
-            {"error": f"Failed to process GET request after retries: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return {
+            "success": False,
+            "status_code": 500,
+            "error": f"Failed to process GET request after retries: {str(e)}",
+        }
 
 
 def post(url, payload, headers=None):
@@ -60,9 +65,14 @@ def post(url, payload, headers=None):
             timeout=10
         )
         response.raise_for_status()
-        return response.json()
+        return {
+            "success": True,
+            "status_code": response.status_code,
+            "data": response.json()
+        }
     except requests.RequestException as e:
-        return Response(
-            {"error": f"Failed to process POST request after retries: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return {
+            "success": False,
+            "status_code": 500,
+            "error": f"Failed to process POST request after retries: {str(e)}",
+        }
