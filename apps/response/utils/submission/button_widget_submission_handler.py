@@ -16,7 +16,7 @@ class ButtonWidgetSubmissionHandler(AbstractSubmissionHandler):
         # Validation for button widget submission
         pass
 
-    def prepare_submission_data(self):
+    def prepare_submission_data(self, data):
         return {
             'user': self.user,
             'player': self.player,
