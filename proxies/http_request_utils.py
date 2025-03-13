@@ -42,6 +42,7 @@ def get(url, params, headers=None):
             timeout=10
         )
         response.raise_for_status()
+        response.encoding = 'utf-8'
         return {
             "success": True,
             "status_code": response.status_code,
@@ -65,6 +66,7 @@ def post(url, payload, headers=None):
             timeout=10
         )
         response.raise_for_status()
+        response.encoding = 'utf-8'
         return {
             "success": True,
             "status_code": response.status_code,
