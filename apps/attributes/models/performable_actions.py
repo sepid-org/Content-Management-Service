@@ -103,22 +103,24 @@ class Answer(PerformableAction):
         if not super().perform(user, player, website):
             return False
 
-        # todo: needs refactoring (change AnswerFacade with AnswerSubmissionHandler)
-        from apps.response.utils.answer_facade import AnswerFacade
+        from apps.response.utils.submission.answer_submission_handler import AnswerSubmissionHandler
 
         if not user:
             return False
 
-        facade = AnswerFacade()
-        facade.submit_answer(
+        from apps.fsm.models.base import Widget
+        question = Widget.objects.get(id=self.question_id)
+
+        handler = AnswerSubmissionHandler(
             user=user,
             player=player,
-            provided_answer={
-                'answer_type': self.answer_type,
-                **self.provided_answer,
-            },
-            question=facade.get_question(self.question_id),
+            website=website,
+            question=question,
         )
+        handler.submit({
+            'answer_type': self.answer_type,
+            **self.provided_answer,
+        })
 
         return True
 
