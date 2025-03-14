@@ -24,7 +24,7 @@ format:
 # Test targets
 test:
 	@echo "Running all tests"
-	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.test coverage run manage.py test
+	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.test && coverage run manage.py test
 
 test.%:
 	$(eval export DJANGO_SETTINGS_MODULE=content_management_service.settings.test)
@@ -55,7 +55,7 @@ run:
 
 run-prod:
 	@echo "Starting production server..."
-	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.production python manage.py runserver
+	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.production && python manage.py runserver
 
 # Cleanup
 clean:
