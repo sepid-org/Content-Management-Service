@@ -3,14 +3,6 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-def set_utf8_encoding(response, *args, **kwargs):
-    """
-    Hook to set response encoding to UTF-8.
-    """
-    response.encoding = 'utf-8'
-    return response
-
-
 def get_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502, 503, 504)):
     """
     Create a requests session with retry capabilities and UTF-8 encoding for responses.
@@ -23,18 +15,22 @@ def get_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502,
     Returns:
         requests.Session: A configured session with retry capabilities and UTF-8 response encoding.
     """
-    retry_strategy = Retry(
+    retry = Retry(
         total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
-        allowed_methods=["GET", "POST"],
-        backoff_factor=backoff_factor
+        raise_on_status=False
     )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
+    adapter = HTTPAdapter(max_retries=retry)
     session = requests.Session()
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-    # افزودن hook برای تنظیم رمزگذاری UTF-8 به تمام پاسخ‌ها
-    session.hooks["response"] = [set_utf8_encoding]
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
+    # Ensure that responses use UTF-8 encoding by default
+    session.headers.update({'Accept-Charset': 'utf-8'})
+
     return session
 
 
@@ -50,20 +46,28 @@ def get(url, params, headers=None):
     Returns:
         dict: Dictionary with the request status, HTTP status code, and data or error message.
     """
+    session = get_retry_session()
     try:
-        session = get_retry_session()
-        response = session.get(url, params=params, headers=headers, timeout=10)
+        response = session.get(url, params=params, headers=headers)
+        # Explicitly set encoding to UTF-8
+        response.encoding = 'utf-8'
+        # Raise HTTPError for bad responses (4xx or 5xx)
         response.raise_for_status()
+        # Try parsing JSON; fallback to raw text if JSON parsing fails.
+        try:
+            data = response.json()
+        except ValueError:
+            data = response.text
         return {
             "success": True,
-            "status_code": response.status_code,
-            "data": response.json()
+            'status_code': response.status_code,
+            'data': data
         }
-    except requests.RequestException as e:
+    except requests.exceptions.RequestException as e:
         return {
             "success": False,
-            "status_code": 500,
-            "error": f"Failed to process GET request after retries: {str(e)}",
+            'status_code': getattr(e.response, 'status_code', 500),
+            'error': str(e)
         }
 
 
@@ -80,17 +84,31 @@ def post(url, payload, headers=None):
         dict: Dictionary with the request status, HTTP status code, and data or error message.
     """
     try:
+        # Obtain a session with retry capabilities and UTF-8 encoding support
         session = get_retry_session()
-        response = session.post(url, json=payload, headers=headers, timeout=10)
+        response = session.post(url, json=payload, headers=headers)
+
+        # Ensure the response is interpreted using UTF-8 encoding
+        response.encoding = 'utf-8'
+
+        # Raise an exception if the HTTP request returned an unsuccessful status code
         response.raise_for_status()
+
+        # Attempt to decode the response as JSON; fallback to raw text if decoding fails
+        try:
+            data = response.json()
+        except ValueError:
+            data = response.text
+
         return {
             "success": True,
-            "status_code": response.status_code,
-            "data": response.json()
+            'http_status': response.status_code,
+            'data': data
         }
-    except requests.RequestException as e:
+    except requests.exceptions.RequestException as e:
+        # Capture HTTP status code from the response if available, else set to 500
         return {
             "success": False,
-            "status_code": 500,
-            "error": f"Failed to process POST request after retries: {str(e)}",
+            'http_status': getattr(e.response, 'status_code', 500),
+            'error': str(e)
         }
