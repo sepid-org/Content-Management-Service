@@ -28,7 +28,7 @@ def request_transfer(sender_id: str, receiver_id: str, funds: dict):
     response = post(url, payload)
 
     if response.get('success', False) is False:
-        raise Exception(response.data['error'])
+        raise Exception(response.get('error'))
 
     return response
 
