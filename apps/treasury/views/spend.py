@@ -5,6 +5,7 @@ from rest_framework import status
 from django.db import transaction
 from apps.treasury.models import Spend
 from apps.fsm.models import Object
+from errors.error_codes import ErrorCodes
 from proxies.bank_service.bank import get_user_balances
 from proxies.bank_service.utils import transfer_funds_from_user
 from django.core.exceptions import ObjectDoesNotExist
@@ -50,7 +51,7 @@ def spend_on_object(request):
         user_uuid = str(request.user.id)
         if Spend.objects.filter(user=user_uuid, object_id=obj.id).exists():
             return Response(
-                {"error": "You have already spent on this object."},
+                {"error_code": ErrorCodes.ALREADY_SPENT_ON_OBJECT},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
