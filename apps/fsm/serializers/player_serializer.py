@@ -7,7 +7,7 @@ class PlayerMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'current_state', 'started_at']
+        fields = ['id', 'current_state', 'started_at', 'finished_at']
 
 
 class PlayerSerializer(serializers.ModelSerializer):
