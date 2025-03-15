@@ -127,6 +127,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm = self.get_object()
         user = request.user
         player = get_players(user, fsm).last()
+
+        if player is None:
+            return Response({'detail': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
+
         return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
