@@ -57,7 +57,9 @@ class PerformableAction(Attribute):
 
         # Process the transfer
         transfer_funds_to_user(
-            website_name=website,
+            # todo:
+            # website_uuid=website.get('uuid'),
+            website_uuid=website,
             user_uuid=str(user.id),
             funds=net_rewards,
         )
