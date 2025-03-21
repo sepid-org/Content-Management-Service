@@ -7,10 +7,10 @@ class TransferResponse(TypedDict):
     deposit_transaction_id: str
 
 
-def transfer_funds_to_user(website, user_uuid, funds) -> TransferResponse:
-    
+def transfer_funds_to_user(website_uuid, user_uuid, funds) -> TransferResponse:
+
     return request_transfer(
-        sender_id=website.get('uuid'),
+        sender_id=website_uuid,
         receiver_id=str(user_uuid),
         funds=funds,
     )
