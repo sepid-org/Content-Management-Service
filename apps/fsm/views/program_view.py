@@ -27,12 +27,12 @@ class ProgramViewSet(CacheEnabledModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        website = self.request.headers.get('Website')
+        website = self.request.website
 
         if not website:
             raise ValidationError("Website header is required")
 
-        queryset = queryset.filter(website=website)
+        queryset = queryset.filter(website=website.name)
 
         is_visible = self.request.query_params.get('is_visible')
         if is_visible:
@@ -61,7 +61,7 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         return context
 
     def create(self, request, *args, **kwargs):
-        request.data['website'] = request.headers.get('Website')
+        request.data['website'] = request.website.name
         return super().create(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
@@ -75,8 +75,10 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         program = self.get_object()
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = self._find_user(serializer.validated_data,
-                               request.headers.get("Website"))
+        user = self._find_user(
+            serializer.validated_data,
+            request.website,
+        )
         add_admin_to_program(user, program)
         return Response(status=status.HTTP_200_OK)
 
@@ -86,7 +88,9 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_admin = self._find_user(
-            serializer.validated_data, request.headers.get("Website"))
+            serializer.validated_data,
+            website=request.website,
+        )
         self._ensure_not_creator(removed_admin, program)
         program.admins.remove(removed_admin)
         return Response(status=status.HTTP_200_OK)
@@ -97,7 +101,9 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         program.is_deleted = True
         program.deleted_at = timezone.now()
         program.save()
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
+        self.cache.invalidate_list_cache(
+            website_name=request.website.name,
+        )
         return Response()
 
     @action(detail=True, methods=['get'], url_path='user-permissions')
@@ -127,7 +133,11 @@ class ProgramViewSet(CacheEnabledModelViewSet):
         return Response(fsm_status_list)
 
     def _find_user(self, user_data, website):
-        return find_user_in_website(user_data=user_data, website=website, raise_exception=True)
+        return find_user_in_website(
+            user_data=user_data,
+            website=website,
+            raise_exception=True,
+        )
 
     def _ensure_not_creator(self, user, program):
         if user == program.creator:

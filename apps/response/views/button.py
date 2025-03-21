@@ -17,7 +17,7 @@ def submit_button_widget(request):
     player = Player.get_player(player_id)
     state_id = request.data.get('state_id', None)
     button_id = request.data.get('button_id', None)
-    website = request.headers.get("Website")
+    website = request.website
 
     try:
         handler = ButtonWidgetSubmissionHandler(

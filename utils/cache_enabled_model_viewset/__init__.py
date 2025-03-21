@@ -23,18 +23,18 @@ class CacheEnabledModelViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
+        self.cache.invalidate_list_cache(website_name=request.website.name)
         return response
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
+        self.cache.invalidate_list_cache(website_name=request.website.name)
         self.cache.invalidate_object_cache(kwargs[self.lookup_field])
         return response
 
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
+        self.cache.invalidate_list_cache(website_name=request.website.name)
         self.cache.invalidate_object_cache(kwargs[self.lookup_field])
         return response
 

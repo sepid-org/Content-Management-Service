@@ -132,7 +132,7 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
             )
 
         fsm = player.fsm
-        website = request.headers.get("Website")
+        website = request.website
         from apps.attributes.models.performable_actions import Finish
         finish_attributes = fsm.attributes.instance_of(Finish)
         for finish_attribute in finish_attributes:

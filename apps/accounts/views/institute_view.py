@@ -62,7 +62,9 @@ class InstituteViewSet(ModelViewSet):
             serializer = UserSerializer(many=False, data=request.data)
             serializer.is_valid(raise_exception=True)
             new_admin = find_user_in_website(
-                user_data={**serializer.validated_data}, website=request.headers.get("Website"))
+                user_data={**serializer.validated_data},
+                website=website,
+            )
             institute.admins.add(new_admin)
             return Response(InstituteSerializer(institute).data, status=status.HTTP_200_OK)
         else:

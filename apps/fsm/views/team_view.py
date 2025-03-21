@@ -141,7 +141,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         team = self.get_object()
         user = find_user_in_website(
             user_data={**request.data},
-            website=request.headers.get("Website"),
+            website=request.website,
             raise_exception=True,
         )
 

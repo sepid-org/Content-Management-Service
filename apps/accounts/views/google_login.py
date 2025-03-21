@@ -16,7 +16,7 @@ class GoogleLogin(TokenObtainPairView):
                                     400: "error code 4007 for not enough credentials",
                                     401: "error code 4006 for not submitted users & 4009 for wrong credentials"})
     def post(self, request, *args, **kwargs):
-        website = request.headers.get("Website")
+        website = request.website
 
         user = find_user_in_website(
             user_data=request.data,

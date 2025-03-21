@@ -39,7 +39,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
         # Optional: Get player if player_id is provided
         player_id = request.data.get('player_id')
         player = get_object_or_404(Player, id=player_id) if player_id else None
-        website = request.headers.get("Website")
+        website = request.website
 
         try:
             handler = AnswerSubmissionHandler(

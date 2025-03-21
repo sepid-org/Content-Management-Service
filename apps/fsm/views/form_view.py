@@ -30,7 +30,7 @@ class FormViewSet(ModelViewSet):
         Submit an answer sheet for a specific form.
         """
         form = self.get_object()
-        website = request.headers.get("Website")
+        website = request.website
 
         try:
             handler = FormSubmissionHandler(

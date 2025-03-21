@@ -57,7 +57,7 @@ class PerformableAction(Attribute):
 
         # Process the transfer
         transfer_funds_to_user(
-            website_name=website,
+            website_uuid=website.uuid,
             user_uuid=str(user.id),
             funds=net_rewards,
         )

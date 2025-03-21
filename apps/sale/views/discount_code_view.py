@@ -44,9 +44,10 @@ class DiscountCodeViewSet(ModelViewSet):
 
         # add user (if provided)
         if username:
-            website = request.headers.get('Website')
             target_user = find_user_in_website(
-                user_data={'username': username}, website=website)
+                user_data={'username': username},
+                website=request.website,
+            )
 
             discount_code.user = target_user
             discount_code.save()

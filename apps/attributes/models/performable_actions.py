@@ -35,7 +35,7 @@ class Rewarding(PerformableAction):
 
             # Process the transfer
             transfer_funds_to_user(
-                website_name=website,
+                website_uuid=website.uuid,
                 user_uuid=str(user.id),
                 funds=total_rewards,
             )

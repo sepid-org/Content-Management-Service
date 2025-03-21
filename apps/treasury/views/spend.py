@@ -73,9 +73,9 @@ def spend_on_object(request):
 
         with transaction.atomic():
             # Spending money
-            website_name = request.headers.get('Website')
+            website = request.website
             response = transfer_funds_from_user(
-                website_name=website_name,
+                website_uuid=website.uuid,
                 user_uuid=user_uuid,
                 funds=funds,
             )

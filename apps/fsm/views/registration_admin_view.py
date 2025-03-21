@@ -29,8 +29,6 @@ class RegistrationAdminViewSet(GenericViewSet):
             request.FILES['file'], dtype=str).replace(np.nan, None)
 
         def long_task():
-            website = request.headers.get('Website')
-
             for index, participant in participants_list_file.iterrows():
                 # remove None fields
                 participant = {
@@ -44,7 +42,7 @@ class RegistrationAdminViewSet(GenericViewSet):
                     participant = handle_user_name_while_registration(
                         participant)
                     participant_user_account, created = create_or_get_user(
-                        user_data=participant, website=website)
+                        user_data=participant, website=request.website)
                     receipt = update_or_create_registration_receipt(
                         participant_user_account, registration_form)
                     update_or_create_team(
@@ -60,11 +58,10 @@ class RegistrationAdminViewSet(GenericViewSet):
     @action(detail=True, methods=['post'])
     @transaction.atomic
     def register_user_in_program(self, request, pk=None):
-        website = request.headers.get('Website')
         username = request.data.get('username')
         user = find_user_in_website(
             user_data={'username': username},
-            website=website,
+            website=request.website,
             raise_exception=True,
         )
         register_user_in_program(user=user, program=self.get_object().program)

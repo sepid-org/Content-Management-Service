@@ -22,7 +22,8 @@ class BaseLoginView(APIView):
 
     def create_login_event(self, user, website):
         UserWebsiteLogin.objects.create(
-            user_website=user.get_user_website(website=website))
+            user_website=user.get_user_website(website=website)
+        )
 
     def generate_response(self, user, created, response_status):
         access_token, refresh_token = generate_tokens_for_user(user)
@@ -36,7 +37,7 @@ class BaseLoginView(APIView):
     @transaction.atomic
     def handle_post(self, request):
         user_identifier = self.get_user_identifier(request)
-        website = request.headers.get("Website")
+        website = request.website
 
         try:
             user = find_user_in_website(
