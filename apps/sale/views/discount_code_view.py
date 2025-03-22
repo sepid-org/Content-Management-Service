@@ -22,7 +22,12 @@ class DiscountCodeViewSet(ModelViewSet):
 
     @action(detail=False, methods=["GET"])
     def program_discount_codes(self, request, pk=None):
-        program_slug = request.GET.get("program", None)
+        """
+        Retrieve discount codes for a specific program.
+        """
+        program_slug = request.GET.get(
+            "program", None
+        )  # TODO: hashem; put this in URL
         discount_codes = DiscountCodeService.get_program_discount_codes(
             program_slug
         )

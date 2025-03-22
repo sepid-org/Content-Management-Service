@@ -4,6 +4,7 @@ import factory
 from factory.django import DjangoModelFactory
 
 from apps.accounts.models import DiscountCode, Merchandise, User
+from apps.fsm.models.program import Program
 
 
 class UserFactory(DjangoModelFactory):
@@ -14,6 +15,11 @@ class UserFactory(DjangoModelFactory):
 class MerchandiseFactory(DjangoModelFactory):
     class Meta:
         model = Merchandise
+
+    name = factory.Faker("name")
+    price = factory.Faker("random_int", min=1000, max=50000)
+    discounted_price = factory.Faker("random_int", min=500, max=1000)
+    program = factory.SubFactory(Program)
 
 
 class DiscountCodeFactory(DjangoModelFactory):

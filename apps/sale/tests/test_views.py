@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
+
 from django.test import RequestFactory, TestCase
 
 from apps.sale.services.discount_code_service import DiscountCodeService
 from apps.sale.views.discount_code_view import DiscountCodeViewSet
 
-from .factories import DiscountCodeFactory
+from .factories import DiscountCodeFactory, MerchandiseFactory
 
 
 class BaseTestCase(TestCase):
@@ -13,17 +15,27 @@ class BaseTestCase(TestCase):
         self.discount_code = DiscountCodeFactory()
 
 
-class TestDiscountCodeView(BaseTestCase):
+class TestDiscountCodeOperations(BaseTestCase):
     def test_get_program_discount_codes(self):
         codes = DiscountCodeService.get_program_discount_codes()
 
         self.assertEqual(len(codes), 1)
-
+    
     def test_create_discount_code(self):
-        request = self.factory.post("/discount-code")
-        request.user = self.user
+        merchandise = MerchandiseFactory()
 
-        response = DiscountCodeViewSet.as_view({"post": "create"})(request)
+        data = {
+            "code": "TESTCODE",
+            "value": 10,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["discount_code"], self.discount_code)
+        DiscountCodeService.create_discount_code(
+            data=data, merchandise_ids=[merchandise.id]
+        )
+
+        self.assertEqual(DiscountCodeService.get_program_discount_codes(), 2)
+
+
+class TestDiscountCodeView(BaseTestCase): ...
