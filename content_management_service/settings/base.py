@@ -55,7 +55,7 @@ CUSTOM_APPS = [
     'apps.sale.apps.SaleConfig',
     'apps.file_storage.apps.FileStorageConfig',
     'apps.attributes.apps.AttributesConfig',
-    'apps.response.apps.ResponseConfig',
+    'apps.engagement.apps.EngagementConfig',
     'apps.widgets.apps.WidgetsConfig',
     'apps.treasury.apps.TreasuryConfig',
 ]

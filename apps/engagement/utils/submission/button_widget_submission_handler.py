@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 
 from apps.fsm.models.fsm import State
-from apps.response.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
+from apps.engagement.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
 from apps.fsm.utils.utils import transit_player_in_fsm
 from apps.widgets.models.other_widgets.button import ButtonWidget
 

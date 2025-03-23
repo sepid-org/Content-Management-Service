@@ -103,7 +103,7 @@ class Answer(PerformableAction):
         if not super().perform(user, player, website):
             return False
 
-        from apps.response.utils.submission.answer_submission_handler import AnswerSubmissionHandler
+        from apps.engagement.utils.submission.answer_submission_handler import AnswerSubmissionHandler
 
         if not user:
             return False

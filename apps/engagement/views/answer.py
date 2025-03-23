@@ -12,9 +12,9 @@ from apps.fsm.models.base import Widget
 from apps.fsm.models.fsm import Player
 from apps.fsm.models.question_widgets import PROBLEM_ANSWER_MAPPING
 from apps.fsm.models.team import Team
-from apps.response.utils.submission.answer_submission_handler import AnswerSubmissionHandler
-from apps.response.serializers.answers.mock_answer_serializer import MockAnswerSerializer
-from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.engagement.utils.submission.answer_submission_handler import AnswerSubmissionHandler
+from apps.engagement.serializers.answers.mock_answer_serializer import MockAnswerSerializer
+from apps.engagement.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 from rest_framework.exceptions import PermissionDenied
 
 

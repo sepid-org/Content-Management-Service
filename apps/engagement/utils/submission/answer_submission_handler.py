@@ -1,7 +1,7 @@
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.attributes.utils import perform_posterior_actions
-from apps.response.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
-from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.engagement.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
+from apps.engagement.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 from errors.error_codes import serialize_error
 from rest_framework.exceptions import ParseError
 

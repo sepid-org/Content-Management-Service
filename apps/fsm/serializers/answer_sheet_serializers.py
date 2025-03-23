@@ -3,7 +3,7 @@ from rest_framework.exceptions import ParseError
 
 from apps.accounts.models import User
 from apps.accounts.serializers.user_serializer import AcademicStudentshipReadOnlySerializer, SchoolStudentshipReadOnlySerializer, UserRegistrationReceiptInfoSerializer
-from apps.response.serializers.answer_sheet import AnswerSheetSerializer
+from apps.engagement.serializers.answer_sheet import AnswerSheetSerializer
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, RegistrationReceipt
 
