@@ -6,7 +6,10 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import DiscountCode
 from apps.accounts.permissions import IsDiscountCodeModifier
 from apps.sale.serializers.discount_code import DiscountCodeSerializer
-from apps.sale.services.discount_code_service import DiscountCodeService
+from apps.sale.services.discount_code_service import (
+    create_discount_code,
+    get_program_discount_codes,
+)
 
 
 class DiscountCodeViewSet(ModelViewSet):
@@ -28,7 +31,7 @@ class DiscountCodeViewSet(ModelViewSet):
         program_slug = request.GET.get(
             "program", None
         )  # TODO: hashem; put this in URL
-        discount_codes = DiscountCodeService.get_program_discount_codes(
+        discount_codes = get_program_discount_codes(
             program_slug
         )
         return Response(
@@ -44,7 +47,7 @@ class DiscountCodeViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         website = request.headers.get("Website")
-        DiscountCodeService.create_discount_code(
+        create_discount_code(
             data=serializer.validated_data,
             merchandise_ids=merchandises,
             username=username,
