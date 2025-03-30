@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.utils.timezone import is_aware
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -5,11 +6,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 import pandas as pd
 from apps.accounts.models import Purchase
-from apps.fsm.models import RegistrationReceipt, AnswerSheet, Widget, BigAnswer, BigAnswerProblem, MultiChoiceProblem, UploadFileProblem, SmallAnswerProblem, SmallAnswer, UploadFileAnswer, MultiChoiceAnswer
+from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
-from apps.fsm.models.form import Form
-from apps.fsm.models.fsm import FSM, Player
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
@@ -191,76 +190,77 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
     return _get_answer_sheets_excel_file(questions, answer_sheets)
 
 
-def _get_answer_sheets_excel_file(questions, answer_sheets):
+def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
+    # Build question headers from sorted questions.
+    question_headers = {
+        f'Problem {q.id}': extract_content_from_html(q.text)
+        for q in sorted(questions, key=lambda p: p.order, reverse=True)
+    }
+
+    # Prefetch only final answers from the polymorphic 'answers' relation into a list.
+    answer_sheets = answer_sheets_queryset.prefetch_related(
+        Prefetch('answers',
+                 queryset=Answer.objects.filter(is_final_answer=True),
+                 to_attr='prefetched_answers')
+    )
 
     data = []
-    question_headers = {}
-    sorted_questions = sorted(questions, key=lambda p: p.order, reverse=True)
-    for question in sorted_questions:
-        question_headers[f'Problem {question.id}'] = \
-            extract_content_from_html(question.text)
-
     for answer_sheet in answer_sheets:
         answer_sheet_data = {
             'User ID': answer_sheet.user.id if answer_sheet.user else None,
             'ID': answer_sheet.id,
             'User': answer_sheet.user.username if answer_sheet.user else None,
-            'Created At': f"{gregorian_to_jalali(str(make_naive(answer_sheet.created_at)))} {answer_sheet.created_at.strftime('%H:%M')}",
-            'Updated At': f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}",
+            'Created At': (
+                f"{gregorian_to_jalali(str(make_naive(answer_sheet.created_at)))} "
+                f"{answer_sheet.created_at.strftime('%H:%M')}"
+            ),
+            'Updated At': (
+                f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} "
+                f"{answer_sheet.updated_at.strftime('%H:%M')}"
+            ),
         }
-        for question_header in question_headers:
-            answer_sheet_data[question_header] = None
+        # Initialize each question column with None.
+        for header in question_headers:
+            answer_sheet_data[header] = None
 
-        small_answers = SmallAnswer.objects.filter(
-            answer_sheet=answer_sheet, is_final_answer=True)
-        big_answers = BigAnswer.objects.filter(
-            answer_sheet=answer_sheet, is_final_answer=True)
-        choice_answers = MultiChoiceAnswer.objects.filter(
-            answer_sheet=answer_sheet, is_final_answer=True)
-        file_answers = UploadFileAnswer.objects.filter(
-            answer_sheet=answer_sheet, is_final_answer=True)
-
-        for answer in small_answers:
+        # Loop through all prefetched final answers.
+        for answer in answer_sheet.prefetched_answers:
             problem_column = f'Problem {answer.problem.id}'
-            answer_sheet_data[problem_column] = answer.text
-
-        for answer in big_answers:
-            problem_column = f'Problem {answer.problem.id}'
-            answer_sheet_data[problem_column] = extract_content_from_html(
-                answer.text)
-
-        for answer in choice_answers:
-            answer_choice = answer.choices.all()
-            problem_column = f'Problem {answer.problem.id}'
-            answer_text = ""
-            counter = 0
-            for i in answer_choice:
-                if counter == 0:
-                    answer_text += str(i)
-                else:
-                    answer_text += "\n" + str(i)
-                counter += 1
-            answer_sheet_data[problem_column] = answer_text
-
-        for answer in file_answers:
-            problem_column = f'Problem {answer.problem.id}'
-            answer_sheet_data[problem_column] = answer.answer_file
+            # Determine answer type by checking the concrete model.
+            model_name = answer.__class__.__name__.lower()
+            if model_name == 'smallanswer':
+                answer_sheet_data[problem_column] = answer.text
+            elif model_name == 'biganswer':
+                answer_sheet_data[problem_column] = answer.text
+            elif model_name == 'multichoiceanswer':
+                # Join multiple selected choices with newline.
+                answer_sheet_data[problem_column] = "\n".join(
+                    str(choice) for choice in answer.choices.all()
+                )
+            elif model_name == 'uploadfileanswer':
+                answer_sheet_data[problem_column] = answer.answer_file
 
         data.append(answer_sheet_data)
 
+    # Create the DataFrame with fixed columns followed by question columns.
     df = pd.DataFrame(data)
-    df.columns = ['User ID', 'ID', 'کاربر', 'زمان ایجاد', 'زمان بروزرسانی'] +\
-        list(question_headers.values())
+    df.columns = ['User ID', 'ID', 'کاربر', 'زمان ایجاد',
+                  'زمان بروزرسانی'] + list(question_headers.values())
     df = df.sort_values('ID')
+
+    # Write the DataFrame to an Excel file in memory.
     buffer = BytesIO()
     df.to_excel(buffer, index=False)
     buffer.seek(0)
     in_memory_file = SimpleUploadedFile(
-        f"answer_sheets.xlsx", buffer.read(), content_type='application/vnd.ms-excel')
-    file = FileSerializer(data={"file": in_memory_file})
-    file.is_valid(raise_exception=True)
-    file.save()
-    return file.data
+        "answer_sheets.xlsx",
+        buffer.read(),
+        content_type='application/vnd.ms-excel'
+    )
+    file_serializer = FileSerializer(data={"file": in_memory_file})
+    file_serializer.is_valid(raise_exception=True)
+    file_serializer.save()
+    return file_serializer.data
 
 
 @api_view(["get"])
