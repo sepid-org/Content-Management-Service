@@ -1,3 +1,4 @@
+import xlsxwriter
 from django.db.models import Prefetch
 from django.utils.timezone import is_aware
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 import pandas as pd
 from apps.accounts.models import Purchase
-from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player
+from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
@@ -193,78 +194,63 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
 
 
 def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
-    # Build question headers from sorted questions.
     question_headers = {
         f'Problem {q.id}': extract_content_from_html(q.text)
         for q in sorted(questions, key=lambda p: p.order, reverse=True)
     }
 
-    # Prefetch only final answers.
-    # We rely on the polymorphic manager to return concrete subclass instances,
-    # and prefetch_related 'choices' for multi-choice answers.
     answer_sheets_queryset = answer_sheets_queryset.prefetch_related(
         Prefetch(
             'answers',
-            queryset=Answer.objects.filter(is_final_answer=True)
-            .prefetch_related('choices'),
+            queryset=Answer.objects.filter(
+                is_final_answer=True).prefetch_related('choices'),
             to_attr='prefetched_answers'
         )
     )
 
-    data = []
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+
+    headers = ['User ID', 'ID', 'کاربر', 'زمان ایجاد',
+               'زمان بروزرسانی'] + list(question_headers.values())
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    row_num = 1
     for answer_sheet in answer_sheets_queryset:
-        answer_sheet_data = {
-            'User ID': answer_sheet.user.id if answer_sheet.user else None,
-            'ID': answer_sheet.id,
-            'User': answer_sheet.user.username if answer_sheet.user else None,
-            'Created At': (
-                f"{gregorian_to_jalali(str(make_naive(answer_sheet.created_at)))} "
-                f"{answer_sheet.created_at.strftime('%H:%M')}"
-            ),
-            'Updated At': (
-                f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} "
-                f"{answer_sheet.updated_at.strftime('%H:%M')}"
-            ),
-        }
-        # Initialize each question column with None.
-        for header in question_headers:
-            answer_sheet_data[header] = None
+        row_data = [
+            str(answer_sheet.user.id) if answer_sheet.user else None,
+            answer_sheet.id,
+            answer_sheet.user.username if answer_sheet.user else None,
+            f"{gregorian_to_jalali(str(make_naive(answer_sheet.created_at)))} {answer_sheet.created_at.strftime('%H:%M')}",
+            f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}"
+        ]
 
-        # Iterate through the prefetched final answers.
-        for answer in answer_sheet.prefetched_answers:
-            # Here we assume that each concrete answer subclass has a field named "problem"
-            # which is a ForeignKey to the corresponding widget (question).
-            problem_column = f'Problem {answer.problem.id}'
-            if answer.answer_type == Answer.AnswerTypes.SmallAnswer:
-                answer_sheet_data[problem_column] = answer.text
-            elif answer.answer_type == Answer.AnswerTypes.BigAnswer:
-                answer_sheet_data[problem_column] = answer.text
-            elif answer.answer_type == Answer.AnswerTypes.MultiChoiceAnswer:
-                answer_sheet_data[problem_column] = "\n".join(
-                    str(choice) for choice in answer.choices.all()
-                )
-            elif answer.answer_type == Answer.AnswerTypes.UploadFileAnswer:
-                answer_sheet_data[problem_column] = answer.answer_file
+        answer_dict = {}
+        for ans in answer_sheet.prefetched_answers:
+            problem_column = f'Problem {ans.problem.id}'
 
-        data.append(answer_sheet_data)
+            if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
+                answer_dict[problem_column] = ans.text
+            elif isinstance(ans, MultiChoiceAnswer):
+                answer_dict[problem_column] = "\n".join(
+                    str(choice) for choice in ans.choices.all())
+            elif isinstance(ans, UploadFileAnswer):
+                answer_dict[problem_column] = str(ans.answer_file)
 
-    # Create the DataFrame with fixed columns followed by question columns.
-    df = pd.DataFrame(data)
-    df.columns = (
-        ['User ID', 'ID', 'کاربر', 'زمان ایجاد', 'زمان بروزرسانی'] +
-        list(question_headers.values())
-    )
-    df = df.sort_values('ID')
+        row_data.extend(answer_dict.get(header, '')
+                        for header in question_headers.keys())
 
-    # Write the DataFrame to an Excel file in memory.
-    buffer = BytesIO()
-    df.to_excel(buffer, index=False)
-    buffer.seek(0)
-    in_memory_file = SimpleUploadedFile(
-        "answer_sheets.xlsx",
-        buffer.read(),
-        content_type='application/vnd.ms-excel'
-    )
+        for col_num, cell_value in enumerate(row_data):
+            worksheet.write(row_num, col_num, cell_value)
+
+        row_num += 1
+
+    workbook.close()
+    output.seek(0)
+    in_memory_file = SimpleUploadedFile("answer_sheets.xlsx", output.read(
+    ), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     file_serializer = FileSerializer(data={"file": in_memory_file})
     file_serializer.is_valid(raise_exception=True)
     file_serializer.save()
