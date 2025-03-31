@@ -177,7 +177,9 @@ def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
 
 def _get_answer_sheets_excel_file_by_form_id(form_id):
     form = Form.objects.get(id=form_id)
-    answer_sheets = form.answer_sheets.all()
+    # Use select_related for the answer_sheet's user to avoid extra queries.
+    answer_sheets = form.answer_sheets.select_related('user')
+    # Filter widgets to get only the ones that correspond to answer problems.
     questions = form.widgets.filter(
         widget_type__in=[
             Widget.WidgetTypes.SmallAnswerProblem,
@@ -197,15 +199,20 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
         for q in sorted(questions, key=lambda p: p.order, reverse=True)
     }
 
-    # Prefetch only final answers from the polymorphic 'answers' relation into a list.
-    answer_sheets = answer_sheets_queryset.prefetch_related(
-        Prefetch('answers',
-                 queryset=Answer.objects.filter(is_final_answer=True),
-                 to_attr='prefetched_answers')
+    # Prefetch only final answers.
+    # We rely on the polymorphic manager to return concrete subclass instances,
+    # and prefetch_related 'choices' for multi-choice answers.
+    answer_sheets_queryset = answer_sheets_queryset.prefetch_related(
+        Prefetch(
+            'answers',
+            queryset=Answer.objects.filter(is_final_answer=True)
+            .prefetch_related('choices'),
+            to_attr='prefetched_answers'
+        )
     )
 
     data = []
-    for answer_sheet in answer_sheets:
+    for answer_sheet in answer_sheets_queryset:
         answer_sheet_data = {
             'User ID': answer_sheet.user.id if answer_sheet.user else None,
             'ID': answer_sheet.id,
@@ -223,29 +230,30 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
         for header in question_headers:
             answer_sheet_data[header] = None
 
-        # Loop through all prefetched final answers.
+        # Iterate through the prefetched final answers.
         for answer in answer_sheet.prefetched_answers:
+            # Here we assume that each concrete answer subclass has a field named "problem"
+            # which is a ForeignKey to the corresponding widget (question).
             problem_column = f'Problem {answer.problem.id}'
-            # Determine answer type by checking the concrete model.
-            model_name = answer.__class__.__name__.lower()
-            if model_name == 'smallanswer':
+            if answer.answer_type == Answer.AnswerTypes.SmallAnswer:
                 answer_sheet_data[problem_column] = answer.text
-            elif model_name == 'biganswer':
+            elif answer.answer_type == Answer.AnswerTypes.BigAnswer:
                 answer_sheet_data[problem_column] = answer.text
-            elif model_name == 'multichoiceanswer':
-                # Join multiple selected choices with newline.
+            elif answer.answer_type == Answer.AnswerTypes.MultiChoiceAnswer:
                 answer_sheet_data[problem_column] = "\n".join(
                     str(choice) for choice in answer.choices.all()
                 )
-            elif model_name == 'uploadfileanswer':
+            elif answer.answer_type == Answer.AnswerTypes.UploadFileAnswer:
                 answer_sheet_data[problem_column] = answer.answer_file
 
         data.append(answer_sheet_data)
 
     # Create the DataFrame with fixed columns followed by question columns.
     df = pd.DataFrame(data)
-    df.columns = ['User ID', 'ID', 'کاربر', 'زمان ایجاد',
-                  'زمان بروزرسانی'] + list(question_headers.values())
+    df.columns = (
+        ['User ID', 'ID', 'کاربر', 'زمان ایجاد', 'زمان بروزرسانی'] +
+        list(question_headers.values())
+    )
     df = df.sort_values('ID')
 
     # Write the DataFrame to an Excel file in memory.
