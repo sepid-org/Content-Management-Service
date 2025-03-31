@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 from apps.fsm.models.fsm import State
-from errors.error_codes import serialize_error
+from errors.error_codes import ErrorCodes, serialize_error
 from errors.exceptions import InternalServerError
 from apps.fsm.models import FSM, Player
 from apps.fsm.permissions import PlayerViewerPermission
@@ -127,12 +127,12 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
 
         if player.finished_at:
             return Response(
-                {"message": "You have already finished the FSM."},
+                {"error_code": ErrorCodes.ALREADY_FINISHED_FSM},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         fsm = player.fsm
-        website = request.headers.get("Website")
+        website = request.website
         from apps.attributes.models.performable_actions import Finish
         finish_attributes = fsm.attributes.instance_of(Finish)
         for finish_attribute in finish_attributes:

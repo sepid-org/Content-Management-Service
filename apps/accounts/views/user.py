@@ -61,16 +61,16 @@ class UserViewSet(ModelViewSet):
         # validate phone number with verification code:
         serializer = PhoneNumberVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        website = request.website
 
-        user = find_user_in_website(user_data=request.data,
-                                    website=request.headers.get("Website"))
+        user = find_user_in_website(
+            user_data=request.data,
+            website=website,
+        )
         if user:
             raise ParseError(serialize_error('4117'))
 
-        user, _ = create_or_get_user(user_data=request.data,
-                                     website=request.headers.get("Website"))
-
-        website = request.headers.get("Website")
+        user, _ = create_or_get_user(user_data=request.data, website=website)
 
         # create a login object to save users logins
         UserWebsiteLogin.objects.create(

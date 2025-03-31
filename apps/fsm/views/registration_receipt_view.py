@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.fsm.models.form import AnswerSheet
-from errors.error_codes import serialize_error
+from errors.error_codes import ErrorCodes, serialize_error
 from apps.fsm.models import RegistrationReceipt
 from apps.fsm.permissions import IsRegistrationReceiptOwner, IsReceiptsFormModifier
 from apps.fsm.serializers.answer_sheet_serializers import RegistrationReceiptSerializer, RegistrationStatusSerializer
@@ -81,7 +81,7 @@ class RegistrationReceiptViewSet(GenericViewSet, RetrieveModelMixin, DestroyMode
 
         if receipt.status != RegistrationReceipt.RegistrationStatus.Accepted:
             return Response(
-                {'error_code': 'REGISTRATION_NOT_ACCEPTED'},
+                {'error_code': ErrorCodes.REGISTRATION_NOT_ACCEPTED},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

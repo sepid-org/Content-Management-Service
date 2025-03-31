@@ -10,6 +10,8 @@ import requests
 from rest_framework import status
 from rest_framework.response import Response
 
+from proxies.website_service.models import Website
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,16 +22,6 @@ class WMSConfig:
     cache_timeout: int = getattr(settings, 'WMS_CACHE_TIMEOUT', 60 * 60 * 24)
     cache_prefix: str = 'wms_website_'
     request_timeout: int = 10
-
-
-class WMSException(Exception):
-    """Base exception for WMS-related errors."""
-    pass
-
-
-class WMSRequestError(WMSException):
-    """Exception for WMS request failures."""
-    pass
 
 
 class WMSResponse:
@@ -146,18 +138,33 @@ class WMSClient:
         self,
         website_name: str,
         skip_cache: bool = False
-    ) -> Union[Dict, Response]:
+    ) -> Union[Website, Response]:
         """
-        Get website information with caching support.
+        Get website information with caching support and convert to Website object.
 
         Args:
             website_name: Name of the website to fetch
             skip_cache: If True, bypasses the cache
         """
+        cache_key = f"website_{website_name}"
+
         if not skip_cache:
-            cached_data = self.cache_manager.get(website_name)
+            cached_data = self.cache_manager.get(cache_key)
             if cached_data is not None:
-                return cached_data
+                # If cached data is a string (JSON), parse it
+                if isinstance(cached_data, str):
+                    try:
+                        website_dict = json.loads(cached_data)
+                        return Website.from_dict(website_dict)
+                    except json.JSONDecodeError:
+                        logger.error(
+                            f"Failed to decode cached JSON for website: {website_name}")
+                # If it's already a Website object
+                elif isinstance(cached_data, Website):
+                    return cached_data
+                # If it's a dict, convert to Website
+                elif isinstance(cached_data, dict):
+                    return Website.from_dict(cached_data)
 
         response = self._make_request(
             'api/website/website-by-name/',
@@ -165,14 +172,21 @@ class WMSClient:
         )
 
         if response.success:
-            self.cache_manager.set(website_name, response.data)
-            return response.data
+            # Convert API response to Website instance
+            website = Website.from_dict(response.data)
+
+            # Cache the Website as JSON string to ensure serialization compatibility
+            website_json = website.to_json()
+            self.cache_manager.set(cache_key, website_json)
+
+            return website
 
         return response.to_response()
 
     def invalidate_website_cache(self, website_name: str) -> None:
         """Invalidate cache for specific website."""
-        self.cache_manager.delete(website_name)
+        cache_key = f"website_{website_name}"
+        self.cache_manager.delete(cache_key)
 
 
 # Create default client instance
@@ -180,8 +194,14 @@ default_client = WMSClient()
 
 
 # Convenience functions using default client
-def get_website(*args, **kwargs):
-    return default_client.get_website(*args, **kwargs)
+def get_website(website_name: str, skip_cache: bool = False) -> Optional[Website]:
+    if website_name is None:
+        return None
+    result = default_client.get_website(website_name, skip_cache)
+    # Ensure we're only returning Website instances or None
+    if isinstance(result, Website):
+        return result
+    return None
 
 
 def invalidate_website_cache(*args, **kwargs):

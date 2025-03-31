@@ -2,7 +2,7 @@ from django.db import transaction
 from apps.widgets.serializers.widget_serializer import WidgetSerializer
 
 from apps.fsm.models import SmallAnswerProblem, MultiChoiceProblem, Choice, UploadFileProblem, BigAnswerProblem, Widget
-from apps.response.serializers.answers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
+from apps.engagement.serializers.answers.answer_serializers import SmallAnswerSerializer, ChoiceSerializer, UploadFileAnswerSerializer
 
 
 class QuestionWidgetSerializer(WidgetSerializer):

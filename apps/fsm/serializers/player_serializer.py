@@ -7,7 +7,7 @@ class PlayerMinimalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'current_state', 'started_at']
+        fields = ['id', 'current_state', 'started_at', 'finished_at']
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class PlayerSerializer(serializers.ModelSerializer):
         request = context.get('request')
         fsm = validated_data.get('fsm')
         player = super().create(validated_data)
-        website = request.headers.get("Website")
+        website = request.website
 
         # perform fsm start actions
         from apps.attributes.models import Start

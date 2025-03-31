@@ -56,7 +56,7 @@ class UserIDLoginView(BaseLoginView):
     def handle_post(self, request, origin=""):
         user_identifier = self.get_user_identifier(request)
         landing_id = request.data.get('landing_id')
-        website = request.headers.get("Website")
+        website = request.website
 
         try:
             user = find_user_in_website(

@@ -46,6 +46,7 @@ class DiscountCodeViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+<<<<<<< HEAD
         website = request.headers.get("Website")
         create_discount_code(
             data=serializer.validated_data,
@@ -53,5 +54,21 @@ class DiscountCodeViewSet(ModelViewSet):
             username=username,
             website=website,
         )
+=======
+        # add merchandises
+        for merchandise_id in merchandises:
+            merchandise = Merchandise.objects.get(id=merchandise_id)
+            discount_code.merchandises.add(merchandise)
+
+        # add user (if provided)
+        if username:
+            target_user = find_user_in_website(
+                user_data={'username': username},
+                website=request.website,
+            )
+
+            discount_code.user = target_user
+            discount_code.save()
+>>>>>>> main
 
         return Response(status=status.HTTP_201_CREATED)

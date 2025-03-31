@@ -83,7 +83,7 @@ def create_or_get_user(user_data, website):
         UserWebsite.objects.create(
             user=user,
             password=make_password(user_data.get("password")),
-            website=website,
+            website=website.name,
         )
 
     # send greeting email

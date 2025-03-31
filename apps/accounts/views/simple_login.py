@@ -31,7 +31,7 @@ class SimpleLogin(BaseLoginView):
 
     @transaction.atomic
     def handle_post(self, request):
-        website = request.headers.get("Website")
+        website = request.website
         user_data = request.data
 
         # Find user or raise exception if not found

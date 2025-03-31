@@ -5,7 +5,7 @@ from apps.accounts.models import User
 from apps.fsm.models.form import Form
 from errors.error_codes import serialize_error
 from apps.fsm.models import AnswerSheet, Problem
-from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+from apps.engagement.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
 
 
 class AnswerSheetSerializer(serializers.ModelSerializer):
@@ -45,7 +45,7 @@ class AnswerSheetSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         answers = instance.answers
-        from apps.response.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
+        from apps.engagement.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
         representation['answers'] = AnswerPolymorphicSerializer(
             answers, many=True).data
         return representation

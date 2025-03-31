@@ -56,7 +56,7 @@ CUSTOM_APPS = [
     'apps.sale.apps.SaleConfig',
     'apps.file_storage.apps.FileStorageConfig',
     'apps.attributes.apps.AttributesConfig',
-    'apps.response.apps.ResponseConfig',
+    'apps.engagement.apps.EngagementConfig',
     'apps.widgets.apps.WidgetsConfig',
     'apps.treasury.apps.TreasuryConfig',
 ]
@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'content_management_service.middlewares.website_middleware.WebsiteMiddleware',
 ]
 
 TEMPLATES = [

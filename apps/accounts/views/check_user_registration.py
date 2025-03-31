@@ -13,7 +13,7 @@ def check_user_registration(request):
     if not username:
         return Response({'error': 'Username parameter is required'}, status=400)
 
-    website = request.headers.get("Website")
+    website = request.website
     user = find_user_in_website(
         user_data={'username': username},
         website=website,

@@ -60,6 +60,10 @@ class FSM(models.Model, ObjectMixin):
     card_type = models.CharField(
         max_length=20, default=FSMCardType.vertical1, choices=FSMCardType.choices)
     show_roadmap = models.BooleanField(default=True)
+    show_player_performance_on_end = models.BooleanField(
+        default=False,
+        help_text='If enabled, the player\'s performance analysis will be shown to them after completing the FSM.'
+    )
     participant_limit = models.PositiveIntegerField(default=0)
     duration = models.PositiveIntegerField(
         default=0,

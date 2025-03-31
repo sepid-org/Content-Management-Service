@@ -50,7 +50,7 @@ class User(AbstractUser):
 
     def get_user_website(self, website):
         try:
-            return self.user_websites.get(website=website)
+            return self.user_websites.get(website=website.name)
         except:
             return None
 

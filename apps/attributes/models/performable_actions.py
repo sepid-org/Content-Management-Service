@@ -35,7 +35,7 @@ class Rewarding(PerformableAction):
 
             # Process the transfer
             transfer_funds_to_user(
-                website_name=website,
+                website_uuid=website.uuid,
                 user_uuid=str(user.id),
                 funds=total_rewards,
             )
@@ -103,7 +103,7 @@ class Answer(PerformableAction):
         if not super().perform(user, player, website):
             return False
 
-        from apps.response.utils.submission.answer_submission_handler import AnswerSubmissionHandler
+        from apps.engagement.utils.submission.answer_submission_handler import AnswerSubmissionHandler
 
         if not user:
             return False

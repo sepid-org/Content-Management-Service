@@ -127,6 +127,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm = self.get_object()
         user = request.user
         player = get_players(user, fsm).last()
+
+        if player is None:
+            return Response({'detail': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
+
         return Response(PlayerMinimalSerializer(player).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={200: MockWidgetSerializer}, tags=['player', 'fsm'])
@@ -193,7 +197,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         account_serializer.is_valid(raise_exception=True)
         new_mentor = find_user_in_website(
             user_data={**account_serializer.validated_data},
-            website=request.headers.get("Website"),
+            website=request.website,
             raise_exception=True,
         )
         fsm.mentors.add(new_mentor)
@@ -207,7 +211,9 @@ class FSMViewSet(CacheEnabledModelViewSet):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         removed_mentor = find_user_in_website(
-            user_data={**serializer.validated_data}, website=request.headers.get("Website"))
+            user_data={**serializer.validated_data},
+            website=request.website,
+        )
         if removed_mentor == fsm.creator:
             raise ParseError(serialize_error('5006'))
         if removed_mentor in fsm.mentors.all():
@@ -232,7 +238,9 @@ class FSMViewSet(CacheEnabledModelViewSet):
         fsm.is_deleted = True
         fsm.deleted_at = timezone.now()
         fsm.save()
-        self.cache.invalidate_list_cache(request.headers.get('Website'))
+        self.cache.invalidate_list_cache(
+            website_name=request.website.name
+        )
         return Response()
 
     @action(detail=True, methods=['post'], permission_classes=[FSMMentorPermission])
