@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
-import pandas as pd
 from apps.accounts.models import Purchase
 from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from django.utils.timezone import make_naive
@@ -14,12 +13,14 @@ from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
 def _get_participants_excel_file(form_id):
-    # Fetching data using ORM
-    receipts = RegistrationReceipt.objects.filter(form_id=form_id).select_related(
+    # Fetch ordered data using ORM
+    receipts = RegistrationReceipt.objects.filter(
+        form_id=form_id
+    ).select_related(
         'user',
         'user__school_studentship',
         'user__school_studentship__school'
-    )
+    ).order_by('id')
 
     # Define headers
     headers = [
@@ -36,49 +37,56 @@ def _get_participants_excel_file(form_id):
         "Is Participating",
     ]
 
-    # Collect data
-    data = []
-    for receipt in receipts:
-        user = receipt.user
-        school = user.school_studentship.school
-
-        data.append({
-            "ID": receipt.id,
-            "First Name": user.first_name,
-            "Lastname Name": user.last_name,
-            "Username": user.username,
-            "Phone Number": user.phone_number,
-            "National Code": user.national_code,
-            "School": school.name if school else "-",
-            "City": user.city,
-            "Province": user.province,
-            "Receipt Status": receipt.status,
-            "Is Participating": "Yes" if receipt.is_participating else "No",
-        })
-
-    # Create DataFrame
-    df = pd.DataFrame(data)
-    df.columns = headers
-
-    # Sort the DataFrame if needed
-    df = df.sort_values("ID")
-
-    # Save DataFrame to an Excel file in memory
+    # Create Excel file in memory
     buffer = BytesIO()
-    df.to_excel(buffer, index=False)
+    workbook = xlsxwriter.Workbook(buffer)
+    worksheet = workbook.add_worksheet()
+
+    # Write headers
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Write data rows
+    for row_num, receipt in enumerate(receipts, start=1):
+        user = receipt.user
+        school_studentship = getattr(user, 'school_studentship', None)
+        school = school_studentship.school if school_studentship else None
+
+        # Prepare row data according to headers order
+        row_data = [
+            receipt.id,
+            user.first_name,
+            user.last_name,
+            user.username,
+            user.phone_number,
+            user.national_code,
+            school.name if school else "-",
+            getattr(user, 'city', ''),
+            getattr(user, 'province', ''),
+            receipt.status,
+            "Yes" if receipt.is_participating else "No",
+        ]
+
+        # Write row to worksheet
+        for col_num, value in enumerate(row_data):
+            worksheet.write(row_num, col_num, value)
+
+    # Finalize and prepare file
+    workbook.close()
     buffer.seek(0)
 
-    # Create an in-memory file
     in_memory_file = SimpleUploadedFile(
-        f"form_{form_id}_participants.xlsx", buffer.read(), content_type="application/vnd.ms-excel"
+        f"form_{form_id}_participants.xlsx",
+        buffer.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # Serialize and save the file
-    file = FileSerializer(data={"file": in_memory_file})
-    file.is_valid(raise_exception=True)
-    file.save()
+    file_serializer = FileSerializer(data={"file": in_memory_file})
+    file_serializer.is_valid(raise_exception=True)
+    file_serializer.save()
 
-    return file.data
+    return file_serializer.data
 
 
 def _get_program_merchandises_purchases_file(form_id):
@@ -109,7 +117,7 @@ def _get_program_merchandises_purchases_file(form_id):
         )
     )
 
-    # Define headers for the Excel file
+    # Define headers and corresponding keys
     headers = [
         "Purchase ID",
         "Reference ID",
@@ -126,8 +134,25 @@ def _get_program_merchandises_purchases_file(form_id):
         "Purchase Status",
         "Created At",
     ]
+    # Order of keys corresponding to the headers above
+    keys = [
+        "id",
+        "ref_id",
+        "user__first_name",
+        "user__last_name",
+        "user__username",
+        "user__phone_number",
+        "user__national_code",
+        "merchandise__name",
+        "merchandise__price",
+        "merchandise__discounted_price",
+        "merchandise__program__name",
+        "amount",
+        "status",
+        "created_at",
+    ]
 
-    # Convert queryset to list of dictionaries for DataFrame
+    # Convert queryset to list of dictionaries
     data = list(purchases)
 
     # Ensure datetimes are timezone-naive
@@ -136,32 +161,37 @@ def _get_program_merchandises_purchases_file(form_id):
             row["created_at"] = row["created_at"].astimezone(
                 None).replace(tzinfo=None)
 
-    # Create DataFrame
-    if not data:
-        # Create an empty DataFrame with only headers
-        df = pd.DataFrame(columns=headers)
-    else:
-        df = pd.DataFrame(data)
-        df.columns = headers
-
-    # Save DataFrame to an Excel file in memory
+    # Create an in-memory output file for the new workbook.
     buffer = BytesIO()
-    df.to_excel(buffer, index=False)
+    workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Purchases")
+
+    # Write header row
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Write data rows
+    for row_num, row_data in enumerate(data, start=1):
+        for col_num, key in enumerate(keys):
+            # Write the cell value; if key is missing, it writes None.
+            worksheet.write(row_num, col_num, row_data.get(key))
+
+    workbook.close()
     buffer.seek(0)
 
-    # Create an in-memory file
+    # Create an in-memory file for Django file handling
     in_memory_file = SimpleUploadedFile(
         f"program_{form_id}_merchandises_purchases.xlsx",
         buffer.read(),
-        content_type="application/vnd.ms-excel"
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # Serialize and save the file
-    file = FileSerializer(data={"file": in_memory_file})
-    file.is_valid(raise_exception=True)
-    file.save()
+    file_serializer = FileSerializer(data={"file": in_memory_file})
+    file_serializer.is_valid(raise_exception=True)
+    file_serializer.save()
 
-    return file.data
+    return file_serializer.data
 
 
 def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
