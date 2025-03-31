@@ -282,7 +282,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
     logger.info(f"Processing {total_answersheets} answer sheets.")
 
     for index, answer_sheet in enumerate(answer_sheets_queryset, start=1):
-        logger.info("1", index)
+        logger.info(f'1: {index}')
         row_data = [
             str(answer_sheet.user.id) if answer_sheet.user else None,
             answer_sheet.id,
@@ -291,10 +291,11 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
             f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}"
         ]
 
-        logger.info("2", index, row_data)
+        logger.info(f'2: {index} - {row_data}')
         answer_dict = {}
+        logger.info(f'{len(answer_sheet.prefetched_answers)}')
         for ans in answer_sheet.prefetched_answers:
-            logger.info(len(answer_sheet), " --- ", ans)
+            logger.info(f'3: {ans}')
             problem_column = f'Problem {ans.problem.id}'
             if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
                 answer_dict[problem_column] = ans.text
