@@ -292,6 +292,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
 
         answer_dict = {}
         for ans in answer_sheet.prefetched_answers:
+            logger.info(len(answer_sheet), " --- ", ans)
             problem_column = f'Problem {ans.problem.id}'
             if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
                 answer_dict[problem_column] = ans.text
