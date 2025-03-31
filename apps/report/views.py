@@ -311,7 +311,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
         row_num += 1
 
         # Log progress every 100 rows (or adjust as needed)
-        if index % 100 == 0:
+        if index % 10 == 0:
             logger.info(
                 f"Processed {index} answer sheets in {time.time() - row_start:.2f} seconds.")
 
