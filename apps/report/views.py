@@ -1,5 +1,3 @@
-import time
-import logging
 import xlsxwriter
 from django.db.models import Prefetch
 from django.utils.timezone import is_aware
@@ -8,7 +6,7 @@ from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
 from apps.accounts.models import Purchase
-from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
+from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
 from apps.fsm.models.form import AnswerSheet
@@ -247,31 +245,14 @@ def _get_answer_sheets_excel_file_by_form_id(form_id):
     return _get_answer_sheets_excel_file(questions, answer_sheets)
 
 
-# Configure your logger as needed.
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-
 def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
-    overall_start = time.time()
-    logger.info("Starting generation of answer sheets Excel file.")
-
     # Start timing for question headers generation
-    headers_start = time.time()
     question_headers = {
         f'Problem {q.id}': extract_content_from_html(q.text)
         for q in sorted(questions, key=lambda p: p.order, reverse=True)
     }
-    logger.info(
-        f"Generated question headers in {time.time() - headers_start:.2f} seconds.")
 
     # Prepare the workbook
-    workbook_start = time.time()
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
@@ -279,18 +260,11 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
                'زمان بروزرسانی'] + list(question_headers.values())
     for col_num, header in enumerate(headers):
         worksheet.write(0, col_num, header)
-    logger.info(
-        f"Worksheet headers written in {time.time() - workbook_start:.2f} seconds.")
 
     # Writing rows for each answer sheet
-    row_start = time.time()
     row_num = 1
-    total_answersheets = answer_sheets_queryset.count() if hasattr(
-        answer_sheets_queryset, 'count') else len(answer_sheets_queryset)
-    logger.info(f"Processing {total_answersheets} answer sheets.")
 
     for index, answer_sheet in enumerate(answer_sheets_queryset, start=1):
-        logger.info(f"1: {index}")
         row_data = [
             str(answer_sheet.user.id) if answer_sheet.user else None,
             answer_sheet.id,
@@ -299,14 +273,13 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
             f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}"
         ]
 
-        logger.info(f"2: {index} - {row_data}")
         answer_dict = {}
-        logger.info(f"222: {len(answer_sheet.prefetched_answers)}")
         for ans in answer_sheet.prefetched_answers:
-            logger.info(f"3: {ans}")
             problem_column = f'Problem {ans.problem_id}'
             if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
-                answer_dict[problem_column] = ans.text
+                answer_dict[problem_column] = extract_content_from_html(
+                    ans.text
+                )
             elif isinstance(ans, MultiChoiceAnswer):
                 answer_dict[problem_column] = "\n".join(
                     str(choice) for choice in ans.choices.all())
@@ -322,20 +295,9 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
             worksheet.write(row_num, col_num, cell_value)
         row_num += 1
 
-        # Log progress every 100 rows (or adjust as needed)
-        if index % 10 == 0:
-            logger.info(
-                f"Processed {index} answer sheets in {time.time() - row_start:.2f} seconds.")
-
-    logger.info(
-        f"Finished processing rows in {time.time() - row_start:.2f} seconds.")
-
     # Finalize workbook and save file
-    workbook_close_start = time.time()
     workbook.close()
     output.seek(0)
-    logger.info(
-        f"Workbook closed in {time.time() - workbook_close_start:.2f} seconds.")
 
     in_memory_file = SimpleUploadedFile(
         "answer_sheets.xlsx",
@@ -345,8 +307,6 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
     file_serializer = FileSerializer(data={"file": in_memory_file})
     file_serializer.is_valid(raise_exception=True)
     file_serializer.save()
-    logger.info(
-        f"File saved successfully in {time.time() - overall_start:.2f} seconds total.")
 
     return file_serializer.data
 
