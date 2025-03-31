@@ -11,6 +11,7 @@ from apps.accounts.models import Purchase
 from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
+from apps.fsm.models.form import AnswerSheet
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
@@ -198,10 +199,18 @@ def _get_program_merchandises_purchases_file(form_id):
 
 def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
     fsm = FSM.objects.get(id=fsm_id)
-    players = Player.objects.filter(fsm=fsm)
-    answer_sheets = []
-    for player in players:
-        answer_sheets.append(player.answer_sheet)
+
+    answer_sheets = AnswerSheet.objects.filter(player__fsm=fsm)\
+        .select_related('user')\
+        .prefetch_related(
+        Prefetch(
+            'answers',
+            queryset=Answer.objects.filter(
+                is_final_answer=True
+            ),
+            to_attr='prefetched_answers'
+        )
+    )
 
     widgets = fsm.get_questions()
 
@@ -210,16 +219,29 @@ def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
 
 def _get_answer_sheets_excel_file_by_form_id(form_id):
     form = Form.objects.get(id=form_id)
-    # Use select_related for the answer_sheet's user to avoid extra queries.
-    answer_sheets = form.answer_sheets.select_related('user')
-    # Filter widgets to get only the ones that correspond to answer problems.
-    questions = form.widgets.filter(
-        widget_type__in=[
-            Widget.WidgetTypes.SmallAnswerProblem,
-            Widget.WidgetTypes.BigAnswerProblem,
-            Widget.WidgetTypes.MultiChoiceProblem,
-            Widget.WidgetTypes.UploadFileProblem
-        ]
+
+    answer_sheets = (
+        form.answer_sheets
+        .select_related('user')
+        .prefetch_related(
+            Prefetch(
+                'answers',
+                queryset=Answer.objects.filter(is_final_answer=True),
+                to_attr='prefetched_answers'
+            )
+        )
+    )
+
+    questions = (
+        form.widgets
+        .filter(
+            widget_type__in=[
+                Widget.WidgetTypes.SmallAnswerProblem,
+                Widget.WidgetTypes.BigAnswerProblem,
+                Widget.WidgetTypes.MultiChoiceProblem,
+                Widget.WidgetTypes.UploadFileProblem
+            ]
+        )
     )
 
     return _get_answer_sheets_excel_file(questions, answer_sheets)
@@ -248,20 +270,6 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
     logger.info(
         f"Generated question headers in {time.time() - headers_start:.2f} seconds.")
 
-    # Timing for prefetching related answers
-    prefetch_start = time.time()
-    answer_sheets_queryset = answer_sheets_queryset.prefetch_related(
-        Prefetch(
-            'answers',
-            queryset=Answer.objects.filter(
-                is_final_answer=True
-            ).prefetch_related('choices'),
-            to_attr='prefetched_answers'
-        )
-    )
-    logger.info(
-        f"Completed prefetch_related in {time.time() - prefetch_start:.2f} seconds.")
-
     # Prepare the workbook
     workbook_start = time.time()
     output = BytesIO()
@@ -282,7 +290,7 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
     logger.info(f"Processing {total_answersheets} answer sheets.")
 
     for index, answer_sheet in enumerate(answer_sheets_queryset, start=1):
-        logger.info(f'1: {index}')
+        logger.info(f"1: {index}")
         row_data = [
             str(answer_sheet.user.id) if answer_sheet.user else None,
             answer_sheet.id,
@@ -291,12 +299,12 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
             f"{gregorian_to_jalali(str(make_naive(answer_sheet.updated_at)))} {answer_sheet.updated_at.strftime('%H:%M')}"
         ]
 
-        logger.info(f'2: {index} - {row_data}')
+        logger.info(f"2: {index} - {row_data}")
         answer_dict = {}
-        logger.info(f'{len(answer_sheet.prefetched_answers)}')
+        logger.info(f"222: {len(answer_sheet.prefetched_answers)}")
         for ans in answer_sheet.prefetched_answers:
-            logger.info(f'3: {ans}')
-            problem_column = f'Problem {ans.problem.id}'
+            logger.info(f"3: {ans}")
+            problem_column = f'Problem {ans.problem_id}'
             if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
                 answer_dict[problem_column] = ans.text
             elif isinstance(ans, MultiChoiceAnswer):
