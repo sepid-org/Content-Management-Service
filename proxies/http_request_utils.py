@@ -28,15 +28,20 @@ def get_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502,
     session.mount('http://', adapter)
     session.mount('https://', adapter)
 
-    # Ensure that responses use UTF-8 encoding by default
-    session.headers.update({'Accept-Charset': 'utf-8'})
+    # Define a response hook to force UTF-8 encoding
+    def force_utf8(response, *args, **kwargs):
+        response.encoding = 'utf-8'
+        return response
+
+    # Add the hook to the session so that every response is processed by it
+    session.hooks['response'] = [force_utf8]
 
     return session
 
 
 def get(url, params, headers=None):
     """
-    Execute a GET request with retry and UTF-8 encoding.
+    Execute a GET request with retry.
 
     Args:
         url (str): URL for the GET request.
@@ -49,8 +54,6 @@ def get(url, params, headers=None):
     session = get_retry_session()
     try:
         response = session.get(url, params=params, headers=headers)
-        # Explicitly set encoding to UTF-8
-        response.encoding = 'utf-8'
         # Raise HTTPError for bad responses (4xx or 5xx)
         response.raise_for_status()
         # Try parsing JSON; fallback to raw text if JSON parsing fails.
@@ -73,7 +76,7 @@ def get(url, params, headers=None):
 
 def post(url, payload, headers=None):
     """
-    Execute a POST request with retry and UTF-8 encoding.
+    Execute a POST request with retry.
 
     Args:
         url (str): URL for the POST request.
@@ -84,12 +87,9 @@ def post(url, payload, headers=None):
         dict: Dictionary with the request status, HTTP status code, and data or error message.
     """
     try:
-        # Obtain a session with retry capabilities and UTF-8 encoding support
+        # Obtain a session with retry capabilities
         session = get_retry_session()
         response = session.post(url, json=payload, headers=headers)
-
-        # Ensure the response is interpreted using UTF-8 encoding
-        response.encoding = 'utf-8'
 
         # Raise an exception if the HTTP request returned an unsuccessful status code
         response.raise_for_status()
