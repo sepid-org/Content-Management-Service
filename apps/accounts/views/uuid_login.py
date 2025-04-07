@@ -15,6 +15,9 @@ from rest_framework.response import Response
 
 from proxies.Shad import get_user_data_from_shad, update_user_info_by_shad_data
 
+import logging
+logger = logging.getLogger(__file__)
+
 
 class UserIDLoginView(BaseLoginView):
     user_data_field = 'username'
@@ -55,7 +58,6 @@ class UserIDLoginView(BaseLoginView):
     @transaction.atomic
     def handle_post(self, request, origin=""):
         user_identifier = self.get_user_identifier(request)
-        landing_id = request.data.get('landing_id')
         website = request.website
 
         try:
@@ -77,10 +79,15 @@ class UserIDLoginView(BaseLoginView):
             response_status = status.HTTP_201_CREATED
 
         try:
+            landing_id = request.data.get('landing_id')
+            logger.info(
+                f'landing_id: {landing_id} + user identifier: {user_identifier}')
             user_data = get_user_data_from_shad(
                 user_uuid=user_identifier,
                 landing_id=landing_id,
             )
+            logger.info(
+                f'user data: {str(user_data)}')
             update_user_info_by_shad_data(user, user_data)
         except ValueError as e:
             raise Exception(f'Cant get data from Shad. Error: {e}')
