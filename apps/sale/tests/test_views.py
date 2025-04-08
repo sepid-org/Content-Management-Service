@@ -15,7 +15,7 @@ class BaseTestCase(TestCase):
         self.discount_code = DiscountCodeFactory()
 
 
-class TestDiscountCodeOperations(BaseTestCase):
+class TestDiscountCodeAPI(BaseTestCase):
     def test_get_program_discount_codes(self):
         codes = DiscountCodeService.get_program_discount_codes()
 

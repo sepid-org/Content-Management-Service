@@ -67,6 +67,11 @@ class TestDiscountCodeOperations(BaseTestCase):
         )
 
         discount_code = get_program_discount_codes()
+        
+        print(">> User: ", self.user)
+        print(">> User Website: ", self.user.user_websites)
+        print(">> Website: ", self.website.user)
+        print(">> DiscountCode: ", discount_code)
 
         self.assertEqual(DiscountCode.objects.count(), 2)
         self.assertEqual(discount_code[0].value, 0.5)
