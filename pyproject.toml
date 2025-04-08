@@ -41,6 +41,7 @@ dependencies = [
     "users==1.0.dev0",
     "factory-boy>=3.3.3",
     "coverage>=7.6.12",
+    "xlsxwriter>=3.2.2",
 ]
 
 [project.optional-dependencies]
