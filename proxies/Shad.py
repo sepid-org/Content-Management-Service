@@ -1,3 +1,4 @@
+import logging
 import uuid
 from django.conf import settings
 from proxies.http_request_utils import get, post
@@ -41,6 +42,9 @@ def _login_to_shad(landing_id):
     return response
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_user_data_from_shad(user_uuid, landing_id):
     """
     Validate UUID and get user data, handling token expiration automatically.
@@ -55,49 +59,79 @@ def get_user_data_from_shad(user_uuid, landing_id):
     Raises:
         ValueError: If UUID is invalid, authentication fails, or response contains errors
     """
+    logger.info("=== Starting get_user_data_from_shad ===")
+    logger.info(f"Input user_uuid: {user_uuid}, landing_id: {landing_id}")
+
     # Format uuid into Shad's UUID format
     user_uuid = _format_uuid_to_shad_format(user_uuid)
+    logger.info(f"Formatted user_uuid: {user_uuid}")
 
     # Validate UUID format
     try:
         uuid.UUID(str(user_uuid))
     except ValueError:
+        logger.info(f"Invalid UUID format: {user_uuid}")
         raise ValueError("Invalid UUID format")
 
     # Ensure we're logged in or try initial login
-    if not TokenManager.get_token():
+    token = TokenManager.get_token()
+    logger.info(f"Initial token: {token}")
+    if not token:
+        logger.info("No token found. Attempting initial login.")
         login_response = _login_to_shad(landing_id)
+        logger.info(f"Login response: {login_response}")
         if login_response.get('success') is False:
+            logger.info("Initial login failed")
             raise ValueError("Initial login failed")
+        token = TokenManager.get_token()
+        logger.info("Login successful.")
+        logger.info(f"New token: {token}")
 
-    # Get user data from Shad
+    # Prepare API request
     url = f'{SHAD_API_URL}/ShadEvent?UserHashId={user_uuid}'
     headers = {
-        "Authorization": f"Bearer {TokenManager.get_token()}"
+        "Authorization": f"Bearer {token}"
     }
     params = {}
 
-    response = get(url, params, headers=headers)
+    logger.info("Sending request to Shad API")
+    logger.info(f"Request URL: {url}")
+    logger.info(f"Request headers: {headers}")
+    logger.info(f"Request params: {params}")
 
-    # Check for expired token and try re-login once
+    response = get(url, params, headers=headers)
+    logger.info(f"Initial response: {response}")
+
+    # Handle token expiration
     if response.get('status_code') == 401 or response.get('error') == 'token_expired':
+        logger.info("Token expired. Re-attempting login.")
         login_response = _login_to_shad(landing_id)
+        logger.info(f"Re-login response: {login_response}")
         if login_response.get('success') is False:
+            logger.info("Failed to refresh token")
             raise ValueError("Failed to refresh token")
 
-        # Retry the request with the new token
-        headers = {"Authorization": f"Bearer {TokenManager.get_token()}"}
+        token = TokenManager.get_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        logger.info(f"New token after refresh: {token}")
+        logger.info("Retrying request to Shad API with refreshed token")
         response = get(url, params, headers=headers)
+        logger.info(f"Retry response: {response}")
 
     status_code = response.get('status_code')
-    # If the response includes error details in the 'data' key, extract it
+    logger.info(f"Response status_code: {status_code}")
+
     error_message = None
     if response.get('data') and isinstance(response.get('data'), dict):
         error_message = response['data'].get('error')
+        logger.info(f"API error message from response data: {error_message}")
 
     if error_message or (isinstance(status_code, int) and status_code >= 400):
+        logger.info(f"API Error: {error_message} (Status: {status_code})")
         raise ValueError(f"API Error: {error_message} (Status: {status_code})")
 
+    logger.info("get_user_data_from_shad completed successfully")
+    logger.info(f"Final response: {response}")
     return response
 
 
