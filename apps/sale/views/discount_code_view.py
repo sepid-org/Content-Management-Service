@@ -28,12 +28,8 @@ class DiscountCodeViewSet(ModelViewSet):
         """
         Retrieve discount codes for a specific program.
         """
-        program_slug = request.GET.get(
-            "program", None
-        )  # TODO: hashem; put this in URL
-        discount_codes = get_program_discount_codes(
-            program_slug
-        )
+        program_slug = request.GET.get("program", None)
+        discount_codes = get_program_discount_codes(program_slug)
         return Response(
             self.serializer_class(discount_codes, many=True).data,
             status=status.HTTP_200_OK,
@@ -46,29 +42,12 @@ class DiscountCodeViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-<<<<<<< HEAD
-        website = request.headers.get("Website")
+        website_obj = request.website
         create_discount_code(
             data=serializer.validated_data,
             merchandise_ids=merchandises,
             username=username,
-            website=website,
+            website=website_obj.website,
         )
-=======
-        # add merchandises
-        for merchandise_id in merchandises:
-            merchandise = Merchandise.objects.get(id=merchandise_id)
-            discount_code.merchandises.add(merchandise)
-
-        # add user (if provided)
-        if username:
-            target_user = find_user_in_website(
-                user_data={'username': username},
-                website=request.website,
-            )
-
-            discount_code.user = target_user
-            discount_code.save()
->>>>>>> main
 
         return Response(status=status.HTTP_201_CREATED)
