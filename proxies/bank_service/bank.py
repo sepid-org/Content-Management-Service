@@ -38,7 +38,7 @@ def get_user_balances(user_uuid):
     url = f'{BANK_URL}counter/user-balances/'
 
     payload = {
-        "user_uuid": user_uuid,
+        "user_id": user_uuid,
     }
 
     return get(url, payload)
