@@ -47,33 +47,24 @@ logger = logging.getLogger(__name__)
 
 def get_user_data_from_shad(user_uuid, landing_id):
     """
-    Validate UUID and get user data, handling token expiration automatically.
+    Fetch user data from Shad and handle token expiration.
+    Initially sends the request using the raw user_uuid.
+    If the response indicates a UUID format issue, it retries with the formatted UUID.
 
     Args:
-        user_uuid: The user's UUID to fetch data for
-        landing_id: The landing ID for authentication
+        user_uuid: Raw user UUID
+        landing_id: Landing ID used for authentication
 
     Returns:
         API response with user data
 
     Raises:
-        ValueError: If UUID is invalid, authentication fails, or response contains errors
+        ValueError: If UUID is invalid, login fails, or the API returns an error
     """
     logger.info("=== Starting get_user_data_from_shad ===")
     logger.info(f"Input user_uuid: {user_uuid}, landing_id: {landing_id}")
 
-    # Format uuid into Shad's UUID format
-    user_uuid = _format_uuid_to_shad_format(user_uuid)
-    logger.info(f"Formatted user_uuid: {user_uuid}")
-
-    # Validate UUID format
-    try:
-        uuid.UUID(str(user_uuid))
-    except ValueError:
-        logger.info(f"Invalid UUID format: {user_uuid}")
-        raise ValueError("Invalid UUID format")
-
-    # Ensure we're logged in or try initial login
+    # Ensure we are logged in or perform initial login if needed
     token = TokenManager.get_token()
     logger.info(f"Initial token: {token}")
     if not token:
@@ -87,14 +78,12 @@ def get_user_data_from_shad(user_uuid, landing_id):
         logger.info("Login successful.")
         logger.info(f"New token: {token}")
 
-    # Prepare API request
+    # First attempt: use raw UUID
     url = f'{SHAD_API_URL}/ShadEvent?UserHashId={user_uuid}'
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
+    headers = {"Authorization": f"Bearer {token}"}
     params = {}
 
-    logger.info("Sending request to Shad API")
+    logger.info("Sending initial request to Shad API")
     logger.info(f"Request URL: {url}")
     logger.info(f"Request headers: {headers}")
     logger.info(f"Request params: {params}")
@@ -118,14 +107,27 @@ def get_user_data_from_shad(user_uuid, landing_id):
         response = get(url, params, headers=headers)
         logger.info(f"Retry response: {response}")
 
-    status_code = response.get('status_code')
-    logger.info(f"Response status_code: {status_code}")
-
+    # Check if the error is related to UUID format
     error_message = None
     if response.get('data') and isinstance(response.get('data'), dict):
         error_message = response['data'].get('error')
         logger.info(f"API error message from response data: {error_message}")
 
+    if error_message and ('UUID' in error_message or 'Invalid UUID' in error_message):
+        logger.info(
+            "Initial request failed due to UUID format error. Applying formatting and retrying.")
+        formatted_uuid = _format_uuid_to_shad_format(user_uuid)
+        logger.info(f"Formatted user_uuid: {formatted_uuid}")
+        url = f'{SHAD_API_URL}/ShadEvent?UserHashId={formatted_uuid}'
+        response = get(url, params, headers=headers)
+        logger.info(f"Retry with formatted UUID response: {response}")
+        # Update error message if needed
+        if response.get('data') and isinstance(response.get('data'), dict):
+            error_message = response['data'].get('error')
+
+    # Final error handling
+    status_code = response.get('status_code')
+    logger.info(f"Response status_code: {status_code}")
     if error_message or (isinstance(status_code, int) and status_code >= 400):
         logger.info(f"API Error: {error_message} (Status: {status_code})")
         raise ValueError(f"API Error: {error_message} (Status: {status_code})")
