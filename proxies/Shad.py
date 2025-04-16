@@ -107,13 +107,11 @@ def get_user_data_from_shad(user_uuid, landing_id):
         response = get(url, params, headers=headers)
         logger.info(f"Retry response: {response}")
 
-    # Check if the error is related to UUID format
-    error_message = None
-    if response.get('data') and isinstance(response.get('data'), dict):
-        error_message = response['data'].get('error')
-        logger.info(f"API error message from response data: {error_message}")
+    error_message = response.get('error')
+    status_code = response.get('status_code')
 
-    if error_message and ('UUID' in error_message or 'Invalid UUID' in error_message):
+    # If user not found with previous uuid format, retry fetching user data:
+    if status_code == 404:
         logger.info(
             "Initial request failed due to UUID format error. Applying formatting and retrying.")
         formatted_uuid = _format_uuid_to_shad_format(user_uuid)
@@ -121,13 +119,10 @@ def get_user_data_from_shad(user_uuid, landing_id):
         url = f'{SHAD_API_URL}/ShadEvent?UserHashId={formatted_uuid}'
         response = get(url, params, headers=headers)
         logger.info(f"Retry with formatted UUID response: {response}")
-        # Update error message if needed
-        if response.get('data') and isinstance(response.get('data'), dict):
-            error_message = response['data'].get('error')
+        # Update error message
+        error_message = response.get('error')
 
     # Final error handling
-    status_code = response.get('status_code')
-    logger.info(f"Response status_code: {status_code}")
     if error_message or (isinstance(status_code, int) and status_code >= 400):
         logger.info(f"API Error: {error_message} (Status: {status_code})")
         raise ValueError(f"API Error: {error_message} (Status: {status_code})")
