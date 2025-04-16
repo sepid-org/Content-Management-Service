@@ -111,6 +111,16 @@ class FSMViewSet(CacheEnabledModelViewSet):
                 transit_player_in_fsm(
                     player=player, source_state=None, target_state=fsm.first_state)
                 response_status = status.HTTP_201_CREATED
+
+                from apps.attributes.models import Start
+                start_attributes = fsm.attributes.instance_of(Start)
+                for start_attribute in start_attributes:
+                    start_attribute.perform(
+                        user=request.user,
+                        player=player,
+                        website=request.website,
+                    )
+
             else:
                 response_status = status.HTTP_200_OK
 
