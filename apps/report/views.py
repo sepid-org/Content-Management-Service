@@ -5,21 +5,23 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core.files.uploadedfile import SimpleUploadedFile
 from io import BytesIO
-import pandas as pd
 from apps.accounts.models import Purchase
-from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, Player, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
+from apps.fsm.models import RegistrationReceipt, Widget, Answer, Form, FSM, BigAnswer, MultiChoiceAnswer, SmallAnswer, UploadFileAnswer
 from django.utils.timezone import make_naive
 from apps.file_storage.serializers.file_serializer import FileSerializer
+from apps.fsm.models.form import AnswerSheet
 from apps.report.utils import extract_content_from_html, gregorian_to_jalali
 
 
 def _get_participants_excel_file(form_id):
-    # Fetching data using ORM
-    receipts = RegistrationReceipt.objects.filter(form_id=form_id).select_related(
+    # Fetch ordered data using ORM
+    receipts = RegistrationReceipt.objects.filter(
+        form_id=form_id
+    ).select_related(
         'user',
         'user__school_studentship',
         'user__school_studentship__school'
-    )
+    ).order_by('id')
 
     # Define headers
     headers = [
@@ -36,49 +38,56 @@ def _get_participants_excel_file(form_id):
         "Is Participating",
     ]
 
-    # Collect data
-    data = []
-    for receipt in receipts:
-        user = receipt.user
-        school = user.school_studentship.school
-
-        data.append({
-            "ID": receipt.id,
-            "First Name": user.first_name,
-            "Lastname Name": user.last_name,
-            "Username": user.username,
-            "Phone Number": user.phone_number,
-            "National Code": user.national_code,
-            "School": school.name if school else "-",
-            "City": user.city,
-            "Province": user.province,
-            "Receipt Status": receipt.status,
-            "Is Participating": "Yes" if receipt.is_participating else "No",
-        })
-
-    # Create DataFrame
-    df = pd.DataFrame(data)
-    df.columns = headers
-
-    # Sort the DataFrame if needed
-    df = df.sort_values("ID")
-
-    # Save DataFrame to an Excel file in memory
+    # Create Excel file in memory
     buffer = BytesIO()
-    df.to_excel(buffer, index=False)
+    workbook = xlsxwriter.Workbook(buffer)
+    worksheet = workbook.add_worksheet()
+
+    # Write headers
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Write data rows
+    for row_num, receipt in enumerate(receipts, start=1):
+        user = receipt.user
+        school_studentship = getattr(user, 'school_studentship', None)
+        school = school_studentship.school if school_studentship else None
+
+        # Prepare row data according to headers order
+        row_data = [
+            receipt.id,
+            user.first_name,
+            user.last_name,
+            user.username,
+            user.phone_number,
+            user.national_code,
+            school.name if school else "-",
+            getattr(user, 'city', ''),
+            getattr(user, 'province', ''),
+            receipt.status,
+            "Yes" if receipt.is_participating else "No",
+        ]
+
+        # Write row to worksheet
+        for col_num, value in enumerate(row_data):
+            worksheet.write(row_num, col_num, value)
+
+    # Finalize and prepare file
+    workbook.close()
     buffer.seek(0)
 
-    # Create an in-memory file
     in_memory_file = SimpleUploadedFile(
-        f"form_{form_id}_participants.xlsx", buffer.read(), content_type="application/vnd.ms-excel"
+        f"form_{form_id}_participants.xlsx",
+        buffer.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # Serialize and save the file
-    file = FileSerializer(data={"file": in_memory_file})
-    file.is_valid(raise_exception=True)
-    file.save()
+    file_serializer = FileSerializer(data={"file": in_memory_file})
+    file_serializer.is_valid(raise_exception=True)
+    file_serializer.save()
 
-    return file.data
+    return file_serializer.data
 
 
 def _get_program_merchandises_purchases_file(form_id):
@@ -109,7 +118,7 @@ def _get_program_merchandises_purchases_file(form_id):
         )
     )
 
-    # Define headers for the Excel file
+    # Define headers and corresponding keys
     headers = [
         "Purchase ID",
         "Reference ID",
@@ -126,8 +135,25 @@ def _get_program_merchandises_purchases_file(form_id):
         "Purchase Status",
         "Created At",
     ]
+    # Order of keys corresponding to the headers above
+    keys = [
+        "id",
+        "ref_id",
+        "user__first_name",
+        "user__last_name",
+        "user__username",
+        "user__phone_number",
+        "user__national_code",
+        "merchandise__name",
+        "merchandise__price",
+        "merchandise__discounted_price",
+        "merchandise__program__name",
+        "amount",
+        "status",
+        "created_at",
+    ]
 
-    # Convert queryset to list of dictionaries for DataFrame
+    # Convert queryset to list of dictionaries
     data = list(purchases)
 
     # Ensure datetimes are timezone-naive
@@ -136,40 +162,53 @@ def _get_program_merchandises_purchases_file(form_id):
             row["created_at"] = row["created_at"].astimezone(
                 None).replace(tzinfo=None)
 
-    # Create DataFrame
-    if not data:
-        # Create an empty DataFrame with only headers
-        df = pd.DataFrame(columns=headers)
-    else:
-        df = pd.DataFrame(data)
-        df.columns = headers
-
-    # Save DataFrame to an Excel file in memory
+    # Create an in-memory output file for the new workbook.
     buffer = BytesIO()
-    df.to_excel(buffer, index=False)
+    workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Purchases")
+
+    # Write header row
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Write data rows
+    for row_num, row_data in enumerate(data, start=1):
+        for col_num, key in enumerate(keys):
+            # Write the cell value; if key is missing, it writes None.
+            worksheet.write(row_num, col_num, row_data.get(key))
+
+    workbook.close()
     buffer.seek(0)
 
-    # Create an in-memory file
+    # Create an in-memory file for Django file handling
     in_memory_file = SimpleUploadedFile(
         f"program_{form_id}_merchandises_purchases.xlsx",
         buffer.read(),
-        content_type="application/vnd.ms-excel"
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     # Serialize and save the file
-    file = FileSerializer(data={"file": in_memory_file})
-    file.is_valid(raise_exception=True)
-    file.save()
+    file_serializer = FileSerializer(data={"file": in_memory_file})
+    file_serializer.is_valid(raise_exception=True)
+    file_serializer.save()
 
-    return file.data
+    return file_serializer.data
 
 
 def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
     fsm = FSM.objects.get(id=fsm_id)
-    players = Player.objects.filter(fsm=fsm)
-    answer_sheets = []
-    for player in players:
-        answer_sheets.append(player.answer_sheet)
+
+    answer_sheets = AnswerSheet.objects.filter(player__fsm=fsm)\
+        .select_related('user')\
+        .prefetch_related(
+        Prefetch(
+            'answers',
+            queryset=Answer.objects.filter(
+                is_final_answer=True
+            ),
+            to_attr='prefetched_answers'
+        )
+    )
 
     widgets = fsm.get_questions()
 
@@ -178,47 +217,54 @@ def _get_answer_sheets_excel_file_by_fsm_id(fsm_id):
 
 def _get_answer_sheets_excel_file_by_form_id(form_id):
     form = Form.objects.get(id=form_id)
-    # Use select_related for the answer_sheet's user to avoid extra queries.
-    answer_sheets = form.answer_sheets.select_related('user')
-    # Filter widgets to get only the ones that correspond to answer problems.
-    questions = form.widgets.filter(
-        widget_type__in=[
-            Widget.WidgetTypes.SmallAnswerProblem,
-            Widget.WidgetTypes.BigAnswerProblem,
-            Widget.WidgetTypes.MultiChoiceProblem,
-            Widget.WidgetTypes.UploadFileProblem
-        ]
+
+    answer_sheets = (
+        form.answer_sheets
+        .select_related('user')
+        .prefetch_related(
+            Prefetch(
+                'answers',
+                queryset=Answer.objects.filter(is_final_answer=True),
+                to_attr='prefetched_answers'
+            )
+        )
+    )
+
+    questions = (
+        form.widgets
+        .filter(
+            widget_type__in=[
+                Widget.WidgetTypes.SmallAnswerProblem,
+                Widget.WidgetTypes.BigAnswerProblem,
+                Widget.WidgetTypes.MultiChoiceProblem,
+                Widget.WidgetTypes.UploadFileProblem
+            ]
+        )
     )
 
     return _get_answer_sheets_excel_file(questions, answer_sheets)
 
 
 def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
+    # Start timing for question headers generation
     question_headers = {
         f'Problem {q.id}': extract_content_from_html(q.text)
         for q in sorted(questions, key=lambda p: p.order, reverse=True)
     }
 
-    answer_sheets_queryset = answer_sheets_queryset.prefetch_related(
-        Prefetch(
-            'answers',
-            queryset=Answer.objects.filter(
-                is_final_answer=True).prefetch_related('choices'),
-            to_attr='prefetched_answers'
-        )
-    )
-
+    # Prepare the workbook
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
-
     headers = ['User ID', 'ID', 'کاربر', 'زمان ایجاد',
                'زمان بروزرسانی'] + list(question_headers.values())
     for col_num, header in enumerate(headers):
         worksheet.write(0, col_num, header)
 
+    # Writing rows for each answer sheet
     row_num = 1
-    for answer_sheet in answer_sheets_queryset:
+
+    for index, answer_sheet in enumerate(answer_sheets_queryset, start=1):
         row_data = [
             str(answer_sheet.user.id) if answer_sheet.user else None,
             answer_sheet.id,
@@ -229,31 +275,39 @@ def _get_answer_sheets_excel_file(questions, answer_sheets_queryset):
 
         answer_dict = {}
         for ans in answer_sheet.prefetched_answers:
-            problem_column = f'Problem {ans.problem.id}'
-
+            problem_column = f'Problem {ans.problem_id}'
             if isinstance(ans, SmallAnswer) or isinstance(ans, BigAnswer):
-                answer_dict[problem_column] = ans.text
+                answer_dict[problem_column] = extract_content_from_html(
+                    ans.text
+                )
             elif isinstance(ans, MultiChoiceAnswer):
                 answer_dict[problem_column] = "\n".join(
                     str(choice) for choice in ans.choices.all())
             elif isinstance(ans, UploadFileAnswer):
                 answer_dict[problem_column] = str(ans.answer_file)
 
+        # Append answers for each question header
         row_data.extend(answer_dict.get(header, '')
                         for header in question_headers.keys())
 
+        # Write row data
         for col_num, cell_value in enumerate(row_data):
             worksheet.write(row_num, col_num, cell_value)
-
         row_num += 1
 
+    # Finalize workbook and save file
     workbook.close()
     output.seek(0)
-    in_memory_file = SimpleUploadedFile("answer_sheets.xlsx", output.read(
-    ), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+    in_memory_file = SimpleUploadedFile(
+        "answer_sheets.xlsx",
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     file_serializer = FileSerializer(data={"file": in_memory_file})
     file_serializer.is_valid(raise_exception=True)
     file_serializer.save()
+
     return file_serializer.data
 
 

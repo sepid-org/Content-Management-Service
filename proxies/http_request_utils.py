@@ -28,29 +28,81 @@ def get_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502,
     session.mount('http://', adapter)
     session.mount('https://', adapter)
 
-    # Ensure that responses use UTF-8 encoding by default
-    session.headers.update({'Accept-Charset': 'utf-8'})
+    # Define a response hook to force UTF-8 encoding
+    def force_utf8(response, *args, **kwargs):
+        response.encoding = 'utf-8'
+        return response
+
+    # Add the hook to the session so that every response is processed by it
+    session.hooks['response'] = [force_utf8]
 
     return session
 
 
-def get(url, params, headers=None):
+def get_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502, 503, 504)):
     """
-    Execute a GET request with retry and UTF-8 encoding.
+    Create a requests session with retry capabilities and set the response encoding to UTF-8.
 
     Args:
-        url (str): URL for the GET request.
+        retries (int): Number of total retries to allow.
+        backoff_factor (float): A backoff factor to apply between attempts.
+        status_forcelist (tuple): HTTP status codes to retry on.
+
+    Returns:
+        requests.Session: A configured session with retry capabilities and UTF-8 response encoding.
+    """
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        raise_on_status=False
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session = requests.Session()
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
+    # Define a response hook to ensure the encoding is set to UTF-8
+    def force_utf8(response, *args, **kwargs):
+        response.encoding = 'utf-8'
+        return response
+
+    session.hooks['response'] = [force_utf8]
+    return session
+
+
+def extract_data(response_data):
+    """
+    If the response contains a 'data' key, extract and return its value.
+
+    Args:
+        response_data (dict or any): The original data returned from the request.
+
+    Returns:
+        The extracted inner data if present, otherwise the original response_data.
+    """
+    if isinstance(response_data, dict) and 'data' in response_data:
+        return response_data['data']
+    return response_data
+
+
+def get(url, params, headers=None):
+    """
+    Execute a GET request with retry capabilities and extract nested data if present.
+
+    Args:
+        url (str): The URL for the GET request.
         params (dict): URL parameters.
         headers (dict, optional): HTTP headers.
 
     Returns:
-        dict: Dictionary with the request status, HTTP status code, and data or error message.
+        dict: A dictionary with the request status, HTTP status code, and either the data or an error message.
     """
     session = get_retry_session()
     try:
         response = session.get(url, params=params, headers=headers)
-        # Explicitly set encoding to UTF-8
-        response.encoding = 'utf-8'
         # Raise HTTPError for bad responses (4xx or 5xx)
         response.raise_for_status()
         # Try parsing JSON; fallback to raw text if JSON parsing fails.
@@ -58,38 +110,40 @@ def get(url, params, headers=None):
             data = response.json()
         except ValueError:
             data = response.text
+
+        # Extract nested data if available
+        data = extract_data(data)
+
         return {
             "success": True,
-            'status_code': response.status_code,
-            'data': data
+            "status_code": response.status_code,
+            "data": data
         }
     except requests.exceptions.RequestException as e:
         return {
             "success": False,
-            'status_code': getattr(e.response, 'status_code', 500),
-            'error': str(e)
+            "status_code": getattr(e.response, 'status_code', 500),
+            "error": str(e)
         }
 
 
 def post(url, payload, headers=None):
     """
-    Execute a POST request with retry and UTF-8 encoding.
+    Execute a POST request with retry capabilities and extract nested data if present.
 
     Args:
-        url (str): URL for the POST request.
-        payload (dict): JSON payload for the request.
+        url (str): The URL for the POST request.
+        payload (dict): The JSON payload to send.
         headers (dict, optional): HTTP headers.
 
     Returns:
-        dict: Dictionary with the request status, HTTP status code, and data or error message.
+        dict: A dictionary with the request status, HTTP status code, and either the data or an error message.
     """
+    session = get_retry_session()
     try:
-        # Obtain a session with retry capabilities and UTF-8 encoding support
+        # Obtain a session with retry capabilities
         session = get_retry_session()
         response = session.post(url, json=payload, headers=headers)
-
-        # Ensure the response is interpreted using UTF-8 encoding
-        response.encoding = 'utf-8'
 
         # Raise an exception if the HTTP request returned an unsuccessful status code
         response.raise_for_status()
@@ -100,15 +154,17 @@ def post(url, payload, headers=None):
         except ValueError:
             data = response.text
 
+        # Extract nested data if available
+        data = extract_data(data)
+
         return {
             "success": True,
-            'http_status': response.status_code,
-            'data': data
+            "http_status": response.status_code,
+            "data": data
         }
     except requests.exceptions.RequestException as e:
-        # Capture HTTP status code from the response if available, else set to 500
         return {
             "success": False,
-            'http_status': getattr(e.response, 'status_code', 500),
-            'error': str(e)
+            "http_status": getattr(e.response, 'status_code', 500),
+            "error": str(e)
         }

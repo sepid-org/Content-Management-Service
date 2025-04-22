@@ -116,7 +116,9 @@ def _create_certificate(name, name_X_percentage, name_Y_percentage, font_file, f
 
 def _get_text_X_position_on_image(text: str, text_X_position_percentage: float, image, font):
     image_width, _ = image.size
-    return text_X_position_percentage * image_width - font.getsize(text)[0]
+    bbox = font.getbbox(text)  # returns (left, top, right, bottom)
+    text_width = bbox[2] - bbox[0]
+    return text_X_position_percentage * image_width - text_width
 
 
 def _get_text_Y_position_on_image(text: str, text_Y_position_percentage: float, image, font):
