@@ -63,7 +63,6 @@ class TestDiscountCodeOperations(BaseTestCase):
             data=data,
             merchandise_ids=[self.merchandise.id],
             username=self.user.username,
-            website=self.website.website,
         )
 
         discount_code = get_program_discount_codes()

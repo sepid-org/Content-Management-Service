@@ -42,6 +42,7 @@ dependencies = [
     "factory-boy>=3.3.3",
     "coverage>=7.6.12",
     "xlsxwriter>=3.2.2",
+    "setuptools>=79.0.0",
 ]
 
 [project.optional-dependencies]

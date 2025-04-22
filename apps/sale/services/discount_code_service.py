@@ -3,7 +3,7 @@ from typing import Any, Optional
 from django.db import transaction
 
 from apps.accounts.models import DiscountCode, Merchandise
-from apps.accounts.utils.user_management import find_user_in_website
+from apps.accounts.utils.user_management import find_user
 
 
 def get_program_discount_codes(
@@ -33,7 +33,6 @@ def create_discount_code(
     data: dict[str, Any],
     merchandise_ids: list[str],
     username: Optional[str] = None,
-    website: Optional[str] = None,
 ) -> DiscountCode:
     """
     Create a discount code with associated merchandises and user.
@@ -56,10 +55,8 @@ def create_discount_code(
         discount_code.merchandises.add(merchandise)
 
     # Add user (if provided)
-    if username and website:
-        target_user = find_user_in_website(
-            user_data={"username": username}, website=website
-        )
+    if username:
+        target_user = find_user(user_data={"username": username})
         discount_code.user = target_user
         discount_code.save()
 
