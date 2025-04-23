@@ -218,15 +218,10 @@ class FSMViewSet(CacheEnabledModelViewSet):
     @action(detail=True, methods=['post'], serializer_class=UserSerializer, permission_classes=[FSMMentorPermission, ])
     def remove_mentor(self, request, pk=None):
         fsm = self.get_object()
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        removed_mentor = find_user_in_website(
-            user_data={**serializer.validated_data},
-            website=request.website,
-        )
-        if removed_mentor == fsm.creator:
+        removed_mentor_id = request.data.get('id')
+        if removed_mentor_id == str(fsm.creator.id):
             raise ParseError(serialize_error('5006'))
-        fsm.remove_mentor(removed_mentor.id)
+        fsm.remove_mentor(removed_mentor_id)
         return Response()
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
