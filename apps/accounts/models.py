@@ -282,6 +282,59 @@ class Merchandise(models.Model):
 #     code = models.CharField(max_length=10, null=False, blank=False)
 
 
+class VerificationCodeManager(models.Manager):
+    @transaction.atomic
+    def create_verification_code(self, phone_number, time_zone="Asia/Tehran"):
+        code = make_random_password(
+            length=SMS_CODE_LENGTH, allowed_chars="1234567890"
+        )
+        other_codes = VerificationCode.objects.filter(
+            phone_number=phone_number, is_valid=True
+        )
+        for c in other_codes:
+            c.is_valid = False
+            c.save()
+        verification_code = VerificationCode.objects.create(
+            code=code,
+            phone_number=phone_number,
+            expiration_date=datetime.now(pytz.timezone(time_zone))
+            + timedelta(minutes=SMS_CODE_DELAY),
+        )
+        return verification_code
+
+
+class VerificationCode(models.Model):
+    class VerificationType(models.TextChoices):
+        CreateUserAccount = "create-user-account"
+        ChangeUserPassword = "change-user-password"
+        ChangeUserPhoneNumber = "change-user-phone-number"
+
+    # todo: set verification code while sending verification code
+    verification_type = models.CharField(
+        blank=False, null=True, choices=VerificationType.choices, max_length=30
+    )
+    phone_number = models.CharField(blank=True, max_length=13, null=True)
+    code = models.CharField(blank=True, max_length=10, null=True)
+    expiration_date = models.DateTimeField(blank=False, null=False)
+    is_valid = models.BooleanField(default=True)
+
+    objects = VerificationCodeManager()
+
+    def notify(self, verification_type, website_display_name="سپید"):
+        sms_service_proxy = SMSServiceProxy(provider="kavenegar")
+        sms_service_proxy.send_otp(
+            receptor_phone_number=self.phone_number,
+            action=verification_type,
+            token=website_display_name,
+            token2=str(self.code),
+        )
+
+    def __str__(self):
+        return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'
+
+
+########### SALE APP ###########
+
 class DiscountCodeManager(models.Manager):
     @transaction.atomic
     def create_discount_code(self, **args):
@@ -425,54 +478,3 @@ class Purchase(models.Model):
         return (
             f"{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}"
         )
-
-
-class VerificationCodeManager(models.Manager):
-    @transaction.atomic
-    def create_verification_code(self, phone_number, time_zone="Asia/Tehran"):
-        code = make_random_password(
-            length=SMS_CODE_LENGTH, allowed_chars="1234567890"
-        )
-        other_codes = VerificationCode.objects.filter(
-            phone_number=phone_number, is_valid=True
-        )
-        for c in other_codes:
-            c.is_valid = False
-            c.save()
-        verification_code = VerificationCode.objects.create(
-            code=code,
-            phone_number=phone_number,
-            expiration_date=datetime.now(pytz.timezone(time_zone))
-            + timedelta(minutes=SMS_CODE_DELAY),
-        )
-        return verification_code
-
-
-class VerificationCode(models.Model):
-    class VerificationType(models.TextChoices):
-        CreateUserAccount = "create-user-account"
-        ChangeUserPassword = "change-user-password"
-        ChangeUserPhoneNumber = "change-user-phone-number"
-
-    # todo: set verification code while sending verification code
-    verification_type = models.CharField(
-        blank=False, null=True, choices=VerificationType.choices, max_length=30
-    )
-    phone_number = models.CharField(blank=True, max_length=13, null=True)
-    code = models.CharField(blank=True, max_length=10, null=True)
-    expiration_date = models.DateTimeField(blank=False, null=False)
-    is_valid = models.BooleanField(default=True)
-
-    objects = VerificationCodeManager()
-
-    def notify(self, verification_type, website_display_name="سپید"):
-        sms_service_proxy = SMSServiceProxy(provider="kavenegar")
-        sms_service_proxy.send_otp(
-            receptor_phone_number=self.phone_number,
-            action=verification_type,
-            token=website_display_name,
-            token2=str(self.code),
-        )
-
-    def __str__(self):
-        return f'{self.phone_number}\'s code is: {self.code} {"+" if self.is_valid else "-"}'

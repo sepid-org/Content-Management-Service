@@ -12,14 +12,12 @@ from .factories import (
     DiscountCodeFactory,
     MerchandiseFactory,
     UserFactory,
-    UserWebsiteFactory,
 )
 
 
 class BaseTestCase(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.website = UserWebsiteFactory(user=self.user)
         self.discount_code = DiscountCodeFactory(code="TESTCODE")
         self.merchandise = MerchandiseFactory()
 
@@ -69,7 +67,6 @@ class TestDiscountCodeOperations(BaseTestCase):
         
         print(">> User: ", self.user)
         print(">> User Website: ", self.user.user_websites)
-        print(">> Website: ", self.website.user)
         print(">> DiscountCode: ", discount_code)
 
         self.assertEqual(DiscountCode.objects.count(), 2)
