@@ -147,23 +147,25 @@ class FSM(models.Model, ObjectMixin):
 
         return None
 
-    def add_mentor(self, user_id: int, role: str = "manager") -> bool:
+    def add_mentor(self, user_id: str, role: str = "manager") -> bool:
         """
         Adds a mentor to mentors if not already present.
         Returns True if added, False if already exists.
         """
+        user_id_str = str(user_id)
+
         if not self.mentors:
             self.mentors = []
 
         for mentor in self.mentors:
-            if mentor.get("id") == user_id:
+            if mentor.get("id") == user_id_str:
                 return False  # Already exists
 
-        self.mentors.append({"id": user_id, "role": role})
+        self.mentors.append({"id": user_id_str, "role": role})
         self.save(update_fields=["mentors"])
         return True
 
-    def remove_mentor(self, user_id: int) -> bool:
+    def remove_mentor(self, user_id: str) -> bool:
         """
         Removes a mentor from mentors by user_id.
         Returns True if removed, False if not found.
@@ -171,7 +173,9 @@ class FSM(models.Model, ObjectMixin):
         if not self.mentors:
             return False
 
-        new_list = [m for m in self.mentors if m.get("id") != user_id]
+        user_id_str = str(user_id)
+
+        new_list = [m for m in self.mentors if m.get("id") != user_id_str]
         if len(new_list) == len(self.mentors):
             return False  # Not found
 
@@ -179,17 +183,19 @@ class FSM(models.Model, ObjectMixin):
         self.save(update_fields=["mentors"])
         return True
 
-    def update_mentor_role(self, user_id: int, new_role: str) -> bool:
+    def update_mentor_role(self, user_id: str, new_role: str) -> bool:
         """
         Updates role of an existing mentor.
         Returns True if updated, False if user not found.
         """
         if not self.mentors:
             return False
+        
+        user_id_str = str(user_id)
 
         updated = False
         for mentor in self.mentors:
-            if mentor.get("id") == user_id:
+            if mentor.get("id") == user_id_str:
                 mentor["role"] = new_role
                 updated = True
                 break
