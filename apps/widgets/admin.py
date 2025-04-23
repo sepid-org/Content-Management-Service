@@ -14,14 +14,15 @@ class ButtonWidgetAdmin(WidgetAdmin):
 
 @admin.register(RandomWidget)
 class RandomWidgetAdmin(WidgetAdmin):
+    search_fields = ['id']
     list_display = ['box_paper_id', 'unique_widgets_only']
     list_filter = ['box_paper_id', 'unique_widgets_only']
-    search_fields = []
 
 
 @admin.register(SeenWidget)
 class SeenWidgetAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'player', 'target_widget',
-                    'container_random_widget', 'seen_at']
+    list_display = ['id', 'user', 'seen_at']
     list_filter = ['container_random_widget', 'seen_at']
     search_fields = []
+    autocomplete_fields = [
+        'player', 'target_widget', 'container_random_widget']
