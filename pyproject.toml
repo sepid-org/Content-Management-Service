@@ -44,6 +44,7 @@ dependencies = [
     "xlsxwriter>=3.2.2",
     "setuptools>=79.0.0",
     "django-storages>=1.14.6",
+    "boto3>=1.38.0",
 ]
 
 [project.optional-dependencies]
