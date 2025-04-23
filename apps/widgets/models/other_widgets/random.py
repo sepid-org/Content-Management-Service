@@ -26,7 +26,7 @@ class RandomWidget(Widget):
             try:
                 # First check if player has seen any widget through this random widget
                 seen_record_of_this_random_widget = SeenWidget.objects.get(
-                    user=player.user,
+                    user2=player.user.id,
                     player=player,
                     container_random_widget=self,
                 )
@@ -38,7 +38,7 @@ class RandomWidget(Widget):
 
             # get all the seen widget records of user
             all_seen_records = SeenWidget.objects.filter(
-                user=player.user,
+                user2=player.user.id,
             )
 
             # If no seen widgets, proceed with finding a new one
@@ -55,7 +55,7 @@ class RandomWidget(Widget):
             if self.unique_widgets_only:
                 # Track that it was seen through this random widget
                 SeenWidget.objects.create(
-                    user=player.user,
+                    user2=player.user.id,
                     player=player,
                     target_widget=random_widget,
                     container_random_widget=self,
@@ -73,11 +73,6 @@ User = get_user_model()
 
 
 class SeenWidget(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="seen_widget_records",
-    )
     user2 = models.UUIDField(blank=True, null=True)
     player = models.ForeignKey(
         Player,
@@ -97,9 +92,9 @@ class SeenWidget(models.Model):
     seen_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'player', 'target_widget',
+        unique_together = ('user2', 'player', 'target_widget',
                            'container_random_widget')
         indexes = [
-            models.Index(fields=['user', 'player',
+            models.Index(fields=['user2', 'player',
                          'target_widget', 'container_random_widget']),
         ]
