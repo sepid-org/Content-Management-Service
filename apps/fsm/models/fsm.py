@@ -43,6 +43,7 @@ class FSM(models.Model, ObjectMixin):
                                 blank=True)
     mentors = models.ManyToManyField(
         'accounts.User', related_name='fsms', blank=True)
+    mentors2 = models.JSONField(default=list, blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     cover_image = models.URLField()
