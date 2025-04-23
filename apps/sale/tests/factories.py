@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 import factory
 from factory.django import DjangoModelFactory
 
-from apps.accounts.models import DiscountCode, Merchandise, User, UserWebsite
+from apps.accounts.models import DiscountCode, Merchandise, User
 from apps.fsm.models.program import Program
 
 
@@ -12,15 +12,6 @@ class UserFactory(DjangoModelFactory):
         model = User
 
     username = factory.Faker("user_name")
-
-
-class UserWebsiteFactory(DjangoModelFactory):
-    class Meta:
-        model = UserWebsite
-
-    user = factory.SubFactory(UserFactory)
-    website = factory.Sequence(lambda n: f"Web {n}")
-    password = factory.Faker("password")
 
 
 class ProgramFactory(DjangoModelFactory):
