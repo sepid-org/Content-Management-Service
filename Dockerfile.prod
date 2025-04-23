@@ -4,15 +4,19 @@ FROM python:3.11
 # Set work directory
 WORKDIR /usr/src/app
 
-# Install and initialize uv
-RUN pip install uv
+# Install the `uv` helper
+RUN pip install --upgrade pip \
+    && pip install uv
 
-# Copy pyproject file
-COPY pyproject.toml /usr/src/pyproject.toml
+# Copy only dependency manifests for layer-caching
+COPY pyproject.toml ./
 
-# Install Python dependencies (including psycopg2-binary)
+# Install project + extra runtime dependencies
 RUN uv pip install --system . \
-    gunicorn uvicorn psycopg2-binary django_redis
+    && uv pip install gunicorn uvicorn psycopg2-binary django_redis
+
+# Now copy the rest of your application
+COPY . .
 
 # Copy entrypoint script
 COPY ./start.sh /usr/src/app/start.sh
