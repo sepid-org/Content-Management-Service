@@ -78,7 +78,7 @@ class FSMSerializer(serializers.ModelSerializer):
     class Meta:
         model = FSM
         fields = '__all__'
-        read_only_fields = ['id', 'creator', 'mentors', 'first_state']
+        read_only_fields = ['id', 'creator', 'first_state']
 
 
 class EdgeSerializer(serializers.ModelSerializer):

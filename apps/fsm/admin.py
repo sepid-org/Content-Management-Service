@@ -153,19 +153,13 @@ def clone_fsm(modeladmin, request, queryset):
 
 class FSMAdmin(admin.ModelAdmin):
     model = FSM
-    list_display = ['name', 'first_state', 'is_active',
-                    'mentors_num', 'mentors_list', 'online_teams_in_last_hour']
+    list_display = ['name', 'first_state',
+                    'is_active', 'online_teams_in_last_hour']
     list_filter = ['name']
     search_fields = ['name']
-    autocomplete_fields = ['creator', 'mentors',
+    autocomplete_fields = ['creator',
                            'program', 'first_state', '_object']
     actions = [clone_fsm]
-
-    def mentors_list(self, obj):
-        return ','.join(m.full_name for m in obj.mentors.all())
-
-    def mentors_num(self, obj):
-        return len(obj.mentors.all())
 
     def online_teams_in_last_hour(self, obj):
         return round(len(obj.players.filter(

@@ -11,8 +11,7 @@ class FSMManager(models.Manager):
     @transaction.atomic
     def create(self, **args):
         fsm = super().create(**args)
-        fsm.mentors.add(fsm.creator)
-        fsm.save()
+        fsm.add_mentor(fsm.creator.id)
         return fsm
 
 
@@ -41,9 +40,7 @@ class FSM(models.Model, ObjectMixin):
         Program, on_delete=models.SET_NULL, related_name='fsms', null=True, blank=True)
     creator = models.ForeignKey('accounts.User', related_name='created_fsms', on_delete=models.SET_NULL, null=True,
                                 blank=True)
-    mentors = models.ManyToManyField(
-        'accounts.User', related_name='fsms', blank=True)
-    mentors2 = models.JSONField(default=list, blank=True)
+    mentors = models.JSONField(default=list, blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     cover_image = models.URLField()
@@ -136,6 +133,70 @@ class FSM(models.Model, ObjectMixin):
                     ]
                 )
         return questions
+
+    def get_mentor_role(self, user_id: str) -> str:
+        """
+        Returns the role of the given user_id from mentors.
+        If user is not a mentor, returns None.
+        """
+        user_id_str = str(user_id)
+
+        for mentor in self.mentors:
+            if mentor.get("id") == user_id_str:
+                return mentor.get("role")
+
+        return None
+
+    def add_mentor(self, user_id: int, role: str = "manager") -> bool:
+        """
+        Adds a mentor to mentors if not already present.
+        Returns True if added, False if already exists.
+        """
+        if not self.mentors:
+            self.mentors = []
+
+        for mentor in self.mentors:
+            if mentor.get("id") == user_id:
+                return False  # Already exists
+
+        self.mentors.append({"id": user_id, "role": role})
+        self.save(update_fields=["mentors"])
+        return True
+
+    def remove_mentor(self, user_id: int) -> bool:
+        """
+        Removes a mentor from mentors by user_id.
+        Returns True if removed, False if not found.
+        """
+        if not self.mentors:
+            return False
+
+        new_list = [m for m in self.mentors if m.get("id") != user_id]
+        if len(new_list) == len(self.mentors):
+            return False  # Not found
+
+        self.mentors = new_list
+        self.save(update_fields=["mentors"])
+        return True
+
+    def update_mentor_role(self, user_id: int, new_role: str) -> bool:
+        """
+        Updates role of an existing mentor.
+        Returns True if updated, False if user not found.
+        """
+        if not self.mentors:
+            return False
+
+        updated = False
+        for mentor in self.mentors:
+            if mentor.get("id") == user_id:
+                mentor["role"] = new_role
+                updated = True
+                break
+
+        if updated:
+            self.save(update_fields=["mentors"])
+        return updated
 
 
 class Player(models.Model):

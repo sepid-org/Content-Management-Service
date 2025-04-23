@@ -129,7 +129,7 @@ class FSMMentorPermission(permissions.BasePermission):
     message = 'you are not a mentor of this fsm'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.mentors.all() or ProgramAdminPermission().has_object_permission(request, view, obj.program)
+        return obj.get_mentor_role(request.user.id) is not None or ProgramAdminPermission().has_object_permission(request, view, obj.program)
 
 
 class MentorCorrectionPermission(permissions.BasePermission):
@@ -140,7 +140,7 @@ class MentorCorrectionPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if isinstance(obj.problem.paper, State):
-            return request.user in obj.problem.paper.fsm.mentors.all()
+            return obj.problem.paper.fsm.get_mentor_role(request.user.id) is not None
         elif isinstance(obj.problem.paper, RegistrationForm):
             return is_form_modifier(obj.problem.paper, request.user)
         else:
@@ -154,7 +154,7 @@ class PlayerViewerPermission(permissions.BasePermission):
     message = 'you don\'t have necessary access to view this player'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.fsm.mentors.all()
+        return obj.fsm.get_mentor_role(request.user.id) is not None
 
 
 class IsStateModifier(permissions.BasePermission):
@@ -164,7 +164,7 @@ class IsStateModifier(permissions.BasePermission):
     message = 'you are not this state\'s modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.fsm.mentors.all()
+        return obj.fsm.get_mentor_role(request.user.id) is not None
 
 
 class IsHintModifier(permissions.BasePermission):
@@ -174,7 +174,7 @@ class IsHintModifier(permissions.BasePermission):
     message = 'you are not this hint\'s modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.reference.fsm.mentors.all()
+        return obj.reference.fsm.get_mentor_role(request.user.id) is not None
 
 
 class IsEdgeModifier(permissions.BasePermission):
@@ -184,7 +184,8 @@ class IsEdgeModifier(permissions.BasePermission):
     message = 'you are not this edge\'s modifier'
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.tail.fsm.mentors.all() or request.user in obj.head.fsm.mentors.all()
+        return obj.tail.fsm.get_mentor_role(request.user.id) is not None or \
+            obj.head.fsm.get_mentor_role(request.user.id) is not None
 
 
 class IsAnswerModifier(permissions.BasePermission):

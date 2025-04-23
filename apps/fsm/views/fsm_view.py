@@ -73,7 +73,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
     def enter_fsm(self, request, pk=None):
         fsm = self.get_object()
         user = request.user
-        is_mentor = user in fsm.mentors.all()
+        is_mentor = fsm.get_mentor_role(user.id) is not None
 
         # Check participant limit
         if fsm.participant_limit > 0 and not is_mentor:
@@ -210,7 +210,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
             website=request.website,
             raise_exception=True,
         )
-        fsm.mentors.add(new_mentor)
+        fsm.add_mentor(new_mentor.id)
         register_user_in_program(new_mentor, fsm.program)
         return Response()
 
@@ -226,8 +226,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         )
         if removed_mentor == fsm.creator:
             raise ParseError(serialize_error('5006'))
-        if removed_mentor in fsm.mentors.all():
-            fsm.mentors.remove(removed_mentor)
+        fsm.remove_mentor(removed_mentor.id)
         return Response()
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['mentor'])
