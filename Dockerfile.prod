@@ -9,7 +9,7 @@ RUN pip install --upgrade pip \
     && pip install uv
 
 # Copy only dependency manifests for layer-caching
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 
 # Install project + extra runtime dependencies
 RUN uv pip install --system . \
