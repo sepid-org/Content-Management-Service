@@ -78,6 +78,7 @@ class SeenWidget(models.Model):
         on_delete=models.CASCADE,
         related_name="seen_widget_records",
     )
+    user2 = models.UUIDField(blank=True, null=True)
     player = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
