@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from apps.fsm.models.base import Widget, clone_widget
 import random
@@ -67,9 +66,6 @@ class RandomWidget(Widget):
 
     def __str__(self):
         return f'<{self.id}-{self.widget_type}>:{self.name}'
-
-
-User = get_user_model()
 
 
 class SeenWidget(models.Model):
