@@ -11,3 +11,6 @@ static/*
 media/*
 venv/*
 db.sqlite3
+.ruff_cache
+.coverage
+.coverage.*

@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "content-management-service"
+version = "0.1.0"
+description = "CMS Dependency"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sepid Organization" }]
+dependencies = [
+    "beautifulsoup4==4.13.3",
+    "celery==5.4.0",
+    "django-cors-headers==3.13.0",
+    "django==5.1",
+    "django-extensions==3.2.1",
+    "django-filter==22.1",
+    "django-import-export==3.0.1",
+    "django-link-shortener==0.5",
+    "django-minio-storage==0.5.7",
+    "django-polymorphic==3.1.0",
+    "django-rest-polymorphic==0.1.10",
+    "djangorestframework==3.14.0",
+    "djangorestframework-simplejwt==5.2.2",
+    "drf-yasg==1.21.4",
+    "jdatetime==5.0.0",
+    "kavenegar==1.1.2",
+    "minio==7.2.0",
+    "numpy==1.25.2",
+    "pandas==2.0.3",
+    "pillow==11.1.0",
+    "python-dotenv==1.0.1",
+    "pytz==2022.6",
+    "requests==2.32.3",
+    "rest-framework-simplejwt==0.0.2",
+    "sentry-sdk==2.22.0",
+    "six==1.16.0",
+    "urllib3==1.26.12",
+    "users==1.0.dev0",
+    "factory-boy>=3.3.3",
+    "coverage>=7.6.12",
+    "xlsxwriter>=3.2.2",
+    "setuptools>=79.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["coverage>=7.6.12", "factory-boy>=3.3.3", "ruff>=0.9.9"]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps", "proxies", "utils", "errors", "content_management_service"]
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "B",  # flake8-bugbear
+    "I",  # isort
+    "DJ", # django errors
+]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
