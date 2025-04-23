@@ -275,6 +275,7 @@ dependencies = [
     { name = "django-minio-storage" },
     { name = "django-polymorphic" },
     { name = "django-rest-polymorphic" },
+    { name = "django-storages" },
     { name = "djangorestframework" },
     { name = "djangorestframework-simplejwt" },
     { name = "drf-yasg" },
@@ -319,6 +320,7 @@ requires-dist = [
     { name = "django-minio-storage", specifier = "==0.5.7" },
     { name = "django-polymorphic", specifier = "==3.1.0" },
     { name = "django-rest-polymorphic", specifier = "==0.1.10" },
+    { name = "django-storages", specifier = ">=1.14.6" },
     { name = "djangorestframework", specifier = "==3.14.0" },
     { name = "djangorestframework-simplejwt", specifier = "==5.2.2" },
     { name = "drf-yasg", specifier = "==1.21.4" },
@@ -545,6 +547,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f4/86/285f7da71ecd82ce6f1765ffb74425faf8244d8554cb6d00542286157701/django-rest-polymorphic-0.1.10.tar.gz", hash = "sha256:2960f58ed9a8bb0d42bc72c8ffaadfbd7f37d2573d42a1cd9a6460f3d572b519", size = 6464 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/90/e20bde06ea67111718ad8d03e21cccdfe37e24ccdff30ea22100a3004070/django_rest_polymorphic-0.1.10-py2.py3-none-any.whl", hash = "sha256:f3980e3e2af73357e7913f9b1410ef856866bcfcc46903b70fe9621118bb538c", size = 6027 },
+]
+
+[[package]]
+name = "django-storages"
+version = "1.14.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/d6/2e50e378fff0408d558f36c4acffc090f9a641fd6e084af9e54d45307efa/django_storages-1.14.6.tar.gz", hash = "sha256:7a25ce8f4214f69ac9c7ce87e2603887f7ae99326c316bc8d2d75375e09341c9", size = 87587 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/21/3cedee63417bc5553eed0c204be478071c9ab208e5e259e97287590194f1/django_storages-1.14.6-py3-none-any.whl", hash = "sha256:11b7b6200e1cb5ffcd9962bd3673a39c7d6a6109e8096f0e03d46fab3d3aabd9", size = 33095 },
 ]
 
 [[package]]
