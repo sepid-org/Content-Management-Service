@@ -51,7 +51,10 @@ def create_discount_code(
 
     # Add merchandises
     for merchandise_id in merchandise_ids:
-        merchandise = Merchandise.objects.get(id=merchandise_id)
+        try:
+            merchandise = Merchandise.objects.get(id=merchandise_id)
+        except Merchandise.DoesNotExist:
+            continue
         discount_code.merchandises.add(merchandise)
 
     # Add user (if provided)
