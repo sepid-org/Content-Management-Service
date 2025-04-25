@@ -154,7 +154,8 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 18
+    'PAGE_SIZE': 18,
+    'EXCEPTION_HANDLER': 'content_management_service.exception_handler.custom_exception_handler',
 }
 
 
