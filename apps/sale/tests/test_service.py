@@ -66,14 +66,159 @@ class TestDiscountCodeOperations(BaseTestCase):
         )
 
         discount_code = get_program_discount_codes()
-        
-        print(">> User: ", self.user)
-        print(">> User Website: ", self.user.user_websites)
-        print(">> Website: ", self.website.user)
-        print(">> DiscountCode: ", discount_code)
 
         self.assertEqual(DiscountCode.objects.count(), 2)
         self.assertEqual(discount_code[0].value, 0.5)
         self.assertEqual(discount_code[0].remaining, 1)
         self.assertIn(self.merchandise, discount_code[0].merchandises.all())
         self.assertEqual(self.user, discount_code[0].user)
+
+    def test_create_discount_code_with_invalid_user(self):
+        data = {
+            "code": "DISCODE50",
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username="invalid_user",
+            )
+
+    def test_create_discount_code_with_invalid_merchandise(self):
+        data = {
+            "code": "DISCODE50",
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[9999],  # Invalid merchandise ID
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_expired_date(self):
+        data = {
+            "code": "DISCODE50",
+            "value": 0.5,
+            "expiration_date": datetime.now() - timedelta(days=1),  # Expired date
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_invalid_value(self):
+        data = {
+            "code": "DISCODE50",
+            "value": 1.5,  # Invalid value (greater than 1)
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_empty_code(self):
+        data = {
+            "code": "",  # Empty code
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_non_unique_code(self):
+        data = {
+            "code": "TESTCODE",  # Non-unique code
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_zero_remaining(self):
+        data = {
+            "code": "DISCODE0",
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 0,  # Zero remaining
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_negative_remaining(self):
+        data = {
+            "code": "DISCODE-1",
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": -1,  # Negative remaining
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_non_numeric_value(self):
+        data = {
+            "code": "DISCODEABC",
+            "value": "abc",  # Non-numeric value
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": 1,
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
+
+    def test_create_discount_code_with_non_numeric_remaining(self):
+        data = {
+            "code": "DISCODEABC",
+            "value": 0.5,
+            "expiration_date": datetime.now() + timedelta(days=30),
+            "remaining": "abc",  # Non-numeric remaining
+        }
+
+        with self.assertRaises(ValueError):
+            create_discount_code(
+                data=data,
+                merchandise_ids=[self.merchandise.id],
+                username=self.user.username,
+            )
