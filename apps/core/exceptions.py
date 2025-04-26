@@ -1,4 +1,4 @@
-from error_codes import (
+from apps.core.error_codes import (
     ACCOUNT_ERRORS,
     DISCOUNT_ERRORS,
     MERCHANDISE_ERRORS,
@@ -38,40 +38,40 @@ class SaleException(ServiceException):
 class DiscountCodeException(SaleException):
     "Base exception for discount code operations"
 
-    default_message = DISCOUNT_ERRORS["discount_code_error"]
+    default_message = DISCOUNT_ERRORS["dc_error"]
     default_code = "discount_code_error"
 
 
 class DiscountCodeNotFound(DiscountCodeException):
-    default_message = DISCOUNT_ERRORS["discount_code_not_found"]
+    default_message = DISCOUNT_ERRORS["dc_not_found"]
     default_code = "discount_code_not_found"
 
 
 class DiscountCodeExpired(DiscountCodeException):
-    default_message = DISCOUNT_ERRORS["discount_code_expired"]
+    default_message = DISCOUNT_ERRORS["dc_expired"]
     default_code = "discount_code_expired"
 
 
 class DiscountCodeExhausted(DiscountCodeException):
-    default_message = DISCOUNT_ERRORS["discount_code_exhausted"]
+    default_message = DISCOUNT_ERRORS["dc_exhausted"]
     default_code = "discount_code_exhausted"
 
 
 class DiscountCodeInvalidUser(DiscountCodeException):
-    default_message = DISCOUNT_ERRORS["discount_code_invalid_user"]
+    default_message = DISCOUNT_ERRORS["dc_invalid_user"]
     default_code = "discount_code_invalid_user"
 
 
 class DiscountCodeInvalidMerchandise(DiscountCodeException):
-    default_message = DISCOUNT_ERRORS["discount_code_invalid_merchandise"]
+    default_message = DISCOUNT_ERRORS["dc_invalid_merchandise"]
     default_code = "discount_code_invalid_merchandise"
 
 
 class MerchandiseException(SaleException):
-    default_message = MERCHANT_ERRORS["merchandise_error"]
+    default_message = MERCHANDISE_ERRORS["merchandise_error"]
     default_code = "merchandise_error"
 
 
 class MerchandiseNotFound(SaleException):
-    default_message = SALE_ERRORS["merchandise_not_found"]
+    default_message = MERCHANDISE_ERRORS["merchandise_not_found"]
     default_code = "merchandise_not_found"

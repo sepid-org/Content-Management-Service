@@ -14,12 +14,15 @@ SALE_ERRORS = {
 
 MERCHANDISE_ERRORS = {
     "merchandise_error": "An error occurred in the merchant service",
+    "merchandise_not_found": "Merchandise not found",
+    "merchandise_invalid": "Merchandise is invalid",
 }
 
 DISCOUNT_ERRORS = {
-    "discount_code_error": "An error occurred with the discount code",
-    "discount_code_not_found": "Discount code not found",
-    "discount_code_expired": "Discount code has expired",
-    "discount_code_exhausted": "Discount code has no remaining uses",
-    "discount_code_invalid_user": "Discount code is not valid for this user",
+    "dc_error": "An error occurred with the discount code",
+    "dc_not_found": "Discount code not found",
+    "dc_expired": "Discount code has expired",
+    "dc_exhausted": "Discount code has no remaining uses",
+    "dc_invalid_user": "Discount code is not valid for this user",
+    "dc_invalid_merchandise": "Discount code is not valid for this merchandise",
 }
