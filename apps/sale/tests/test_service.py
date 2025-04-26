@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 
 from apps.accounts.models import DiscountCode
+from apps.core.exceptions import DiscountCodeInvalidUser, MerchandiseNotFound
 from apps.sale.services.discount_code_service import (
     create_discount_code,
     get_program_discount_codes,
@@ -81,7 +82,7 @@ class TestDiscountCodeOperations(BaseTestCase):
             "remaining": 1,
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(DiscountCodeInvalidUser):
             create_discount_code(
                 data=data,
                 merchandise_ids=[self.merchandise.id],
@@ -96,7 +97,7 @@ class TestDiscountCodeOperations(BaseTestCase):
             "remaining": 1,
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(MerchandiseNotFound):
             create_discount_code(
                 data=data,
                 merchandise_ids=[9999],  # Invalid merchandise ID
