@@ -360,7 +360,7 @@ class ProgramCustomAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'name']
     search_fields = ['name']
     autocomplete_fields = ['admins',  'registration_form',
-                           'program_contact_info', 'creator']
+                           'program_contact_info', 'creator', 'menu']
 
 
 @admin.register(UploadFileProblem)

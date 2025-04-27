@@ -61,6 +61,14 @@ class Program(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_public = models.BooleanField(default=False)
 
+    menu = models.ForeignKey(
+        to='fsm.FSM',
+        related_name='menu_program',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
     def __str__(self):
         return self.name
 

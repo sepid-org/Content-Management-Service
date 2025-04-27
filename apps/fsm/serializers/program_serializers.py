@@ -2,10 +2,11 @@ from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
 from apps.fsm.serializers.form.registration_form_serializer import RegistrationFormSerializer
+from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils.utils import add_admin_to_program
 from errors.error_codes import serialize_error
-from apps.fsm.models import Program, RegistrationForm
+from apps.fsm.models import Program
 
 
 class ProgramSummarySerializer(serializers.ModelSerializer):
@@ -25,8 +26,13 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
 
 class ProgramSerializer(serializers.ModelSerializer):
+    menu_first_state = serializers.SerializerMethodField()
     program_contact_info = ProgramContactInfoSerializer(
         required=False, allow_null=True)
+
+    def get_menu_first_state(self, obj):
+        if obj.menu is not None:
+            return obj.menu.first_state_id
 
     def create(self, validated_data):
         registration_form_serializer = RegistrationFormSerializer(
@@ -106,6 +112,7 @@ class ProgramSerializer(serializers.ModelSerializer):
             'registration_form',
             'program_contact_info',
             'website',
+            'menu_first_state',
         ]
         read_only_fields = [
             'id',
