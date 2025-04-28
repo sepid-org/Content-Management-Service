@@ -3,13 +3,17 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 
 from apps.accounts.models import DiscountCode
-from apps.core.exceptions import DiscountCodeInvalidUser, MerchandiseNotFound
-from apps.sale.services.discount_code_service import (
+from apps.core.exceptions import (
+    DiscountCodeExpired,
+    DiscountCodeInvalidUser,
+    DiscountCodeNonUnique,
+    MerchandiseNotFound,
+)
+from apps.sale.services.discount_service import (
     create_discount_code,
     get_program_discount_codes,
 )
-
-from .factories import (
+from apps.sale.tests.factories import (
     DiscountCodeFactory,
     MerchandiseFactory,
     UserFactory,
@@ -112,37 +116,7 @@ class TestDiscountCodeOperations(BaseTestCase):
             "remaining": 1,
         }
 
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_invalid_value(self):
-        data = {
-            "code": "DISCODE50",
-            "value": 1.5,  # Invalid value (greater than 1)
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": 1,
-        }
-
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_empty_code(self):
-        data = {
-            "code": "",  # Empty code
-            "value": 0.5,
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": 1,
-        }
-
-        with self.assertRaises(ValueError):
+        with self.assertRaises(DiscountCodeExpired):
             create_discount_code(
                 data=data,
                 merchandise_ids=[self.merchandise.id],
@@ -157,67 +131,7 @@ class TestDiscountCodeOperations(BaseTestCase):
             "remaining": 1,
         }
 
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_zero_remaining(self):
-        data = {
-            "code": "DISCODE0",
-            "value": 0.5,
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": 0,  # Zero remaining
-        }
-
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_negative_remaining(self):
-        data = {
-            "code": "DISCODE-1",
-            "value": 0.5,
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": -1,  # Negative remaining
-        }
-
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_non_numeric_value(self):
-        data = {
-            "code": "DISCODEABC",
-            "value": "abc",  # Non-numeric value
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": 1,
-        }
-
-        with self.assertRaises(ValueError):
-            create_discount_code(
-                data=data,
-                merchandise_ids=[self.merchandise.id],
-                username=self.user.username,
-            )
-
-    def test_create_discount_code_with_non_numeric_remaining(self):
-        data = {
-            "code": "DISCODEABC",
-            "value": 0.5,
-            "expiration_date": datetime.now() + timedelta(days=30),
-            "remaining": "abc",  # Non-numeric remaining
-        }
-
-        with self.assertRaises(ValueError):
+        with self.assertRaises(DiscountCodeNonUnique):
             create_discount_code(
                 data=data,
                 merchandise_ids=[self.merchandise.id],

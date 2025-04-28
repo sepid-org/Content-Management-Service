@@ -1,10 +1,15 @@
 from typing import Any, Optional
 
 from django.db import transaction
+from django.utils import timezone
 
 from apps.accounts.models import DiscountCode, Merchandise
 from apps.accounts.utils.user_management import find_user
-from apps.core.exceptions import DiscountCodeInvalidUser, MerchandiseNotFound
+from apps.core.exceptions import (
+    DiscountCodeExpired,
+    DiscountCodeInvalidUser,
+    MerchandiseNotFound,
+)
 
 
 def get_program_discount_codes(
@@ -47,6 +52,12 @@ def create_discount_code(
     Returns:
         The created DiscountCode instance
     """
+    expires_at = data.get("expiration_date")
+    if expires_at is not None and expires_at < timezone.now():
+        raise DiscountCodeExpired(
+            details={"expiration_date": expires_at}
+        )
+
     # Create discount code
     discount_code = DiscountCode.objects.create_discount_code(**data)
 
