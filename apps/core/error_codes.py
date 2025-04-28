@@ -22,6 +22,7 @@ DISCOUNT_ERRORS = {
     "dc_error": "An error occurred with the discount code",
     "dc_not_found": "Discount code not found",
     "dc_expired": "Discount code has expired",
+    "dc_non_unique": "Discount code must be unique",
     "dc_exhausted": "Discount code has no remaining uses",
     "dc_invalid_user": "Discount code is not valid for this user",
     "dc_invalid_merchandise": "Discount code is not valid for this merchandise",

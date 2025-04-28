@@ -52,6 +52,11 @@ class DiscountCodeExpired(DiscountCodeException):
     default_code = "discount_code_expired"
 
 
+class DiscountCodeNonUnique(DiscountCodeException):
+    default_message = DISCOUNT_ERRORS["dc_non_unique"]
+    default_code = "discount_code_non_unique"
+
+
 class DiscountCodeExhausted(DiscountCodeException):
     default_message = DISCOUNT_ERRORS["dc_exhausted"]
     default_code = "discount_code_exhausted"
