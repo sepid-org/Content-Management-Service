@@ -1,11 +1,12 @@
+from datetime import datetime
 from typing import Any, Optional
 
-from django.db import transaction
-from django.utils import timezone
+from django.db import IntegrityError, transaction
 
 from apps.accounts.models import DiscountCode, Merchandise
 from apps.accounts.utils.user_management import find_user
-from apps.core.exceptions import (
+from apps.sale.exceptions import (
+    DiscountCodeDuplicate,
     DiscountCodeExpired,
     DiscountCodeInvalidUser,
     MerchandiseNotFound,
@@ -53,13 +54,14 @@ def create_discount_code(
         The created DiscountCode instance
     """
     expires_at = data.get("expiration_date")
-    if expires_at is not None and expires_at < timezone.now():
-        raise DiscountCodeExpired(
-            details={"expiration_date": expires_at}
-        )
+    if expires_at is not None and expires_at < datetime.now():
+        raise DiscountCodeExpired(details={"expiration_date": expires_at})
 
     # Create discount code
-    discount_code = DiscountCode.objects.create_discount_code(**data)
+    try:
+        discount_code = DiscountCode.objects.create_discount_code(**data)
+    except IntegrityError as err:
+        raise DiscountCodeDuplicate(details={"code": data["code"]}) from err
 
     # Add merchandises
     for merchandise_id in merchandise_ids:

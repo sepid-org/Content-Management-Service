@@ -3,10 +3,10 @@ from datetime import datetime, timedelta
 from django.test import TestCase
 
 from apps.accounts.models import DiscountCode
-from apps.core.exceptions import (
+from apps.sale.exceptions import (
+    DiscountCodeDuplicate,
     DiscountCodeExpired,
     DiscountCodeInvalidUser,
-    DiscountCodeNonUnique,
     MerchandiseNotFound,
 )
 from apps.sale.services.discount_service import (
@@ -112,7 +112,8 @@ class TestDiscountCodeOperations(BaseTestCase):
         data = {
             "code": "DISCODE50",
             "value": 0.5,
-            "expiration_date": datetime.now() - timedelta(days=1),  # Expired date
+            "expiration_date": datetime.now()
+            - timedelta(days=1),  # Expired date
             "remaining": 1,
         }
 
@@ -123,15 +124,15 @@ class TestDiscountCodeOperations(BaseTestCase):
                 username=self.user.username,
             )
 
-    def test_create_discount_code_with_non_unique_code(self):
+    def test_create_discount_code_with_duplicate_code(self):
         data = {
-            "code": "TESTCODE",  # Non-unique code
+            "code": "TESTCODE",  # Duplicate code
             "value": 0.5,
             "expiration_date": datetime.now() + timedelta(days=30),
             "remaining": 1,
         }
 
-        with self.assertRaises(DiscountCodeNonUnique):
+        with self.assertRaises(DiscountCodeDuplicate):
             create_discount_code(
                 data=data,
                 merchandise_ids=[self.merchandise.id],
