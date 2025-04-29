@@ -1,7 +1,27 @@
-.PHONY: test.% test lint format install install-dev clean run
+.PHONY: test.% test lint format install install-dev clean run help coverage
 
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
 export DJANGO_SETTINGS_MODULE := content_management_service.settings.development
+
+# Help command
+help:
+	@echo "Available commands:"
+	@echo "  make install          - Install dependencies"
+	@echo "  make install-dev      - Install development dependencies"
+	@echo "  make lint             - Run linter checks"
+	@echo "  make format           - Format code"
+	@echo "  make test             - Run all tests"
+	@echo "  make test.app         - Run all tests for a specific app"
+	@echo "  make test.app.module  - Run tests for a specific module"
+	@echo "  make test.app.module.class       - Run tests for a specific class"
+	@echo "  make test.app.module.class.method - Run a specific test method"
+	@echo "  make coverage         - Generate test coverage report"
+	@echo "  make run              - Start development server"
+	@echo "  make run-prod         - Start production server"
+	@echo "  make clean            - Remove build artifacts and cache files"
+	@echo ""
+	@echo "Example:"
+	@echo "  make test.sale.api.test_discount_api"
 
 # Installation targets
 install:
@@ -26,6 +46,7 @@ test:
 	@echo "Running all tests"
 	@export DJANGO_SETTINGS_MODULE=content_management_service.settings.test && coverage run manage.py test
 
+# Special pattern rule for running tests with dot notation
 test.%:
 	$(eval export DJANGO_SETTINGS_MODULE=content_management_service.settings.test)
 	$(eval PARTS := $(subst ., ,$*))
@@ -49,6 +70,13 @@ test.%:
 			coverage run manage.py test apps.$(APP).tests; \
 		fi; \
 	fi
+
+# Coverage report
+coverage:
+	@echo "Generating coverage report..."
+	@coverage report -m
+	@coverage html
+	@echo "HTML report generated in htmlcov/ directory"
 
 # Run targets
 run:
