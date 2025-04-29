@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.models import DiscountCode
 from apps.accounts.permissions import IsDiscountCodeModifier
 from apps.sale.serializers.discount_code import DiscountCodeSerializer
-from apps.sale.services.discount_code_service import (
+from apps.sale.services.discount_service import (
     create_discount_code,
     get_program_discount_codes,
 )
