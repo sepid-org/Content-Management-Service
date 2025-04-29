@@ -10,7 +10,7 @@ class TestDiscountCodeSerializer(TestCase):
         data = {
             "code": "DISCODE50",
             "value": 0.5,
-            "expiration_date": "2025-12-31",  # Non-datetime value
+            "expiration_date": "abc",  # Non-datetime value
             "remaining": 1,
         }
         serializer = DiscountCodeSerializer(data=data)
