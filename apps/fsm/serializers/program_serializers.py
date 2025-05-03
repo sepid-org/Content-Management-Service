@@ -26,11 +26,11 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
 
 
 class ProgramSerializer(serializers.ModelSerializer):
-    menu_first_state = serializers.SerializerMethodField()
+    menu_first_state_id = serializers.SerializerMethodField()
     program_contact_info = ProgramContactInfoSerializer(
         required=False, allow_null=True)
 
-    def get_menu_first_state(self, obj):
+    def get_menu_first_state_id(self, obj):
         if obj.menu is not None:
             return obj.menu.first_state_id
 
@@ -112,7 +112,8 @@ class ProgramSerializer(serializers.ModelSerializer):
             'registration_form',
             'program_contact_info',
             'website',
-            'menu_first_state',
+            'menu',
+            'menu_first_state_id',
         ]
         read_only_fields = [
             'id',
