@@ -1,35 +1,48 @@
 from apps.fsm.models.fsm import State
 from rest_framework.exceptions import ParseError
 from rest_framework import serializers
-from apps.fsm.models import Player
 
 from apps.fsm.serializers.object_serializer import ObjectSerializer
+from apps.fsm.serializers.papers.paper_serializer import PaperSerializer
+from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from errors.error_codes import serialize_error
-from apps.fsm.models import Program, FSM, Edge, Team
+from apps.fsm.models import Program, FSM, Edge, Team, State, Paper
 
 
-class FSMMinimalSerializer(serializers.ModelSerializer):
+class FSMPublicListSerializer(serializers.ModelSerializer):
+    """
+    Public listing serializer for FSMs. Includes nested object info and player count.
+    """
+    object = ObjectSerializer(source='_object', read_only=True)
+    players_count = serializers.SerializerMethodField()
 
     class Meta:
         model = FSM
-        fields = ['id', 'name', 'description', 'cover_image', 'is_active', 'is_visible',
-                  'fsm_learning_type', 'fsm_p_type', 'card_type', 'show_roadmap',
-                  'show_player_performance_on_end']
+        fields = [
+            'id', 'object', 'name', 'description',
+            'cover_image', 'is_active', 'is_visible', 'card_type',
+            'players_count'
+        ]
+        read_only_fields = fields
 
-    def to_representation(self, instance):
-        representation = super(FSMMinimalSerializer,
-                               self).to_representation(instance)
-        user = self.context.get('user', None)
-        representation['players_count'] = len(
-            Player.objects.filter(fsm=instance))
-        return representation
+    def get_players_count(self, obj):
+        return obj.players.count()
 
 
 class FSMSerializer(serializers.ModelSerializer):
-    program_slug = serializers.SerializerMethodField()
+    program_slug = serializers.CharField(source='program.slug', read_only=True)
+    object_id = serializers.IntegerField(source='_object_id', read_only=True)
+    first_state = StateSerializer()
 
-    def get_program_slug(self, obj):
-        return obj.program.slug
+    class Meta:
+        model = FSM
+        fields = [
+            'id', 'object_id', 'program', 'program_slug', 'name',
+            'description', 'cover_image', 'is_active', 'is_visible',
+            'first_state', 'fsm_learning_type', 'fsm_p_type',
+            'show_roadmap', 'show_player_performance_on_end', 'duration',
+        ]
+        read_only_fields = ['id', 'first_state']
 
     def validate(self, attrs):
         program = attrs.get('program', None)
@@ -75,10 +88,26 @@ class FSMSerializer(serializers.ModelSerializer):
 
         return representation
 
+
+class FSMAllStatesSerializer(serializers.ModelSerializer):
+    states = StateSerializer(many=True)
+
     class Meta:
         model = FSM
-        fields = '__all__'
-        read_only_fields = ['id', 'creator', 'first_state']
+        fields = ['id', 'states']
+
+
+class FSMAllPapersSerializer(serializers.ModelSerializer):
+    papers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FSM
+        fields = ['papers']
+
+    def get_papers(self, fsm):
+        # grab all Papers linked to any State of this FSM, deduped
+        qs = Paper.objects.filter(states__fsm=fsm).distinct()
+        return PaperSerializer(qs, many=True, context=self.context).data
 
 
 class EdgeSerializer(serializers.ModelSerializer):

@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth.models import AnonymousUser
 from django_filters import rest_framework as filters
 
 from apps.accounts.serializers.user_serializer import UserSerializer
@@ -14,10 +13,10 @@ from apps.accounts.utils.user_management import find_user_in_website
 from apps.fsm.models.fsm import Player, State
 from apps.fsm.pagination import StandardPagination
 from apps.fsm.serializers.papers.state_serializer import StateSerializer
-from errors.error_codes import ErrorCodes, serialize_error
+from errors.error_codes import serialize_error
 from apps.fsm.models import FSM, Problem
 from apps.fsm.permissions import FSMMentorPermission, HasActiveRegistration
-from apps.fsm.serializers.fsm_serializers import FSMMinimalSerializer, FSMSerializer, EdgeSerializer, TeamGetSerializer
+from apps.fsm.serializers.fsm_serializers import FSMPublicListSerializer, FSMSerializer, FSMAllStatesSerializer, FSMAllPapersSerializer, EdgeSerializer, TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer, PlayerMinimalSerializer
 from apps.widgets.serializers.mock_widget_serializer import MockWidgetSerializer
 from apps.widgets.serializers.widget_polymorphic_serializer import WidgetPolymorphicSerializer
@@ -59,7 +58,7 @@ class FSMViewSet(CacheEnabledModelViewSet):
         if self.action in ['players']:
             return PlayerSerializer
         if self.action in ['list']:
-            return FSMMinimalSerializer
+            return FSMPublicListSerializer
         else:
             return super().get_serializer_class()
 
@@ -67,6 +66,18 @@ class FSMViewSet(CacheEnabledModelViewSet):
         context = super().get_serializer_context()
         context.update({'user': self.request.user})
         return context
+
+    @action(detail=True, methods=['get'], url_path='all-states')
+    def fsm_all_states(self, request, pk=None):
+        fsm = self.get_object()
+
+        return Response(FSMAllStatesSerializer(fsm).data)
+
+    @action(detail=True, methods=['get'], url_path='all-papers')
+    def fsm_all_papers(self, request, pk=None):
+        fsm = self.get_object()
+
+        return Response(FSMAllPapersSerializer(fsm).data)
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @action(detail=True, methods=['post'])
