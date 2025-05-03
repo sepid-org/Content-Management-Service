@@ -71,13 +71,13 @@ class FSMViewSet(CacheEnabledModelViewSet):
     def fsm_all_states(self, request, pk=None):
         fsm = self.get_object()
 
-        return Response(FSMAllStatesSerializer(fsm).data)
+        return Response(FSMAllStatesSerializer(fsm, context={'request': request}).data)
 
     @action(detail=True, methods=['get'], url_path='all-papers')
     def fsm_all_papers(self, request, pk=None):
         fsm = self.get_object()
 
-        return Response(FSMAllPapersSerializer(fsm).data)
+        return Response(FSMAllPapersSerializer(fsm, context={'request': request}).data)
 
     @swagger_auto_schema(responses={200: PlayerSerializer}, tags=['player'])
     @action(detail=True, methods=['post'])
