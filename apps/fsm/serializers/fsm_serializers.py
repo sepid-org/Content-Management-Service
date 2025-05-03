@@ -32,17 +32,18 @@ class FSMPublicListSerializer(serializers.ModelSerializer):
 class FSMSerializer(serializers.ModelSerializer):
     program_slug = serializers.CharField(source='program.slug', read_only=True)
     object_id = serializers.IntegerField(source='_object_id', read_only=True)
-    first_state = StateSerializer()
+    first_state_id = serializers.IntegerField(
+        source='first_state.id', read_only=True)
 
     class Meta:
         model = FSM
         fields = [
             'id', 'object_id', 'program', 'program_slug', 'name',
             'description', 'cover_image', 'is_active', 'is_visible',
-            'first_state', 'fsm_learning_type', 'fsm_p_type',
+            'first_state_id', 'fsm_learning_type', 'fsm_p_type',
             'show_roadmap', 'show_player_performance_on_end', 'duration',
         ]
-        read_only_fields = ['id', 'first_state']
+        read_only_fields = ['id', 'first_state_id']
 
     def validate(self, attrs):
         program = attrs.get('program', None)
