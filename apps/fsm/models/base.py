@@ -228,8 +228,8 @@ class WidgetHint(Paper):
 
 def clone_hint(hint, reference_paper):
     cloned_hint = clone_paper(hint, reference=reference_paper)
-    cloned_widgets = [widget.clone(cloned_hint)
-                      for widget in hint.widgets.all()]
+    for widget in hint.widgets.all():
+        widget.clone(cloned_hint)
     return cloned_hint
 
 
@@ -256,14 +256,6 @@ def clone_widget(widget, paper, *args, **kwargs):
     ]
 
     return cloned_widget
-
-
-def clone_hint(hint, reference_paper):
-    cloned_hint = clone_paper(hint, reference=reference_paper)
-    cloned_widgets = [
-        widget.clone(cloned_hint) for widget in hint.widgets.all()
-    ]
-    return cloned_hint
 
 
 def clone_paper(paper, *args, **kwargs):

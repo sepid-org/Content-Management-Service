@@ -11,7 +11,8 @@ class FSMManager(models.Manager):
     @transaction.atomic
     def create(self, **args):
         fsm = super().create(**args)
-        fsm.add_mentor(fsm.creator.id)
+        if fsm.creator:
+            fsm.add_mentor(fsm.creator.id)
         return fsm
 
 
@@ -88,32 +89,46 @@ class FSM(models.Model, ObjectMixin):
 
     @transaction.atomic
     def clone(self):
-        cloned_fsm = FSM(
-            name=self.name,
-            description=self.description,
-            cover_image=self.cover_image,
-            is_active=self.is_active,
-            fsm_learning_type=self.fsm_learning_type,
-            fsm_p_type=self.fsm_p_type,
-            team_size=self.team_size,
-        )
+        # 0) clone the underlying Object so you carry over title, attributes, position, etc.
+        new_obj = self._object.clone()
 
-        cloned_states = {}
-        cloned_fsm.save()
-        for tail_state in self.states.all():
-            for outward_edge in tail_state.outward_edges.all():
-                if tail_state.id not in cloned_states:
-                    cloned_states[tail_state.id] = tail_state.clone(cloned_fsm)
+        # 1) pick up every scalar field you want to duplicate
+        clone_fields = [
+            'name', 'description', 'cover_image', 'is_active', 'is_public', 'website',
+            'is_visible', 'fsm_learning_type', 'fsm_p_type', 'team_size',
+            'show_roadmap', 'show_player_performance_on_end',
+            'participant_limit', 'duration', 'card_type', 'program_id',
+        ]
+        data = {f: getattr(self, f) for f in clone_fields}
 
-                head_state = outward_edge.head
-                if head_state.id not in cloned_states:
-                    cloned_states[head_state.id] = head_state.clone(cloned_fsm)
+        # inject the cloned Object
+        data.update({
+            '_object': new_obj,
+        })
 
-                cloned_outward_edge = outward_edge.clone(cloned_states[tail_state.id],
-                                                         cloned_states[head_state.id])
+        # 2) create the new FSM
+        cloned_fsm = FSM.objects.create(**data)
 
-        cloned_fsm.first_state = cloned_states[self.first_state.id]
-        cloned_fsm.save()
+        # 3) clone all states (which now also clones their papers, via State.clone)
+        state_map = {
+            state.pk: state.clone(fsm=cloned_fsm)
+            for state in self.states.all()
+        }
+
+        # 4) re‐wire edges between cloned states
+        for orig in self.states.all():
+            for edge in orig.outward_edges.all():
+                edge.clone(
+                    tail=state_map[orig.pk],
+                    head=state_map[edge.head_id]
+                )
+
+        # 5) point at the new first_state
+        if self.first_state_id in state_map:
+            cloned_fsm.first_state = state_map[self.first_state_id]
+            cloned_fsm.save(update_fields=['first_state'])
+
+        return cloned_fsm
 
     def get_fsm(fsm_id: int):
         return FSM.objects.filter(id=fsm_id).first()
@@ -190,7 +205,7 @@ class FSM(models.Model, ObjectMixin):
         """
         if not self.mentors:
             return False
-        
+
         user_id_str = str(user_id)
 
         updated = False
@@ -309,11 +324,40 @@ class State(Object):
             pass
         return super().delete()
 
+    @transaction.atomic
     def clone(self, fsm):
-        cloned_state = clone_paper(self, fsm=fsm)
-        cloned_widgets = [widget.clone(cloned_state)
-                          for widget in self.widgets.all()]
-        cloned_hints = [hint.clone(cloned_state) for hint in self.hints.all()]
+        # 1) pick up all scalar fields from both Object (base) and State (subclass)
+        clone_fields = [
+            # from Object (PolymorphicModel):
+            'title', 'name', 'creator', 'is_private', 'order', 'is_hidden', 'website',
+            # from State:
+            'template', 'show_appbar', 'is_end',
+        ]
+
+        # build the kwargs for the new instance
+        data = {f: getattr(self, f) for f in clone_fields}
+        data['fsm'] = fsm
+
+        # 2) create the new State row
+        cloned_state = State.objects.create(**data)
+
+        # 3) copy over any attributes (the M2M on Object)
+        cloned_state.attributes.set(self.attributes.all())
+
+        # 4) deep‑clone every Paper via the through‑model (preserving order)
+        for sp in StatePaper.objects.filter(state=self).order_by('order'):
+            orig = sp.paper
+            new_paper = orig.clone()   # your Paper.clone() should recurse into widgets/hints
+            StatePaper.objects.create(
+                state=cloned_state,
+                paper=new_paper,
+                order=sp.order
+            )
+
+        # 5) clone any loose hints attached directly to this State
+        for hint in self.hints.all():
+            hint.clone(cloned_state)
+
         return cloned_state
 
     def __str__(self):
