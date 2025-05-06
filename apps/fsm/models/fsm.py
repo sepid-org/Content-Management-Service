@@ -345,13 +345,13 @@ class State(Object):
         cloned_state.attributes.set(self.attributes.all())
 
         # 4) deep‑clone every Paper via the through‑model (preserving order)
-        for sp in StatePaper.objects.filter(state=self).order_by('order'):
-            orig = sp.paper
-            new_paper = orig.clone()   # your Paper.clone() should recurse into widgets/hints
+        for paper in self.papers.all():
+            state_paper = StatePaper.objects.get(state=self, paper=paper)
+            new_paper = paper.clone()   # your Paper.clone() should recurse into widgets/hints
             StatePaper.objects.create(
                 state=cloned_state,
                 paper=new_paper,
-                order=sp.order
+                order=state_paper.order
             )
 
         # 5) clone any loose hints attached directly to this State
