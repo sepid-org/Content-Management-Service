@@ -412,6 +412,7 @@ class MultiChoiceProblemCustomAdmin(ProblemCustomAdmin):
 @admin.register(StatePaper)
 class StatePaperAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper']
+    autocomplete_fields = ['state', 'paper']
 
 
 class StatePaperInline(admin.TabularInline):
