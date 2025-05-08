@@ -27,7 +27,7 @@ class Program(models.Model):
         default=ParticipationType.INDIVIDUAL
     )
 
-    slug = models.SlugField(max_length=100, unique=True, null=True,
+    slug = models.SlugField(max_length=100, unique=True, db_index=True,  null=True,
                             blank=True, help_text="Unique identifier for the program")
 
     admins = models.ManyToManyField(

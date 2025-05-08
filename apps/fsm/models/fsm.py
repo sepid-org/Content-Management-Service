@@ -284,6 +284,18 @@ class Player(models.Model):
                 name='unique_active_player'
             )
         ]
+        indexes = [
+            # lookup or get_or_create by (user, fsm, finished_at__isnull=True)
+            models.Index(fields=['user', 'fsm', 'finished_at'],
+                         name='idx_player_user_fsm_finished'),
+            # filtering lists of players by fsm (e.g. players_count, PlayerViewSet.players)
+            models.Index(fields=['fsm'], name='idx_player_fsm'),
+            # filtering a user’s history (e.g. get_current_user_player → filter(user=…))
+            models.Index(fields=['user'], name='idx_player_user'),
+            # fast jump to a player’s current state in go_backward()
+            models.Index(fields=['current_state'],
+                         name='idx_player_current_state'),
+        ]
 
 
 class StatePaper(models.Model):
@@ -293,6 +305,14 @@ class StatePaper(models.Model):
 
     class Meta:
         unique_together = ('paper', 'state')
+        indexes = [
+            # update_paper_order/remove_paper:  queries by (state, paper)
+            models.Index(fields=['state', 'paper'],
+                         name='idx_statepaper_state_paper'),
+            # StateSerializer.get_papers():  filter+order by state & order
+            models.Index(fields=['state', 'order'],
+                         name='idx_statepaper_state_order'),
+        ]
 
 
 class State(Object):
@@ -363,6 +383,11 @@ class State(Object):
     def __str__(self):
         return f'گام: {self.title} | کارگاه: {self.fsm}'
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['fsm'], name='state_fsm_idx'),
+        ]
+
 
 class Edge(models.Model, ObjectMixin):
     _object = models.OneToOneField(
@@ -374,9 +399,6 @@ class Edge(models.Model, ObjectMixin):
         State, on_delete=models.CASCADE, related_name='inward_edges')
     is_back_enabled = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ('tail', 'head')
 
     @property
     def fsm(self):
@@ -394,6 +416,18 @@ class Edge(models.Model, ObjectMixin):
 
     def __str__(self):
         return f'از {self.tail.title} به {self.head.title}'
+
+    class Meta:
+        unique_together = ('tail', 'head')
+        indexes = [
+            # used by EdgeViewSet.create() & other filters:
+            #   Edge.objects.filter(tail=…, head=…)
+            models.Index(fields=['tail', 'head'], name='idx_edge_tail_head'),
+            # used by StateViewSet.inward_edges()/outward_edges():
+            #   Edge.objects.filter(head=…)  and  filter(tail=…)
+            models.Index(fields=['head'], name='idx_edge_head'),
+            models.Index(fields=['tail'], name='idx_edge_tail'),
+        ]
 
 
 class PlayerTransition(models.Model):

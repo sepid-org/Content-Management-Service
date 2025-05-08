@@ -213,6 +213,12 @@ class AnswerSheet(PolymorphicModel):
         self.answers.clear()
         return super(AnswerSheet, self).delete()
 
+    class Meta:
+        indexes = [
+            # in case you do AnswerSheet.objects.filter(user=…)
+            models.Index(fields=["user"], name="idx_sheet_user"),
+        ]
+
 
 class RegistrationReceipt(AnswerSheet):
     class RegistrationStatus(models.TextChoices):
