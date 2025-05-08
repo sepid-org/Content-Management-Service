@@ -16,10 +16,8 @@ class StateSerializer(ObjectSerializer):
     papers = serializers.SerializerMethodField()
 
     def get_papers(self, obj):
-        return list(
-            obj.papers.order_by('statepaper__order')
-                      .values_list('id', flat=True)
-        )
+        papers = obj.papers.all().order_by('statepaper__order')
+        return [paper.id for paper in papers]
 
     @transaction.atomic
     def create(self, validated_data):
