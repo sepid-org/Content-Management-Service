@@ -38,6 +38,12 @@ class Answer(PolymorphicModel):
     def problem(self):
         return self.problem
 
+    class Meta:
+        indexes = [
+            # queries by submitted_by
+            models.Index(fields=["submitted_by"], name="idx_ans_submitted_by"),
+        ]
+
 
 class SmallAnswer(Answer):
     problem = models.ForeignKey(
