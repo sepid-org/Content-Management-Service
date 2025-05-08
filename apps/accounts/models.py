@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 
 import pytz
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.db.models import Index
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
@@ -68,6 +68,13 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    class Meta:
+        indexes = [
+            Index(fields=["username"]),
+            Index(fields=["email"]),
+            Index(fields=["phone_number"]),
+        ]
 
 
 class UserWebsite(models.Model):
@@ -140,7 +147,8 @@ class EducationalInstitute(PolymorphicModel):
     creator = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True
     )
-    admins = models.ManyToManyField(User, related_name="institutes", blank=True)
+    admins = models.ManyToManyField(
+        User, related_name="institutes", blank=True)
 
     objects = InstituteManager()
 
@@ -344,7 +352,8 @@ class DiscountCodeManager(models.Manager):
 
 # TODO - add date validators for datetime fields
 class DiscountCode(models.Model):
-    code = models.CharField(max_length=10, unique=True, null=False, blank=False)
+    code = models.CharField(max_length=10, unique=True,
+                            null=False, blank=False)
     value = models.FloatField(
         null=False, blank=False, validators=[percentage_validator]
     )
