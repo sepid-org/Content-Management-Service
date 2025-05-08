@@ -82,7 +82,7 @@ class UserWebsite(models.Model):
         User, on_delete=models.PROTECT, related_name="user_websites"
     )
     website = models.CharField(max_length=50)
-    password = models.CharField(max_length=128)
+    password = models.CharField(max_length=128, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     def set_password(self, new_password):

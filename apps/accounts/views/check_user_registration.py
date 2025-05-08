@@ -19,4 +19,9 @@ def check_user_registration(request):
         website=website,
     )
 
-    return Response({'is_registered': bool(user)})
+    has_password = False
+    if user:
+        user_website = user.get_user_website(website)
+        has_password = bool(user_website.password)
+
+    return Response({'is_registered': bool(user), "has_password": has_password})
