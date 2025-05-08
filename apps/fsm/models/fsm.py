@@ -285,6 +285,8 @@ class Player(models.Model):
             )
         ]
         indexes = [
+            # get_players: fsm.players.filter(user=user)
+            models.Index(fields=['fsm', 'user'], name='idx_player_fsm_user'),
             # lookup or get_or_create by (user, fsm, finished_at__isnull=True)
             models.Index(fields=['user', 'fsm', 'finished_at'],
                          name='idx_player_user_fsm_finished'),
@@ -457,3 +459,13 @@ class PlayerStateHistory(models.Model):
 
     def __str__(self):
         return f'{self.player} - {self.state.title if self.state else "DELETED"}'
+
+    class Meta:
+        indexes = [
+            # transit_player_in_fsm:
+            #   player.player_state_histories.filter(state=…, departure=None)
+            models.Index(
+                fields=['player', 'state', 'departure'],
+                name='idx_psh_player_state_dep'
+            ),
+        ]

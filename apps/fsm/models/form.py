@@ -217,6 +217,8 @@ class AnswerSheet(PolymorphicModel):
         indexes = [
             # in case you do AnswerSheet.objects.filter(user=…)
             models.Index(fields=["user"], name="idx_sheet_user"),
+            # for lookups like AnswerSheet.objects.filter(user=…, form=…)
+            models.Index(fields=['user', 'form'], name='idx_sheet_user_form'),
         ]
 
 
@@ -288,3 +290,10 @@ class RegistrationReceipt(AnswerSheet):
 
     def __str__(self):
         return f'{self.id}:{self.user.full_name}{"+" if self.is_participating else "x"}'
+
+    class Meta:
+        indexes = [
+            # for filtering by participation flag
+            models.Index(fields=['is_participating'],
+                         name='idx_rr_participating'),
+        ]
