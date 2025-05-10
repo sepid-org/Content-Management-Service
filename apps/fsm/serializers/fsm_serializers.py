@@ -41,7 +41,8 @@ class FSMSerializer(serializers.ModelSerializer):
             'id', 'object_id', 'program', 'program_slug', 'name',
             'description', 'cover_image', 'is_active', 'is_visible',
             'first_state_id', 'fsm_learning_type', 'fsm_p_type',
-            'show_roadmap', 'show_player_performance_on_end', 'duration',
+            'show_roadmap', 'show_player_performance_on_end',
+            'participant_limit', 'duration',
         ]
         read_only_fields = ['id', 'first_state_id']
 
