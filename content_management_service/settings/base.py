@@ -57,6 +57,7 @@ CUSTOM_APPS = [
     'apps.engagement.apps.EngagementConfig',
     'apps.widgets.apps.WidgetsConfig',
     'apps.treasury.apps.TreasuryConfig',
+    'apps.program.apps.ProgramConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
