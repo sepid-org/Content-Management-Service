@@ -35,7 +35,6 @@ urlpatterns = [
     path('api/fsm/', include('apps.fsm.urls')),
     path('api/roadmap/', include('apps.roadmap.urls')),
     path('api/file-storage/', include('apps.file_storage.urls')),
-    path('api/contact-us/', include('apps.contact.urls')),
     path('api/report/', include('apps.report.urls')),
     path('api/engagement/', include('apps.engagement.urls')),
     path('api/sale/', include('apps.sale.urls')),

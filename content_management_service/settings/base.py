@@ -50,7 +50,6 @@ CUSTOM_APPS = [
     'apps.accounts.apps.AccountConfig',
     'apps.fsm.apps.FsmConfig',
     'apps.roadmap.apps.RoadmapConfig',
-    'apps.contact.apps.ContactConfig',
     'apps.report.apps.ReportConfig',
     'apps.sale.apps.SaleConfig',
     'apps.file_storage.apps.FileStorageConfig',
