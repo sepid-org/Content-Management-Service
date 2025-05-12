@@ -58,6 +58,7 @@ CUSTOM_APPS = [
     'apps.widgets.apps.WidgetsConfig',
     'apps.treasury.apps.TreasuryConfig',
     'apps.program.apps.ProgramConfig',
+    'apps.meeting.apps.MeetingConfig',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + CUSTOM_APPS
@@ -281,6 +282,8 @@ SHAD_LOGIN_PASSWORD = get_environment_var('SHAD_LOGIN_PASSWORD', None)
 
 KAVENEGAR_TOKEN = get_environment_var('KAVENEGAR_TOKEN', None)
 
+BBB_BASE_URL = get_environment_var('BBB_BASE_URL', None)
+BBB_SECRET_KEY = get_environment_var('BBB_SECRET_KEY', None)
 
 ########## FILE STORAGE ##########
 
