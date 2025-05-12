@@ -8,7 +8,7 @@ router = DefaultRouter()
 
 urlpatterns = []
 
-router.register(r'payment', PaymentViewSet, basename='merchandises')
+router.register(r'payment', PaymentViewSet, basename='payment')
 router.register(r'discount_code', DiscountCodeViewSet,
                 basename='discount_codes')
 router.register(r'merchandise', MerchandiseViewSet, basename='merchandises')
