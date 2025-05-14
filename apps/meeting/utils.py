@@ -84,7 +84,7 @@ def ensure_meeting_session(meeting_id: str, meeting_name: str) -> bool:
 
 
 def generate_meeting_join_url(
-    user_name: str,
+    full_name: str,
     user_id: str,
     meeting_id: str,
     is_moderator: bool = False
@@ -92,7 +92,7 @@ def generate_meeting_join_url(
     """Generate join URL for a BBB meeting session.
 
     Args:
-        user_name: Display name for the joining user
+        full_name: Display name for the joining user
         user_id: Unique identifier for the user
         meeting_id: Target meeting ID
         is_moderator: Whether user should join as moderator
@@ -101,7 +101,7 @@ def generate_meeting_join_url(
         Complete join URL with checksum
     """
     params = {
-        'fullName': user_name,
+        'fullName': full_name,
         'meetingID': meeting_id,
         'userID': user_id,
         'role': 'MODERATOR' if is_moderator else 'VIEWER',

@@ -73,7 +73,8 @@ class MeetingViewSet(viewsets.ModelViewSet):
             'as_moderator', 'false').lower() == 'true'
 
         join_url = generate_meeting_join_url(
-            user_name=str(request.user),
+            # todo: should wrap the joining process with a custom page that gets any user fullname
+            full_name='ارائه‌دهنده' if requested_as_moderator else 'شرکت‌کننده',
             user_id=str(request.user.id),
             meeting_id=meeting.meeting_id,
             is_moderator=requested_as_moderator
@@ -92,7 +93,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
             )
 
         join_url = generate_meeting_join_url(
-            user_name=str(request.user),
+            full_name=request.user.full_name,
             user_id=str(request.user.id),
             meeting_id=meeting.meeting_id,
             is_moderator=False
