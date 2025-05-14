@@ -11,6 +11,18 @@ from apps.meeting.models import Meeting
 from apps.meeting.serializers.meeting import MeetingSerializer
 from apps.meeting.utils import ensure_meeting_session, generate_meeting_join_url, is_meeting_running
 from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
+
+# Add the MeetingFilter class
+
+
+class MeetingFilter(django_filters.FilterSet):
+    start_date = django_filters.DateFilter(
+        field_name='start_time', lookup_expr='date')
+
+    class Meta:
+        model = Meeting
+        fields = ['program', 'start_date']
 
 
 class MeetingViewSet(viewsets.ModelViewSet):
@@ -27,7 +39,7 @@ class MeetingViewSet(viewsets.ModelViewSet):
     lookup_value_regex = '[^/]+'
 
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['program']
+    filterset_class = MeetingFilter
 
     @transaction.atomic
     def perform_create(self, serializer):
