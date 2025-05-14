@@ -75,7 +75,7 @@ def ensure_meeting_session(meeting_id: str, meeting_name: str) -> bool:
 
     # grab the text of <returncode>
     returncode = root.findtext('returncode')
-    print("RRRRRRRRRRRRRR", returncode, response)
+
     if returncode == 'SUCCESS':
         return True
     else:

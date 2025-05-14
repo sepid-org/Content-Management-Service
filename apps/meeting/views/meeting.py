@@ -4,8 +4,7 @@ from django.db import transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import APIException
-from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import APIException, PermissionDenied
 
 from apps.meeting.models import Meeting
 from apps.meeting.serializers.meeting import MeetingSerializer
@@ -60,36 +59,43 @@ class MeetingViewSet(viewsets.ModelViewSet):
                 raise APIException(
                     "Failed to update remote BigBlueButton session")
 
-    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def join(self, request, meeting_id=None):
-        meeting = get_object_or_404(Meeting, meeting_id=meeting_id)
+    @action(detail=True, methods=['get'], url_path='join-link')
+    def get_join_link(self, request, meeting_id=None):
+        meeting = self.get_object()
 
-        # parse ?as_moderator=true
+        if request.user not in meeting.program.admins.all():
+            raise PermissionDenied(detail="دسترسی غیرمجاز")
+
+        if not ensure_meeting_session(meeting.meeting_id, meeting.title):
+            raise APIException(detail="خطا در ایجاد جلسه روی سرور BBB")
+
         requested_as_moderator = request.query_params.get(
             'as_moderator', 'false').lower() == 'true'
-        is_mod_allowed = request.user in meeting.program.admins.all()
-        is_moderator = requested_as_moderator and is_mod_allowed
 
-        # check running state
-        running = is_meeting_running(meeting.meeting_id)
-
-        if not running:
-            if is_moderator:
-                # create the meeting on the fly for moderators
-                if not ensure_meeting_session(meeting.meeting_id, meeting.title):
-                    raise APIException("خطا در ایجاد جلسه روی سرور BBB")
-            else:
-                # viewers can only join if it's already running
-                return Response(
-                    {"error_code": "این جلسه هنوز آغاز نشده است."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        # now generate the join URL
         join_url = generate_meeting_join_url(
             user_name=str(request.user),
             user_id=str(request.user.id),
             meeting_id=meeting.meeting_id,
-            is_moderator=is_moderator
+            is_moderator=requested_as_moderator
         )
+
+        return Response({'join_url': join_url}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def join(self, request, meeting_id=None):
+        meeting = self.get_object()
+
+        if not is_meeting_running(meeting.meeting_id):
+            return Response(
+                {"error_code": "این جلسه هنوز آغاز نشده است."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        join_url = generate_meeting_join_url(
+            user_name=str(request.user),
+            user_id=str(request.user.id),
+            meeting_id=meeting.meeting_id,
+            is_moderator=False
+        )
+
         return Response({'join_url': join_url})
