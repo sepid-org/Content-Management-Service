@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.exceptions import APIException
 from apps.meeting.utils import is_meeting_running
 from django.db import transaction
@@ -17,7 +18,9 @@ class MeetingViewSet(viewsets.ModelViewSet):
     Provides create, retrieve, update, partial_update, destroy
     and a custom join action for Meeting instances.
     """
-    queryset = Meeting.objects.all()
+
+    def get_queryset(self):
+        return Meeting.objects.filter(deleted_at__isnull=True)
     serializer_class = MeetingSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'meeting_id'
@@ -47,17 +50,21 @@ class MeetingViewSet(viewsets.ModelViewSet):
         meeting = self.get_object()
         old_title = meeting.title
         old_start = meeting.start_time
-        old_end = meeting.end_time
+        old_duration = meeting.duration
 
         updated_meeting = serializer.save()
         if (
             updated_meeting.title != old_title or
             updated_meeting.start_time != old_start or
-            updated_meeting.end_time != old_end
+            updated_meeting.duration != old_duration
         ):
             if not ensure_meeting_session(updated_meeting.meeting_id, updated_meeting.title):
                 raise APIException(
                     "Failed to update remote BigBlueButton session")
+
+    def perform_destroy(self, instance):
+        instance.deleted_at = timezone.now()
+        instance.save()
 
     @action(detail=True, methods=['get'], url_path='join-link')
     def get_join_link(self, request, meeting_id=None):

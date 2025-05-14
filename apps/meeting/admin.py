@@ -6,7 +6,7 @@ from .models import Meeting
 class MeetingAdmin(admin.ModelAdmin):
     list_display = (
         'title', 'meeting_id', 'program', 'creator',
-        'start_time', 'end_time', 'status', 'location_type'
+        'start_time', 'duration', 'status', 'location_type'
     )
     list_filter = ('status', 'location_type', 'start_time', 'program')
     search_fields = ('title', 'meeting_id', 'description')
@@ -18,7 +18,7 @@ class MeetingAdmin(admin.ModelAdmin):
             'fields': ('meeting_id', 'title', 'description', 'program', 'creator')
         }),
         ('Timing', {
-            'fields': ('start_time', 'end_time')
+            'fields': ('start_time', 'duration')
         }),
         ('Status & Location', {
             'fields': ('status', 'location_type', 'recording_url')

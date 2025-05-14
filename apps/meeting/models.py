@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
+import datetime
 
 from apps.fsm.models.program import Program
 from apps.meeting.utils import generate_meeting_id
@@ -43,8 +44,15 @@ class Meeting(models.Model):
     creator = models.UUIDField()
 
     # Time-related Fields
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.DateTimeField(
+        help_text="Date and time when the meeting starts"
+    )
+    duration = models.DurationField(
+        default=datetime.timedelta(minutes=75),
+        validators=[MinValueValidator(
+            limit_value=datetime.timedelta(minutes=1))],
+        help_text="Length of the meeting as a duration"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,7 +91,7 @@ class Meeting(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['start_time', 'end_time']),
+            models.Index(fields=['start_time']),
             models.Index(fields=['status']),
         ]
         permissions = [
@@ -92,9 +100,14 @@ class Meeting(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} ({self.start_time: %H:%M})"
+        # Format duration in hours and minutes
+        total_seconds = int(self.duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes = remainder // 60
+        duration_str = f"{hours}h {minutes}m" if hours else f"{minutes}m"
+        return f"{self.title} ({self.start_time:%Y-%m-%d %H:%M}, {duration_str})"
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        if self.end_time <= self.start_time:
-            raise ValidationError("End time must be after start time")
+        if self.duration <= datetime.timedelta(0):
+            raise ValidationError("Duration must be positive and non-zero")
