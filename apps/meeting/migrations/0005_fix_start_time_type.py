@@ -7,11 +7,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            # Cast the old time values into timestamps with TZ
-            "ALTER TABLE apps_meeting "
-            "ALTER COLUMN start_time "
-            "TYPE timestamp with time zone "
-            "USING start_time::timestamp with time zone;"
-        ),
     ]
