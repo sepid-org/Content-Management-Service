@@ -82,7 +82,8 @@ def create_or_get_user(user_data, website):
     if not has_user_website:
         UserWebsite.objects.create(
             user=user,
-            password=make_password(user_data.get("password")),
+            password=make_password(user_data.get(
+                "password")) if user_data.get("password") else None,
             website=website.name,
         )
 
@@ -103,6 +104,8 @@ def create_or_get_user(user_data, website):
 
 def can_user_login(user, password, website):
     user_website = user.get_user_website(website=website)
+    if not user_website.password:
+        return False
     if user_website:
         return check_password(password, user_website.password)
     else:
