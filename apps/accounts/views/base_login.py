@@ -50,10 +50,6 @@ class BaseLoginView(APIView):
         except Exception as e:
             user_data = self.get_user_data(user_identifier)
             user, created = create_or_get_user(user_data, website=website)
-
-            if created:
-                user.set_unusable_password()
-                user.save()
             response_status = status.HTTP_201_CREATED
 
         self.create_login_event(user, website)

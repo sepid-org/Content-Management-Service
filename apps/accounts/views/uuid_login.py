@@ -73,7 +73,6 @@ class UserIDLoginView(BaseLoginView):
             user, created = create_or_get_user(user_data, website=website)
 
             if created:
-                user.set_unusable_password()
                 user.origin = origin
                 user.save()
             response_status = status.HTTP_201_CREATED
