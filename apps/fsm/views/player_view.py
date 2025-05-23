@@ -4,20 +4,19 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 from apps.fsm.models.fsm import State
-from errors.error_codes import ErrorCodes, serialize_error
+from errors.error_codes import ErrorCodes
 from errors.exceptions import InternalServerError
 from apps.fsm.models import FSM, Player
 from apps.fsm.permissions import PlayerViewerPermission
 from apps.fsm.serializers.fsm_serializers import TeamGetSerializer
 from apps.fsm.serializers.player_serializer import PlayerSerializer
-from apps.fsm.utils.utils import get_player_backward_edge, transit_player_in_fsm, transit_team_in_fsm
+from apps.fsm.utils.utils import get_last_forward_transition, transit_player_in_fsm, transit_team_in_fsm
 
 
 class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
@@ -48,26 +47,30 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     def go_backward(self, request, pk):
         player = self.get_object()
         fsm = player.fsm
-        # todo: it should go back through one of this state inward links:
-        edge = get_player_backward_edge(player)
 
-        if not edge:
-            raise ParseError(serialize_error('4114'))
-
-        if player is None:
-            raise ParseError(serialize_error('4082'))
+        player_last_transition = get_last_forward_transition(player)
 
         # todo check back enable
         if fsm.fsm_p_type == FSM.FSMPType.Team:
             team = player.team
-            if player.current_state == edge.head:
-                transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
+            if player.current_state == player_last_transition.target_state:
+                transit_team_in_fsm(
+                    team,
+                    fsm,
+                    player_last_transition.target_state,
+                    player_last_transition.source_state,
+                    is_backward=True,
+                )
             return Response(status=status.HTTP_202_ACCEPTED)
 
         elif fsm.fsm_p_type == FSM.FSMPType.Individual:
-            if player.current_state == edge.head:
+            if player.current_state == player_last_transition.target_state:
                 player = transit_player_in_fsm(
-                    player, edge.head, edge.tail, edge)
+                    player,
+                    player_last_transition.target_state,
+                    player_last_transition.source_state,
+                    is_backward=True,
+                )
             return Response(status=status.HTTP_202_ACCEPTED)
 
         else:
@@ -83,11 +86,16 @@ class PlayerViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
         team = serializer.validated_data['team']
         player = self.get_object()
         fsm = player.fsm
-        # todo: it should go back through one of this state inward links:
-        edge = get_player_backward_edge(player)
+
+        player_last_transition = get_last_forward_transition(player)
 
         if fsm.fsm_p_type == FSM.FSMPType.Team:
-            transit_team_in_fsm(team, fsm, edge.head, edge.tail, edge)
+            transit_team_in_fsm(
+                team,
+                fsm,
+                player_last_transition.target_state,
+                player_last_transition.source_state,
+            )
             return Response(status=status.HTTP_202_ACCEPTED)
 
         else:

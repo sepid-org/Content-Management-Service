@@ -32,7 +32,7 @@ class EdgeViewSet(ObjectViewSet):
         return context
 
     def get_permissions(self):
-        if self.action in ['create', 'retrieve', 'list', 'transit_player_on_edge', 'go_backward']:
+        if self.action in ['create', 'retrieve', 'list']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [IsEdgeModifier]

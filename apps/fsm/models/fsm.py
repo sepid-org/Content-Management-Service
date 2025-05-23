@@ -442,9 +442,7 @@ class PlayerTransition(models.Model):
     time = models.DateTimeField(null=True)
     transited_edge = models.ForeignKey(
         Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
-
-    def is_edge_transited_in_reverse(self):
-        return True  # todo: fix
+    is_backward = models.BooleanField(default=False)
 
 
 class PlayerStateHistory(models.Model):

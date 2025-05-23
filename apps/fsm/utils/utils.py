@@ -27,18 +27,15 @@ def get_players(user, fsm) -> list[Player]:
     return fsm.players.filter(user=user)
 
 
-def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge) -> None:
+def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge, is_backward=False) -> None:
     for member in team.members.all():
         player = member.get_player_of(fsm=fsm)
         if player:
-            transit_player_in_fsm(player, source_state, target_state, edge)
+            transit_player_in_fsm(player, source_state,
+                                  target_state, edge, is_backward)
 
 
-def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge = None) -> Player:
-
-    if not is_transition_permitted(source_state, target_state):
-        raise ParseError(serialize_error('4119'))
-
+def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge = None, is_backward=False) -> Player:
     player.current_state = target_state
     transition_time = timezone.now()
 
@@ -59,7 +56,8 @@ def transit_player_in_fsm(player: Player, source_state: State, target_state: Sta
         source_state=source_state,
         target_state=target_state,
         time=transition_time,
-        transited_edge=edge
+        transited_edge=edge,
+        is_backward=is_backward,
     )
 
     try:
@@ -99,6 +97,23 @@ def get_a_player_from_team(team, fsm) -> Player:
         if not player:
             player = players.first()
         return player
+
+
+def get_last_forward_transition(player) -> PlayerTransition:
+    # Grab the most recent transition (largest 'time') for this player
+    last_forward_transition = (
+        player.player_transitions
+        # ensure we only order by actual timestamps
+              .filter(Q(time__isnull=False) & Q(is_backward=False))
+              .order_by('-time')
+              .first()
+    )
+
+    if not last_forward_transition:
+        # No forward transitions recorded for this player yet
+        return None
+
+    return last_forward_transition
 
 
 def get_player_backward_edge(player: Player) -> Edge:

@@ -120,8 +120,11 @@ class FSMViewSet(CacheEnabledModelViewSet):
 
             if created:
                 transit_player_in_fsm(
-                    player=player, source_state=None, target_state=fsm.first_state)
-                response_status = status.HTTP_201_CREATED
+                    player=player,
+                    source_state=None,
+                    target_state=fsm.first_state,
+                )
+                response_status = status.HTTP_200_OK
 
                 from apps.attributes.models import Start
                 start_attributes = fsm.attributes.instance_of(Start)
