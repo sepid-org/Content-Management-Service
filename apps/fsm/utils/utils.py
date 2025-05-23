@@ -99,7 +99,7 @@ def get_last_forward_transition(player) -> PlayerTransition:
     last_forward_transition = (
         player.player_transitions
         # ensure we only order by actual timestamps
-              .filter(Q(time__isnull=False) & Q(is_backward=False))
+              .filter(Q(target_state=player.current_state) & Q(is_backward=False))
               .order_by('-time')
               .first()
     )

@@ -444,7 +444,7 @@ class PlayerTransition(models.Model):
         State, on_delete=models.SET_NULL, null=True, related_name='player_departure_transitions')
     target_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
-    time = models.DateTimeField(null=True)
+    time = models.DateTimeField()
     transited_edge = models.ForeignKey(
         Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
     is_backward = models.BooleanField(default=False)
