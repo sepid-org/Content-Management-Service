@@ -1,4 +1,4 @@
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from apps.attributes.utils import perform_posterior_actions
 from apps.engagement.utils.submission.abstract_submission_handler import AbstractSubmissionHandler
 from apps.engagement.serializers.answers.answer_polymorphic_serializer import AnswerPolymorphicSerializer
@@ -62,7 +62,7 @@ class AnswerSubmissionHandler(AbstractSubmissionHandler):
 
         return answer
 
-    def perform_post_submission_actions(self, submission):
+    def perform_post_submission_actions(self):
         # Perform posterior actions after answer submission
         perform_posterior_actions(
             attributes=self.question.attributes,

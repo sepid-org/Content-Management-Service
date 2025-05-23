@@ -44,7 +44,7 @@ class FormSubmissionHandler(AbstractSubmissionHandler):
         serializer.is_valid(raise_exception=True)
         return serializer.save()
 
-    def perform_post_submission_actions(self, submission):
+    def perform_post_submission_actions(self):
         perform_posterior_actions(
             attributes=self.form.attributes,
             user=self.user,

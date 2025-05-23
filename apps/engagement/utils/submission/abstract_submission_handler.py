@@ -13,29 +13,25 @@ class AbstractSubmissionHandler(ABC):
         self.player = player
         self.website = website
 
-    @abstractmethod
     def validate_submission(self, data):
         pass
 
-    @abstractmethod
     def prepare_submission_data(self, data):
         pass
 
-    @abstractmethod
     def save_submission(self, validated_data):
         pass
 
-    @abstractmethod
-    def perform_post_submission_actions(self, submission):
+    def perform_post_submission_actions(self):
         pass
 
     def get_response_data(self, submission):
-        return {}
+        pass
 
     @transaction.atomic
     def submit(self, data):
         self.validate_submission(data)
         validated_data = self.prepare_submission_data(data)
         submission = self.save_submission(validated_data)
-        self.perform_post_submission_actions(submission)
-        return Response(data=self.get_response_data(submission), status=status.HTTP_201_CREATED)
+        self.perform_post_submission_actions()
+        return Response(data=self.get_response_data(submission), status=status.HTTP_200_OK)
