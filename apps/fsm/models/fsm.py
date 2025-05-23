@@ -276,6 +276,11 @@ class Player(models.Model):
     def __str__(self):
         return f'{self.user.full_name} in {self.fsm.name}'
 
+    def get_previous_state(self):
+        from apps.fsm.utils.utils import get_last_forward_transition
+        last_forward_transition = get_last_forward_transition(self)
+        return last_forward_transition.source_state
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

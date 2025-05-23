@@ -55,6 +55,6 @@ class EdgeViewSet(ObjectViewSet):
             data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         team: Team = serializer.validated_data['team']
-        transit_team_in_fsm(team, fsm, edge.tail, edge.head, edge)
+        transit_team_in_fsm(team, fsm, edge.tail, edge.head)
 
         return Response(status=status.HTTP_202_ACCEPTED)

@@ -9,7 +9,7 @@ class TransitionSerializer(PerformableActionSerializer):
     class Meta:
         model = Transition
         fields = PerformableActionSerializer.Meta.fields + \
-            ['destination_state_id']
+            ['destination_state_id', 'is_backward']
         read_only_fields = PerformableActionSerializer.Meta.read_only_fields + []
 
 

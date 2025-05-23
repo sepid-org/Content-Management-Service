@@ -126,7 +126,16 @@ class Answer(PerformableAction):
 
 
 class Transition(PerformableAction):
-    destination_state_id = models.IntegerField()
+    destination_state_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="If NULL, this Transition transit the player to its previous state.  "
+                  "If not NULL, it transit it to that state (and flags itself as a ‘backward’ transition)."
+    )
+    is_backward = models.BooleanField(
+        default=False,
+        help_text="When True, indicates this Transition should be treated as a ‘backward’‐type move."
+    )
 
     def perform(self, user, player, website) -> bool:
         if not super().perform(user, player, website):
@@ -134,15 +143,23 @@ class Transition(PerformableAction):
 
         from apps.fsm.models.fsm import State
         from apps.fsm.utils.utils import transit_player_in_fsm
-        destination_state = get_object_or_404(
-            State,
-            id=self.destination_state_id
-        )
+
+        if self.is_backward and not self.destination_state_id:
+            destination_state = player.get_previous_state()
+        else:
+            destination_state = get_object_or_404(
+                State,
+                id=self.destination_state_id
+            )
+
+        if not destination_state:
+            return False
 
         transit_player_in_fsm(
-            player,
-            player.current_state,
-            destination_state,
+            player=player,
+            source_state=player.current_state,
+            target_state=destination_state,
+            is_backward=self.is_backward,
         )
 
         return True

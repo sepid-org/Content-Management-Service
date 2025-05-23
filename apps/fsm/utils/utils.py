@@ -27,36 +27,31 @@ def get_players(user, fsm) -> list[Player]:
     return fsm.players.filter(user=user)
 
 
-def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, edge: Edge, is_backward=False) -> None:
+def transit_team_in_fsm(team: Team, fsm: FSM, source_state: State, target_state: State, is_backward=False) -> None:
     for member in team.members.all():
         player = member.get_player_of(fsm=fsm)
         if player:
             transit_player_in_fsm(player, source_state,
-                                  target_state, edge, is_backward)
+                                  target_state, is_backward)
 
 
-def transit_player_in_fsm(player: Player, source_state: State, target_state: State, edge: Edge = None, is_backward=False) -> Player:
+def transit_player_in_fsm(
+    player: Player,
+    source_state: State,
+    target_state: State,
+    is_backward=False,
+) -> Player:
     player.current_state = target_state
     transition_time = timezone.now()
 
     player.last_visit = transition_time
     player.save()
 
-    if edge is None:
-        try:
-            edge = Edge.objects.get(tail=source_state, head=target_state)
-        except Edge.DoesNotExist:
-            try:
-                edge = Edge.objects.get(tail=target_state, head=source_state)
-            except Edge.DoesNotExist:
-                pass
-
     player_transition = PlayerTransition.objects.create(
         player=player,
         source_state=source_state,
         target_state=target_state,
         time=transition_time,
-        transited_edge=edge,
         is_backward=is_backward,
     )
 
@@ -114,11 +109,6 @@ def get_last_forward_transition(player) -> PlayerTransition:
         return None
 
     return last_forward_transition
-
-
-def get_player_backward_edge(player: Player) -> Edge:
-    # todo: it should get the desired backward edge, not mustly the first one
-    return player.current_state.inward_edges.first()
 
 
 def register_user_in_program(user: User, program: Program):
