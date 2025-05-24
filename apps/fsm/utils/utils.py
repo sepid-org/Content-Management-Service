@@ -95,18 +95,16 @@ def get_a_player_from_team(team, fsm) -> Player:
 
 
 def get_last_forward_transition(player) -> PlayerTransition:
-    # Grab the most recent transition (largest 'time') for this player
     last_forward_transition = (
         player.player_transitions
-        # ensure we only order by actual timestamps
-              .filter(Q(target_state=player.current_state) & Q(is_backward=False))
-              .order_by('-time')
-              .first()
+              .filter(
+                  Q(target_state=player.current_state) &
+                  Q(is_backward=False) &
+                  Q(reverted_by__isnull=True)
+              )
+        .order_by('-time')
+        .first()
     )
-
-    if not last_forward_transition:
-        # No forward transitions recorded for this player yet
-        return None
 
     return last_forward_transition
 

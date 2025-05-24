@@ -448,6 +448,60 @@ class PlayerTransition(models.Model):
     transited_edge = models.ForeignKey(
         Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
     is_backward = models.BooleanField(default=False)
+    reverted_by = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reverts'
+    )
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new and self.is_backward:
+            try:
+                _ = self.reverts
+                return
+            except PlayerTransition.DoesNotExist:
+                pass
+
+            try:
+                forward = PlayerTransition.objects.filter(
+                    player=self.player,
+                    source_state=self.target_state,
+                    target_state=self.source_state,
+                    is_backward=False,
+                    reverted_by__isnull=True
+                ).latest('time')
+            except PlayerTransition.DoesNotExist:
+                forward = None
+
+            if forward:
+                forward.reverted_by = self
+                forward.save()
+
+    class Meta:
+        indexes = [
+            # Speeds up `player.player_transitions.order_by('time')`
+            models.Index(fields=['player', 'time']),
+            # Speeds up get_last_forward_transition filters + order_by('-time')
+            models.Index(
+                fields=[
+                    'player',
+                    'target_state',
+                    'is_backward',
+                    'reverted_by',
+                    'time',
+                ],
+                name='pt_tgt_bw_rev_time_ix'
+            ),
+        ]
+
+    def __str__(self):
+        direction = 'backward' if self.is_backward else 'forward'
+        return f"{self.player} | {self.source_state} → {self.target_state} ({direction})"
 
 
 class PlayerStateHistory(models.Model):
