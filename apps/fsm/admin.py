@@ -435,6 +435,16 @@ class StateAdmin(admin.ModelAdmin):
 class PositionCustomAdmin(admin.ModelAdmin):
     list_display = ('object', 'x', 'y', 'width', 'height')
     search_fields = ('object__title',)
+    autocomplete_fields = ['object']
+
+
+class PositionInline(admin.StackedInline):
+    model = Position
+    can_delete = False
+    # Because Position.object is a OneToOneField, Django will create exactly one inline form when it exists.
+    fk_name = 'object'
+    verbose_name = 'Position'
+    verbose_name_plural = 'Position'
 
 
 @admin.register(Object)
@@ -442,6 +452,20 @@ class ObjectAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'updated_at')
     search_fields = ('id', 'title',)
     filter_horizontal = ['attributes',]
+    inlines = (PositionInline,)
+
+    def position_summary(self, obj):
+        """
+        Show a brief summary of the related Position in the changelist.
+        If no Position exists, return a dash or “None.”
+        """
+        try:
+            pos = obj.position
+            # Customize this string any way you like; here we show x,y and WxH.
+            return f"({pos.x}, {pos.y}) – {pos.width}×{pos.height}"
+        except Position.DoesNotExist:
+            return "—"
+    position_summary.short_description = "Position"
 
 
 @admin.register(GeneralHint)
