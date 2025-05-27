@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from apps.fsm.models.base import Paper
+from apps.fsm.models.base import Paper, Position
 from apps.fsm.serializers.object_serializer import ObjectSerializer
 from apps.fsm.models import State
 
@@ -30,6 +30,14 @@ class StateSerializer(ObjectSerializer):
 
         paper = Paper.objects.create()
         instance.papers.add(paper)
+
+        Position.objects.create(
+            object=instance,
+            x=0,
+            y=0,
+            width=1600,
+            height=900
+        )
 
         return instance
 
