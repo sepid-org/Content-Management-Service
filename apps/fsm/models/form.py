@@ -1,11 +1,10 @@
 from typing import Dict
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import QuerySet
-from datetime import datetime
+from django.utils import timezone
 from polymorphic.models import PolymorphicModel
 from apps.accounts.models import Purchase, User
-from rest_framework.exceptions import ParseError, PermissionDenied
+from rest_framework.exceptions import ParseError
 
 from errors.error_codes import serialize_error
 from apps.accounts.models import Purchase, User
@@ -54,26 +53,39 @@ class RegistrationForm(Form):
         StudentshipDataNotApproved = "StudentshipDataNotApproved"
         Permitted = "Permitted"
         NotRightGender = "NotRightGender"
-
-    class AudienceType(models.TextChoices):
-        Student = 'Student'
-        Academic = 'Academic'
-        All = 'All'
+        MaxRegistrantsReached = "MaxRegistrantsReached"
+        AlreadyRegistered = "AlreadyRegistered"
 
     min_grade = models.IntegerField(
-        default=0, validators=[MaxValueValidator(12), MinValueValidator(0)])
+        default=0,
+        validators=[MaxValueValidator(12), MinValueValidator(0)]
+    )
     max_grade = models.IntegerField(
-        default=12, validators=[MaxValueValidator(12), MinValueValidator(0)])
+        default=12,
+        validators=[MaxValueValidator(12), MinValueValidator(0)]
+    )
 
     accepting_status = models.CharField(
-        max_length=15, default='AutoAccept', choices=AcceptingStatus.choices)
-    gender_partition_status = models.CharField(max_length=25, default='BothPartitioned',
-                                               choices=GenderPartitionStatus.choices)
+        max_length=15,
+        default=AcceptingStatus.AutoAccept,
+        choices=AcceptingStatus.choices
+    )
+    gender_partition_status = models.CharField(
+        max_length=25,
+        default=GenderPartitionStatus.BothPartitioned,
+        choices=GenderPartitionStatus.choices
+    )
     has_certificate = models.BooleanField(default=False)
     certificates_ready = models.BooleanField(default=False)
 
+    max_registrants = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum number of registrants allowed. Null means no limit."
+    )
+
     @property
-    def registration_receipts(self) -> QuerySet['RegistrationReceipt']:
+    def registration_receipts(self) -> models.QuerySet['RegistrationReceipt']:
         return RegistrationReceipt.objects.filter(
             id__in=self.answer_sheets.values_list('id', flat=True)
         )
@@ -83,86 +95,134 @@ class RegistrationForm(Form):
         try:
             if self.program:
                 return self.program
-        except:
-            try:
-                if self.fsm:
-                    return self.fsm
-            except:
-                return None
-
-    def get_user_registration_permission_status(self, user):
-        if user.is_authenticated == False:
-            return self.RegisterPermissionStatus.NotPermitted
-
-        time_check_result = self.check_time()
-        if time_check_result != 'ok':
-            return time_check_result
-
-        gender_check_result = self.check_gender(user)
-        if gender_check_result != 'ok':
-            return gender_check_result
-
-        # remove different types of audiences. the program manager should build the registration path him/her self.
-        if self.audience_type == self.AudienceType.Academic:
-            studentship = user.academic_studentship
-            if studentship:
-                if not studentship.university:
-                    return self.RegisterPermissionStatus.StudentshipDataIncomplete
-            else:
-                return self.RegisterPermissionStatus.StudentshipDataNotApproved
-
-        if self.audience_type == self.AudienceType.Student:
-            studentship = user.school_studentship
-            if not studentship:
-                return self.RegisterPermissionStatus.StudentshipDataNotApproved
-            if not studentship.grade:
-                return self.RegisterPermissionStatus.GradeNotAvailable
-            if not studentship.school:
-                return self.RegisterPermissionStatus.StudentshipDataIncomplete
-            if self.min_grade > studentship.grade or studentship.grade > self.max_grade:
-                return self.RegisterPermissionStatus.GradeNotSuitable
-            return self.RegisterPermissionStatus.Permitted
-
-        return self.RegisterPermissionStatus.Permitted
-
-    def validate_user_registration_permission_status(self, user):
-        register_permission_status = self.get_user_registration_permission_status(
-            user)
-        if register_permission_status == RegistrationForm.RegisterPermissionStatus.DeadlineMissed:
-            raise ParseError(serialize_error('4036'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotStarted:
-            raise ParseError(serialize_error('4100'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataIncomplete:
-            raise PermissionDenied(serialize_error('4057'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotPermitted:
-            raise PermissionDenied(serialize_error('4032'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotAvailable:
-            raise ParseError(serialize_error('4033'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.GradeNotSuitable:
-            raise ParseError(serialize_error('6004'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.StudentshipDataNotApproved:
-            raise ParseError(serialize_error('4034'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.NotRightGender:
-            raise ParseError(serialize_error('4109'))
-        elif register_permission_status == RegistrationForm.RegisterPermissionStatus.Permitted:
-            # its ok
+        except AttributeError:
             pass
 
-    def check_time(self):
-        if self.end_date and datetime.now(self.end_date.tzinfo) > self.end_date:
-            return self.RegisterPermissionStatus.DeadlineMissed
-        if self.start_date and datetime.now(self.start_date.tzinfo) < self.start_date:
-            return self.RegisterPermissionStatus.NotStarted
-        return 'ok'
+        try:
+            if self.fsm:
+                return self.fsm
+        except AttributeError:
+            pass
 
-    def check_gender(self, user):
-        if (self.gender_partition_status == 'OnlyFemale' and user.gender == 'Male') or \
-                (self.gender_partition_status == 'OnlyMale' and user.gender == 'Female'):
+        return None
+
+    def get_user_registration_permission_status(self, user):
+        """
+        Determines whether a user is permitted to register for this form.
+        Returns one of the RegisterPermissionStatus enum values based on the checks.
+        """
+        # 1. User must be authenticated
+        if not user.is_authenticated:
+            return self.RegisterPermissionStatus.NotPermitted
+
+        already_registered = self._check_already_registered(user)
+        if already_registered:
+            return already_registered
+
+        # 2. Check registration period (start/end dates)
+        time_error = self._check_time()
+        if time_error is not None:
+            return time_error
+
+        # 3. Check gender eligibility
+        gender_error = self._check_gender(user)
+        if gender_error is not None:
+            return gender_error
+
+        # 4. Check audience-specific rules
+        if self.audience_type == self.AudienceType.ACADEMIC:
+            audience_error = self._check_academic_audience(user)
+            if audience_error is not None:
+                return audience_error
+
+        elif self.audience_type == self.AudienceType.STUDENT:
+            audience_error = self._check_student_audience(user)
+            if audience_error is not None:
+                return audience_error
+
+        # 5. Check maximum registrants capacity (for all audience types)
+        capacity_error = self._check_capacity()
+        if capacity_error is not None:
+            return capacity_error
+
+        # 6. If all checks pass, permit registration
+        return self.RegisterPermissionStatus.Permitted
+
+    def _check_time(self):
+        """
+        Returns a RegisterPermissionStatus value if registration is too early or too late.
+        Otherwise, returns None.
+        """
+        now = timezone.now()
+        if self.start_date and now < self.start_date:
+            return self.RegisterPermissionStatus.NotStarted
+        if self.end_date and now > self.end_date:
+            return self.RegisterPermissionStatus.DeadlineMissed
+        return None
+
+    def _check_gender(self, user):
+        """
+        Checks if user's gender matches the form's gender partition rules.
+        Returns a RegisterPermissionStatus value on mismatch, otherwise None.
+        """
+        status = self.gender_partition_status
+        user_gender = getattr(user, 'gender', None)
+        if status == self.GenderPartitionStatus.OnlyFemale and user_gender == 'Male':
             return self.RegisterPermissionStatus.NotRightGender
-        return 'ok'
+        if status == self.GenderPartitionStatus.OnlyMale and user_gender == 'Female':
+            return self.RegisterPermissionStatus.NotRightGender
+        return None
+
+    def _check_academic_audience(self, user):
+        """
+        Validates rules specific to 'Academic' audience_type.
+        Returns a RegisterPermissionStatus value if there's any issue; otherwise, None.
+        """
+        studentship = getattr(user, 'academic_studentship', None)
+        if not studentship:
+            return self.RegisterPermissionStatus.StudentshipDataNotApproved
+        if not studentship.university:
+            return self.RegisterPermissionStatus.StudentshipDataIncomplete
+        return None
+
+    def _check_student_audience(self, user):
+        """
+        Validates rules specific to 'Student' audience_type.
+        Returns a RegisterPermissionStatus value if there's any issue; otherwise, None.
+        """
+        studentship = getattr(user, 'school_studentship', None)
+        if not studentship:
+            return self.RegisterPermissionStatus.StudentshipDataNotApproved
+        if not studentship.school:
+            return self.RegisterPermissionStatus.StudentshipDataIncomplete
+        if not studentship.grade:
+            return self.RegisterPermissionStatus.GradeNotAvailable
+        if not (self.min_grade <= studentship.grade <= self.max_grade):
+            return self.RegisterPermissionStatus.GradeNotSuitable
+        return None
+
+    def _check_capacity(self):
+        """
+        Checks if the maximum number of registrants has been reached.
+        Returns RegisterPermissionStatus.MaxRegistrantsReached if the limit is met,
+        otherwise returns None.
+        """
+        if self.max_registrants is None:
+            return None  # No capacity limit set
+
+        current_count = self.registration_receipts.filter(
+            is_participating=True).count()
+        if current_count >= self.max_registrants:
+            return self.RegisterPermissionStatus.MaxRegistrantsReached
+        return None
+
+    def _check_already_registered(self, user):
+        if self.registration_receipts.filter(user=user).exists():
+            return self.RegisterPermissionStatus.AlreadyRegistered
+        return None
 
     def __str__(self):
-        return f'<{self.id}-{self.paper_type}>:{self.program_or_fsm.name if self.program_or_fsm else None}'
+        return f'<{self.id}-{getattr(self, "paper_type", "")}>: {self.program_or_fsm.name if self.program_or_fsm else None}'
 
 
 class AnswerSheet(PolymorphicModel):

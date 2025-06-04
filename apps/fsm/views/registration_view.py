@@ -27,7 +27,7 @@ class RegistrationViewSet(ModelViewSet):
         return context
 
     def get_permissions(self):
-        if self.action in ['create', 'register', 'list', 'get_possible_teammates', 'my_invitations']:
+        if self.action in ['create', 'register', 'list', 'my_invitations']:
             permission_classes = [IsAuthenticated]
         elif self.action == 'retrieve':
             permission_classes = [AllowAny]
@@ -51,10 +51,16 @@ class RegistrationViewSet(ModelViewSet):
     @swagger_auto_schema(responses={200: InvitationSerializer}, tags=['teams'])
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def my_invitations(self, request, pk=None):
-        receipt = RegistrationReceipt.objects.filter(user=request.user, is_participating=True,
-                                                     form=self.get_object()).first()
+        receipt = RegistrationReceipt.objects.filter(
+            user=request.user,
+            is_participating=True,
+            form=self.get_object()
+        ).first()
         invitations = Invitation.objects.filter(
-            invitee=receipt, team__program__registration_form=self.get_object(), status=Invitation.InvitationStatus.Waiting)
+            invitee=receipt,
+            team__program__registration_form=self.get_object(),
+            status=Invitation.InvitationStatus.Waiting,
+        )
         return Response(data=InvitationSerializer(invitations, many=True).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={201: RegistrationReceiptSerializer})
@@ -63,16 +69,35 @@ class RegistrationViewSet(ModelViewSet):
     def register(self, request, pk=None):
         registration_form = self.get_object()
 
-        registration_form.get_user_registration_permission_status(request.user)
+        # 1. Check the user’s permission status
+        status_enum = registration_form.get_user_registration_permission_status(
+            request.user)
 
+        # 2. If not permitted, return only the enum code in the response
+        if status_enum != registration_form.RegisterPermissionStatus.Permitted:
+            return Response(
+                {'error_code': status_enum},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3. Build and validate the serializer
         serializer = RegistrationReceiptSerializer(data={
-            'form': registration_form,
+            'form': registration_form.id,
             'user': request.user.id,
             **request.data,
         })
         serializer.is_valid(raise_exception=True)
         registration_receipt = serializer.save()
 
-        registration_receipt.register_in_form(registration_form)
+        # 4. Attempt to register the user into the form
+        try:
+            registration_receipt.register_in_form(registration_form)
+        except Exception as e:
+            # Return only the exception’s message as an error code
+            return Response(
+                {'error_code': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        # 5. Return 201 Created on success
         return Response(status=status.HTTP_201_CREATED)
