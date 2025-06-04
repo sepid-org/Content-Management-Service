@@ -10,14 +10,6 @@ from apps.fsm.models import Program
 
 class ProgramSummarySerializer(serializers.ModelSerializer):
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['initial_participants_count'] = len(
-            instance.initial_participants)
-        representation['final_participants_count'] = len(
-            instance.final_participants)
-        return representation
-
     class Meta:
         model = Program
         fields = ['id', 'slug', 'cover_image', 'name', 'description', 'participation_type',
@@ -78,10 +70,6 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['initial_participants_count'] = len(
-            instance.initial_participants)
-        representation['final_participants_count'] = len(
-            instance.final_participants)
         representation['is_free'] = instance.is_free
         return representation
 

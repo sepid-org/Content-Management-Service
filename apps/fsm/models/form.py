@@ -331,22 +331,17 @@ class RegistrationReceipt(AnswerSheet):
         program = registration_form.program
         if not program:
             return
-        if program.maximum_participant is None or len(program.final_participants) < program.maximum_participant:
-            if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
+        if registration_form.accepting_status == RegistrationForm.AcceptingStatus.AutoAccept:
+            self.status = RegistrationReceipt.RegistrationStatus.Accepted
+            if program.is_free:
+                self.is_participating = True
+            self.save()
+        elif registration_form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
+            if self.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
                 self.status = RegistrationReceipt.RegistrationStatus.Accepted
                 if program.is_free:
                     self.is_participating = True
                 self.save()
-            elif registration_form.accepting_status == RegistrationForm.AcceptingStatus.CorrectAccept:
-                if self.correction_status() == RegistrationReceipt.CorrectionStatus.Correct:
-                    self.status = RegistrationReceipt.RegistrationStatus.Accepted
-                    if program.is_free:
-                        self.is_participating = True
-                    self.save()
-        else:
-            self.status = RegistrationReceipt.RegistrationStatus.Rejected
-            self.save()
-            raise ParseError(serialize_error('4035'))
 
     def __str__(self):
         return f'{self.id}:{self.user.full_name}{"+" if self.is_participating else "x"}'

@@ -49,7 +49,6 @@ class Program(models.Model):
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     team_size = models.IntegerField(null=True, blank=True)
-    maximum_participant = models.IntegerField(null=True, blank=True)
     accessible_after_closure = models.BooleanField(default=False)
     show_scores = models.BooleanField(default=False)
     site_help_paper_id = models.IntegerField(blank=True, null=True)
@@ -92,10 +91,6 @@ class Program(models.Model):
     @property
     def initial_participants(self):
         return self.registration_form.registration_receipts.all()
-
-    @property
-    def final_participants(self):
-        return self.registration_form.registration_receipts.filter(is_participating=True)
 
     def delete(self, using=None, keep_parents=False):
         self.registration_form.delete() if self.registration_form is not None else None
