@@ -121,6 +121,7 @@ class RegistrationFormAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'program_or_fsm']
     actions = [get_registration_status_for_users]
     search_fields = ['id', '_object__title']
+    autocomplete_fields = ['_object', 'creator']
 
 
 @admin.register(Form)
