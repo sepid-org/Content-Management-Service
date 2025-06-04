@@ -2,7 +2,6 @@ from rest_framework.exceptions import ParseError
 from rest_framework import serializers
 
 from apps.fsm.serializers.form.registration_form_serializer import RegistrationFormSerializer
-from apps.fsm.serializers.papers.state_serializer import StateSerializer
 from apps.fsm.serializers.program_contact_info_serializer import ProgramContactInfoSerializer
 from apps.fsm.utils.utils import add_admin_to_program
 from errors.error_codes import serialize_error
@@ -101,7 +100,6 @@ class ProgramSerializer(serializers.ModelSerializer):
             'start_date',
             'end_date',
             'team_size',
-            'maximum_participant',
             'accessible_after_closure',
             'show_scores',
             'site_help_paper_id',

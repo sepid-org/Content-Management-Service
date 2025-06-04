@@ -31,6 +31,15 @@ class RegistrationFormSerializer(FormSerializer):
 
     class Meta(FormSerializer.Meta):
         model = RegistrationForm
-        fields = FormSerializer.Meta.fields + ['min_grade', 'max_grade', 'program', 'accepting_status',
-                                               'certificate_templates', 'has_certificate', 'certificates_ready', 'gender_partition_status']
+        fields = FormSerializer.Meta.fields + [
+            'min_grade',
+            'max_grade',
+            'program',
+            'accepting_status',
+            'certificate_templates',
+            'has_certificate',
+            'certificates_ready',
+            'gender_partition_status',
+            'max_registrants',
+        ]
         read_only_fields = FormSerializer.Meta.read_only_fields + []
