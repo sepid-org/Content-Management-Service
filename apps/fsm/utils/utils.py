@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 import logging
 from django.db.models import Q
 from django.utils import timezone
@@ -41,13 +42,18 @@ def transit_player_in_fsm(
     target_state: State,
     is_backward=False,
 ) -> Player:
+    # Check that target_state is not None
+    if target_state is None:
+        raise ValidationError("target_state cannot be None.")
+
+    # Update the player's current state and last visit timestamp
     player.current_state = target_state
     transition_time = timezone.now()
-
     player.last_visit = transition_time
     player.save()
 
-    player_transition = PlayerTransition.objects.create(
+    # Log the transition
+    PlayerTransition.objects.create(
         player=player,
         source_state=source_state,
         target_state=target_state,
