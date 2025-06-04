@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ParseError
 
 from apps.accounts.models import User
-from apps.fsm.models import FSM, AnswerSheet, Edge, Player, PlayerStateHistory, PlayerTransition, Program, RegistrationReceipt, State, Team
+from apps.fsm.models import FSM, AnswerSheet, Edge, Player, PlayerTransition, Program, RegistrationReceipt, State, Team
 from errors.error_codes import serialize_error
 
 
@@ -53,22 +53,6 @@ def transit_player_in_fsm(
         target_state=target_state,
         time=transition_time,
         is_backward=is_backward,
-    )
-
-    try:
-        last_state_history = player.player_state_histories.filter(
-            state=source_state, departure=None
-        ).last()
-        last_state_history.departure_time = transition_time
-        last_state_history.departure = player_transition
-        last_state_history.save()
-    except:
-        pass
-
-    PlayerStateHistory.objects.create(
-        player=player,
-        state=target_state,
-        arrival=player_transition,
     )
 
     return player

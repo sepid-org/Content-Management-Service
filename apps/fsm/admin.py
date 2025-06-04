@@ -9,7 +9,7 @@ from import_export.admin import ExportActionMixin
 from apps.fsm.models import Choice, DetailBoxWidget, Edge, Paper, PlayerTransition, ProgramContactInfo, RegistrationForm, Problem, AnswerSheet, RegistrationReceipt, Team, \
     Invitation, CertificateTemplate, Font, FSM, WidgetHint, Hint, Widget, Video, Audio, Image, Player, Iframe, SmallAnswerProblem, \
     SmallAnswer, BigAnswerProblem, BigAnswer, MultiChoiceProblem, MultiChoiceAnswer, Answer, TextWidget, Program, \
-    UploadFileAnswer, UploadFileProblem, PlayerStateHistory, Article, Tag, Aparat, Position, Object
+    UploadFileAnswer, UploadFileProblem, Article, Tag, Aparat, Position, Object
 
 from apps.fsm.models.base import GeneralHint, Resource
 from apps.fsm.models.content_widgets import Placeholder
@@ -41,27 +41,13 @@ class EdgeAdmin(admin.ModelAdmin):
     tail_title.short_description = "از "
 
 
-class PlayerHistoryAdmin(ExportActionMixin, admin.ModelAdmin):
-    model = PlayerStateHistory
-    list_display = ['player', 'state', 'delta_time']
-    list_filter = ['arrival__time', 'departure__time', 'state__fsm']
-    raw_id_fields = ('player', 'state', 'arrival', 'departure')
-
-    def delta_time(self, obj):
-        if (obj.departure and obj.arrival):
-            return obj.departure.time - obj.arrival.time
-        return "-"
-
-
 @admin.register(PlayerTransition)
 class PlayerTransitionAdmin(admin.ModelAdmin):
     model = PlayerTransition
     readonly_fields = ('time',)
-    list_display = ['player', 'source_state',
-                    'target_state', 'time', 'transited_edge']
+    list_display = ['player', 'source_state', 'target_state', 'time']
     search_fields = ['player__id']
-    raw_id_fields = ('player', 'source_state',
-                     'target_state', 'transited_edge')
+    raw_id_fields = ('player', 'source_state', 'target_state', 'reverted_by')
 
 
 class TextWidgetAdmin(admin.ModelAdmin):
@@ -382,7 +368,6 @@ admin.site.register(SmallAnswerProblem, SmallAnswerProblemAdmin)
 admin.site.register(TextWidget, TextWidgetAdmin)
 admin.site.register(DetailBoxWidget, DetailBoxWidgetAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(PlayerStateHistory, PlayerHistoryAdmin)
 admin.site.register(Tag)
 
 

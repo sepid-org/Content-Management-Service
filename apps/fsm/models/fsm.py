@@ -445,8 +445,6 @@ class PlayerTransition(models.Model):
     target_state = models.ForeignKey(
         State, on_delete=models.SET_NULL, null=True, related_name='player_arrival_transitions')
     time = models.DateTimeField()
-    transited_edge = models.ForeignKey(
-        Edge, related_name='player_transitions', null=True, on_delete=models.SET_NULL)
     is_backward = models.BooleanField(default=False)
     reverted_by = models.OneToOneField(
         'self',
@@ -502,27 +500,3 @@ class PlayerTransition(models.Model):
     def __str__(self):
         direction = 'backward' if self.is_backward else 'forward'
         return f"{self.player} | {self.source_state} → {self.target_state} ({direction})"
-
-
-class PlayerStateHistory(models.Model):
-    player = models.ForeignKey(
-        Player, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
-    state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, null=True, related_name='player_state_histories')
-    arrival = models.ForeignKey(
-        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_target_state_history')
-    departure = models.ForeignKey(
-        PlayerTransition, on_delete=models.SET_NULL, null=True, related_name='player_source_state_history')
-
-    def __str__(self):
-        return f'{self.player} - {self.state.title if self.state else "DELETED"}'
-
-    class Meta:
-        indexes = [
-            # transit_player_in_fsm:
-            #   player.player_state_histories.filter(state=…, departure=None)
-            models.Index(
-                fields=['player', 'state', 'departure'],
-                name='idx_psh_player_state_dep'
-            ),
-        ]

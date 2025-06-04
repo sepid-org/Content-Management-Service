@@ -72,12 +72,6 @@ class Command(BaseCommand):
                 player_arrival_transition.target_state2 = state2
                 player_arrival_transition.save()
 
-            # handle PlayerStateHistory
-            player_state_histories = state.player_state_histories.all()
-            for player_state_history in player_state_histories:
-                player_state_history.state2 = state2
-                player_state_history.save()
-
             # handle Hint
             hints = state.hints.all()
             for hint in hints:
