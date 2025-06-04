@@ -106,11 +106,11 @@ class Program(models.Model):
 
 
 class ProgramContactInfo(models.Model):
-    telegram_link = models.CharField(
-        max_length=100, null=True, blank=True)
-    shad_link = models.CharField(max_length=100, null=True, blank=True)
-    eitaa_link = models.CharField(max_length=100, null=True, blank=True)
-    bale_link = models.CharField(max_length=100, null=True, blank=True)
-    instagram_link = models.CharField(max_length=100, null=True, blank=True)
-    rubika_link = models.CharField(max_length=100, null=True, blank=True)
+    telegram_link = models.URLField(max_length=100, null=True, blank=True)
+    shad_link = models.URLField(max_length=100, null=True, blank=True)
+    eitaa_link = models.URLField(max_length=100, null=True, blank=True)
+    bale_link = models.URLField(max_length=100, null=True, blank=True)
+    instagram_link = models.URLField(max_length=100, null=True, blank=True)
+    rubika_link = models.URLField(max_length=100, null=True, blank=True)
+    whatsapp_link = models.URLField(max_length=100, null=True, blank=True)
     phone_number = models.CharField(max_length=100, null=True, blank=True)
