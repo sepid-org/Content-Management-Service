@@ -42,12 +42,10 @@ class DiscountCodeViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        website_obj = request.website
         create_discount_code(
             data=serializer.validated_data,
             merchandise_ids=merchandises,
             username=username,
-            website=website_obj.website,
         )
 
         return Response(status=status.HTTP_201_CREATED)
