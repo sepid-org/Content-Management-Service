@@ -418,42 +418,6 @@ class DiscountCode(models.Model):
             self.save()
 
 
-class VoucherManager(models.Manager):
-    @transaction.atomic
-    def create_voucher(self, **args):
-        code = make_random_password(length=VOUCHER_CODE_LENGTH)
-        return super().create(
-            **{"remaining": args.get("amount", 0), "code": code, **args}
-        )
-
-
-class Voucher(models.Model):
-    user = models.ForeignKey(
-        User, related_name="vouchers", on_delete=models.CASCADE, null=False
-    )
-    code = models.CharField(max_length=10, null=False)
-    amount = models.IntegerField(null=False)
-    remaining = models.IntegerField(null=False)
-    expiration_date = models.DateTimeField(blank=True, null=True)
-    is_valid = models.BooleanField(default=True)
-
-    objects = VoucherManager()
-
-    @transaction.atomic
-    def use_on_purchase(self, purchase):
-        # TODO - work on how purchase flow is.
-        #  Eg. can users use a discount and a voucher or just one of them?
-        if self.remaining >= purchase.merchandise.price:
-            purchase.amount = max(0, purchase.amount - self.remaining)
-            self.remaining -= purchase.merchandise.price
-        else:
-            purchase.amount = purchase.merchandise.price - self.remaining
-            self.remaining = 0
-        purchase.voucher = self
-        purchase.save()
-        self.save()
-
-
 class PurchaseManager(models.Manager):
     @transaction.atomic
     def create_purchase(self, **args):
@@ -492,13 +456,6 @@ class Purchase(models.Model):
         related_name="purchases",
         on_delete=models.PROTECT,
     )
-    voucher = models.ForeignKey(
-        Voucher,
-        related_name="purchases",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
     discount_code = models.ForeignKey(
         DiscountCode,
         related_name="purchases",
@@ -516,6 +473,4 @@ class Purchase(models.Model):
         ).last()
 
     def __str__(self):
-        return (
-            f"{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}"
-        )
+        return f"{self.uniq_code}-{self.merchandise}-{self.amount}-{self.status}"

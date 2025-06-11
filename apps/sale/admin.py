@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from apps.accounts.models import Purchase, DiscountCode, Merchandise, Voucher
+from apps.accounts.models import Purchase, DiscountCode, Merchandise
 
 
 @admin.register(Merchandise)
@@ -17,12 +17,7 @@ class CustomPurchaseAdmin(admin.ModelAdmin):
                     'status', 'created_at', 'user', 'merchandise']
     search_fields = ['ref_id', 'user__username']
     list_filter = ['merchandise']
-    autocomplete_fields = ['user', 'merchandise', 'voucher', 'discount_code']
-
-
-@admin.register(Voucher)
-class CustomVoucherAdmin(admin.ModelAdmin):
-    search_fields = ['code']
+    autocomplete_fields = ['user', 'merchandise', 'discount_code']
 
 
 @admin.register(DiscountCode)
