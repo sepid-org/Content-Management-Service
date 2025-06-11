@@ -345,20 +345,42 @@ class VerificationCode(models.Model):
 
 class DiscountCodeManager(models.Manager):
     @transaction.atomic
-    def create_discount_code(self, **args):
-        code = make_random_password(length=DISCOUNT_CODE_LENGTH)
-        return super().create(**{"code": code, **args})
+    def create_unique(self, **attrs):
+        import string
+        from django.utils.crypto import get_random_string
+
+        length = DISCOUNT_CODE_LENGTH
+        chars = string.ascii_letters + string.digits
+
+        while True:
+            code = get_random_string(length, allowed_chars=chars)
+            if not self.filter(code=code).exists():
+                break
+
+        merchandises = attrs.pop('merchandises', None)
+
+        attrs['code'] = code
+        instance = super().create(**attrs)
+
+        if merchandises:
+            instance.merchandises.set(merchandises)
+
+        return instance
 
 
-# TODO - add date validators for datetime fields
+def round_to_hundred(amount: float) -> int:
+    """Round `amount` to the nearest 100 units."""
+    return int((amount + 50) // 100) * 100
+
+
 class DiscountCode(models.Model):
-    code = models.CharField(max_length=10, unique=True,
-                            null=False, blank=False)
-    value = models.FloatField(
-        null=False, blank=False, validators=[percentage_validator]
-    )
+    code = models.CharField(max_length=10, unique=True)
+    value = models.FloatField(validators=[percentage_validator])
     expiration_date = models.DateTimeField(blank=True, null=True)
-    remaining = models.IntegerField(default=1)
+    remaining = models.PositiveIntegerField(
+        null=True, blank=True, default=None,
+        help_text="NULL means unlimited uses"
+    )
     user = models.ForeignKey(
         User,
         related_name="discount_codes",
@@ -370,20 +392,30 @@ class DiscountCode(models.Model):
     merchandises = models.ManyToManyField(
         to=Merchandise, related_name="discount_codes"
     )
-    discount_code_limit = models.IntegerField(null=True, blank=True)
+    max_discount_amount = models.IntegerField(null=True, blank=True)
     objects = DiscountCodeManager()
 
     def __str__(self):
-        return self.code + " " + str(self.value)
+        return f"{self.code} ({self.value:.0%})"
 
-    def calculate_discounted_price(self, price):
-        if self.discount_code_limit:
-            return max(
-                ((price * (1 - self.value) + 50) // 100) * 100,
-                price - self.discount_code_limit,
-            )
-        else:
-            return ((price * (1 - self.value) + 50) // 100) * 100
+    def calculate_discounted_price(self, price: float) -> int:
+        discounted = round_to_hundred(price * (1 - self.value))
+        if self.max_discount_amount:
+            cap_price = price - self.max_discount_amount
+            return max(discounted, cap_price)
+        return discounted
+
+    def apply(self, merchandise) -> int:
+        new_price = self.calculate_discounted_price(merchandise.price)
+        if self.remaining:
+            self.remaining -= 1
+            self.save()
+        return new_price
+
+    def revert_apply(self):
+        if self.remaining:
+            self.remaining += 1
+            self.save()
 
 
 class VoucherManager(models.Manager):

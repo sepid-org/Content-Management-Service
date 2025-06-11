@@ -7,29 +7,50 @@ from apps.accounts.serializers.user_serializer import UserPublicInfoSerializer
 from apps.sale.serializers.merchandise import MerchandiseSerializer
 from errors.error_codes import serialize_error
 from content_management_service.settings.base import DISCOUNT_CODE_LENGTH
-from apps.accounts.models import DiscountCode
+from apps.accounts.models import DiscountCode, Merchandise, User
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
-    discount_code_limit = serializers.IntegerField(
-        required=False, allow_null=True)
-    merchandises = MerchandiseSerializer(many=True, required=False)
-    user = UserPublicInfoSerializer(required=False, allow_null=True)
-    username = serializers.CharField(
-        max_length=150, required=False, write_only=True)
+    user = UserPublicInfoSerializer(read_only=True)
+    username = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+        source='user'  # maps into the .user FK on your model
+    )
 
-    def create(self, validated_data):
-        return DiscountCode.objects.create_discount_code(**validated_data)
+    merchandises = MerchandiseSerializer(many=True, read_only=True)
+    merchandise_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Merchandise.objects.all(),
+        source='merchandises'
+    )
+
+    max_discount_amount = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        source='discount_code_limit'
+    )
 
     class Meta:
         model = DiscountCode
-        fields = ['id', 'code', 'value', 'expiration_date', 'remaining',
-                  'user', 'merchandises', 'username', 'discount_code_limit']
-        read_only_fields = ['id', 'code']
+        fields = [
+            'id', 'code', 'value', 'expiration_date', 'remaining',
+            'user', 'username',
+            'merchandises', 'merchandise_ids',
+            'max_discount_amount',
+        ]
+        read_only_fields = ['id', 'code', 'user', 'remaining']
+
+    def create(self, validated_data):
+        return DiscountCode.objects.create_unique(**validated_data)
 
 
 class DiscountCodeValidationSerializer(serializers.ModelSerializer):
-    discount_code_limit = serializers.IntegerField(
+    max_discount_amount = serializers.IntegerField(
         required=False, allow_null=True)
     code = serializers.CharField(
         max_length=DISCOUNT_CODE_LENGTH, required=False, allow_null=True)
@@ -58,7 +79,7 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
                     discount_code.expiration_date.tzinfo):
                 raise ParseError(serialize_error('4041'))
 
-            if not discount_code.remaining > 0:
+            if discount_code.remaining is not None or discount_code.remaining == 0:
                 raise ParseError(serialize_error('4042'))
 
         return attrs
@@ -66,7 +87,7 @@ class DiscountCodeValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountCode
         fields = ['id', 'code', 'value', 'expiration_date',
-                  'remaining', 'user', 'discount_code_limit']
+                  'remaining', 'user', 'max_discount_amount']
         read_only_fields = ['id', 'value',
                             'expiration_date', 'remaining', 'user']
         extra_kwargs = {

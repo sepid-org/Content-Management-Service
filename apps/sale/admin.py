@@ -28,3 +28,4 @@ class CustomVoucherAdmin(admin.ModelAdmin):
 @admin.register(DiscountCode)
 class CustomDiscountCodeAdmin(admin.ModelAdmin):
     search_fields = ['code']
+    autocomplete_fields = ['user', 'merchandises']

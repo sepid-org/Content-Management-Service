@@ -2,8 +2,7 @@ from typing import Any, Optional
 
 from django.db import transaction
 
-from apps.accounts.models import DiscountCode, Merchandise
-from apps.accounts.utils.user_management import find_user
+from apps.accounts.models import DiscountCode
 
 
 def get_program_discount_codes(
@@ -47,17 +46,12 @@ def create_discount_code(
         The created DiscountCode instance
     """
     # Create discount code
-    discount_code = DiscountCode.objects.create_discount_code(**data)
+    discount_code = DiscountCode.objects.create_unique(**data)
 
-    # Add merchandises
-    for merchandise_id in merchandise_ids:
-        merchandise = Merchandise.objects.get(id=merchandise_id)
-        discount_code.merchandises.add(merchandise)
-
-    # Add user (if provided)
-    if username:
-        target_user = find_user(user_data={"username": username})
-        discount_code.user = target_user
-        discount_code.save()
+    # # Add user (if provided)
+    # if username:
+    #     target_user = find_user(user_data={"username": username})
+    #     discount_code.user = target_user
+    #     discount_code.save()
 
     return discount_code

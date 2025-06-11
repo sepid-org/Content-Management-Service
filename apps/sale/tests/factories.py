@@ -39,4 +39,4 @@ class DiscountCodeFactory(DjangoModelFactory):
         lambda: datetime.now(UTC) + timedelta(days=30)
     )
     user = factory.SubFactory(UserFactory)
-    discount_code_limit = factory.Faker("random_int", min=1000, max=50000)
+    max_discount_amount = factory.Faker("random_int", min=1000, max=50000)

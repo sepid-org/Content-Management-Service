@@ -110,10 +110,7 @@ class PaymentViewSet(GenericViewSet):
             raise ParseError(serialize_error('4046'))
 
         if discount_code:
-            price = discount_code.calculate_discounted_price(
-                merchandise.price)
-            discount_code.remaining -= 1
-            discount_code.save()
+            price = discount_code.apply(merchandise)
         else:
             price = merchandise.price
 
@@ -175,8 +172,7 @@ class PaymentViewSet(GenericViewSet):
                 purchase.status = Purchase.Status.Repetitious
                 discount_code = purchase.discount_code
                 if discount_code:
-                    discount_code.remaining += 1
-                    discount_code.save()
+                    discount_code.revert_apply()
             purchase.save()
 
             success_payment_callback_url = zarinpal.get_payment_callback_url(
@@ -187,11 +183,10 @@ class PaymentViewSet(GenericViewSet):
         else:
             purchase.authority = request.GET.get('Authority')
             purchase.status = Purchase.Status.Failed
+            purchase.save()
             discount_code = purchase.discount_code
             if discount_code:
-                discount_code.remaining += 1
-                discount_code.save()
-            purchase.save()
+                discount_code.revert_apply()
             failure_payment_callback_url = zarinpal.get_payment_callback_url(
                 purchase=purchase,
                 status='FAILURE',
