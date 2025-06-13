@@ -270,7 +270,7 @@ class Merchandise(models.Model):
     )
     name = models.CharField(max_length=50)
     price = models.IntegerField()
-    discounted_price = models.IntegerField(null=True)
+    discounted_price = models.IntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     program = models.ForeignKey(
         to="fsm.Program", on_delete=models.CASCADE, related_name="merchandises"
@@ -406,7 +406,8 @@ class DiscountCode(models.Model):
         return discounted
 
     def apply(self, merchandise) -> int:
-        new_price = self.calculate_discounted_price(merchandise.price)
+        initial_price = merchandise.discounted_price if merchandise.discounted_price else merchandise.price
+        new_price = self.calculate_discounted_price(initial_price)
         if self.remaining:
             self.remaining -= 1
             self.save()
