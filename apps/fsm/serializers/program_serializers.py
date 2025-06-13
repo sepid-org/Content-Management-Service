@@ -13,7 +13,7 @@ class ProgramSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = ['id', 'slug', 'cover_image', 'name', 'description', 'participation_type',
-                  'is_visible', 'is_active', 'team_size', 'is_free']
+                  'is_visible', 'is_active', 'team_size']
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -67,11 +67,6 @@ class ProgramSerializer(serializers.ModelSerializer):
                 participation_type == Program.ParticipationType.TEAM and team_size <= 0):
             raise ParseError(serialize_error('4074'))
         return attrs
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['is_free'] = instance.is_free
-        return representation
 
     class Meta:
         model = Program
